@@ -10,6 +10,19 @@
         font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    /* バナーのリンクスタイル */
+    .banner-link {
+        text-decoration: none;
+        display: block;
+        color: inherit;
+    }
+
+    .banner-link:hover .reservation-banner {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     }
 
     /* 予約可能の時のスタイル */
@@ -76,10 +89,12 @@
 </style>
 
 <!-- 予約状況バナー -->
-<div id="reservationBanner" class="reservation-banner loading">
-    <h2>読み込み中...</h2>
-    <p>予約状況を確認しています</p>
-</div>
+<a href="https://ckreserve.com/clinic/fujiminohikari-ganka" target="_blank" class="banner-link">
+    <div id="reservationBanner" class="reservation-banner loading">
+        <h2>読み込み中...</h2>
+        <p>予約状況を確認しています</p>
+    </div>
+</a>
 
 <script>
     // スプレッドシートのID
