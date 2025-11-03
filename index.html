@@ -13,14 +13,8 @@
         cursor: pointer;
     }
 
-    /* バナーのリンクスタイル */
-    .banner-link {
-        text-decoration: none;
-        display: block;
-        color: inherit;
-    }
-
-    .banner-link:hover .reservation-banner {
+    /* ホバー時の効果 */
+    .reservation-banner:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     }
@@ -89,12 +83,10 @@
 </style>
 
 <!-- 予約状況バナー -->
-<a href="https://ckreserve.com/clinic/fujiminohikari-ganka" target="_blank" class="banner-link">
-    <div id="reservationBanner" class="reservation-banner loading">
-        <h2>読み込み中...</h2>
-        <p>予約状況を確認しています</p>
-    </div>
-</a>
+<div id="reservationBanner" class="reservation-banner loading">
+    <h2>読み込み中...</h2>
+    <p>予約状況を確認しています</p>
+</div>
 
 <script>
     // スプレッドシートのID
@@ -191,9 +183,14 @@
         `;
     }
 
+    // バナーをクリックしたときの処理
+    document.getElementById('reservationBanner').addEventListener('click', function() {
+        window.open('https://ckreserve.com/clinic/fujiminohikari-ganka', '_blank');
+    });
+
     // ページ読み込み時に実行
     updateReservationStatus();
-    
+
     // 1分ごとに自動更新（60000ミリ秒 = 1分）
     setInterval(updateReservationStatus, 60000);
 </script>
