@@ -184,7 +184,7 @@
             // 予約可能
             banner.className = 'reservation-banner available';
             banner.innerHTML = `
-                <h2>✅ ${dayText}の空き 有り</h2>
+                <h2>✅ ${dayText}の予約枠 あり</h2>
                 <p>クリックして予約ページへ</p>
                 <div class="update-time">${formattedTime}</div>
             `;
@@ -192,9 +192,9 @@
             // 予約不可
             banner.className = 'reservation-banner unavailable';
             banner.innerHTML = `
-                <h2>✕ ${dayText}の空き 無し</h2>
+                <h2>✕ ${dayText}の予約枠 満</h2>
+                <p>後日分の予約は可能です</p>
                 <p>クリックして予約ページへ</p>
-                <div class="note">（後日分の予約は可能です）</div>
                 <div class="update-time">${formattedTime}</div>
             `;
         }
