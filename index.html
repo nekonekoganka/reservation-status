@@ -193,7 +193,8 @@
             // 予約不可
             banner.className = 'reservation-banner unavailable';
             banner.innerHTML = `
-                <h2>✕ ${dayText}は予約満了です</h2>
+                <h2>🈵 ${dayText}の予約は満枠です</h2>
+                <p>大変申し訳ございません</p>
                 <p>翌日以降でご予約ください</p>
                 <p>クリックして予約ページへ</p>
                 <div class="update-time">${formattedTime}</div>
