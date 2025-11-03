@@ -130,21 +130,20 @@
             
             // 最新の回答（最後の行）を取得
             const lastRow = rows[rows.length - 1];
-            const timestamp = lastRow.c[0].f; // タイムスタンプ
             const status = lastRow.c[1].v; // 予約状況（「空きあり」or「「満」」）
-            
+
             // 現在時刻を取得
             const now = new Date();
             const currentHour = now.getHours();
-            
+
             // 18時以降かどうかを判定
             const isAfter18 = currentHour >= 18;
-            
+
             // 予約可能かどうかを判定（「空きあり」が含まれているかチェック）
             const isAvailable = status.includes('空きあり');
-            
+
             // バナーを更新
-            displayBanner(isAvailable, isAfter18, timestamp);
+            displayBanner(isAvailable, isAfter18);
             
         } catch (error) {
             console.error('エラー:', error);
@@ -171,20 +170,22 @@
     /**
      * バナーを表示する関数
      */
-    function displayBanner(isAvailable, isAfter18, updateTime) {
+    function displayBanner(isAvailable, isAfter18) {
         const banner = document.getElementById('reservationBanner');
 
         // 「今日」か「明日」を判定
         const dayText = isAfter18 ? '明日' : '本日';
 
-        // タイムスタンプをフォーマット
-        const formattedTime = formatTimestamp(updateTime);
+        // 現在時刻を取得してフォーマット
+        const now = new Date();
+        const formattedTime = formatTimestamp(now);
 
         if (isAvailable) {
             // 予約可能
             banner.className = 'reservation-banner available';
             banner.innerHTML = `
-                <h2>✅ ${dayText}の予約枠 あり</h2>
+                <h2>✅ ${dayText}分の予約枠 空きあり</h2>
+                <p>ご予約いただけます</p>
                 <p>クリックして予約ページへ</p>
                 <div class="update-time">${formattedTime}</div>
             `;
@@ -192,8 +193,8 @@
             // 予約不可
             banner.className = 'reservation-banner unavailable';
             banner.innerHTML = `
-                <h2>✕ ${dayText}の予約枠 満</h2>
-                <p>後日分の予約は可能です</p>
+                <h2>✕ ${dayText}は予約満了です</h2>
+                <p>翌日以降でご予約ください</p>
                 <p>クリックして予約ページへ</p>
                 <div class="update-time">${formattedTime}</div>
             `;
