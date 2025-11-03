@@ -21,13 +21,13 @@
 
     /* 予約可能の時のスタイル */
     .reservation-banner.available {
-        background: #00BFFF;
+        background: #28A745;
         color: white;
     }
 
     /* 予約不可の時のスタイル */
     .reservation-banner.unavailable {
-        background: #F0566E;
+        background: #DC3545;
         color: white;
     }
 
@@ -47,7 +47,7 @@
     /* サブメッセージ */
     .reservation-banner p {
         margin: 5px 0;
-        font-size: 16px;
+        font-size: 18px;
         opacity: 0.9;
     }
 
@@ -78,13 +78,13 @@
             margin: 10px;
             padding: 15px;
         }
-        
+
         .reservation-banner h2 {
             font-size: 22px;
         }
-        
+
         .reservation-banner p {
-            font-size: 14px;
+            font-size: 16px;
         }
     }
 </style>
@@ -151,6 +151,22 @@
     }
 
     /**
+     * タイムスタンプを「更新：YYYY/MM/DD HH:MM」形式にフォーマット
+     */
+    function formatTimestamp(timestampStr) {
+        // スプレッドシートのタイムスタンプをパース
+        const date = new Date(timestampStr);
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return `更新：${year}/${month}/${day} ${hours}:${minutes}`;
+    }
+
+    /**
      * バナーを表示する関数
      */
     function displayBanner(isAvailable, isAfter18, updateTime) {
@@ -159,13 +175,16 @@
         // 「今日」か「明日」を判定
         const dayText = isAfter18 ? '明日' : '本日';
 
+        // タイムスタンプをフォーマット
+        const formattedTime = formatTimestamp(updateTime);
+
         if (isAvailable) {
             // 予約可能
             banner.className = 'reservation-banner available';
             banner.innerHTML = `
-                <h2>☑ ${dayText}の空き 有り</h2>
+                <h2>✅ ${dayText}の空き 有り</h2>
                 <p>クリックして予約ページへ</p>
-                <div class="update-time">最終更新: ${updateTime}</div>
+                <div class="update-time">${formattedTime}</div>
             `;
         } else {
             // 予約不可
@@ -174,7 +193,7 @@
                 <h2>✕ ${dayText}の空き 無し</h2>
                 <p>クリックして予約ページへ</p>
                 <div class="note">（後日分の予約は可能です）</div>
-                <div class="update-time">最終更新: ${updateTime}</div>
+                <div class="update-time">${formattedTime}</div>
             `;
         }
     }
