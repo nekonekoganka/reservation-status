@@ -21,19 +21,19 @@
 
     /* 予約可能の時のスタイル */
     .reservation-banner.available {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #00BFFF;
         color: white;
     }
 
     /* 予約不可の時のスタイル */
     .reservation-banner.unavailable {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        background: #F0566E;
         color: white;
     }
 
     /* 読み込み中のスタイル */
     .reservation-banner.loading {
-        background: linear-gradient(135deg, #a8b8d8 0%, #c8d0e7 100%);
+        background: #c8d0e7;
         color: #333;
     }
 
@@ -49,6 +49,13 @@
         margin: 5px 0;
         font-size: 16px;
         opacity: 0.9;
+    }
+
+    /* 補足メッセージ */
+    .reservation-banner .note {
+        margin: 10px 0;
+        font-size: 14px;
+        opacity: 0.85;
     }
 
     /* 更新時刻 */
@@ -148,24 +155,25 @@
      */
     function displayBanner(isAvailable, isAfter18, updateTime) {
         const banner = document.getElementById('reservationBanner');
-        
+
         // 「今日」か「明日」を判定
         const dayText = isAfter18 ? '明日' : '本日';
-        
+
         if (isAvailable) {
             // 予約可能
             banner.className = 'reservation-banner available';
             banner.innerHTML = `
-                <h2>✅ ${dayText}予約可能</h2>
-                <p>ご予約いただけます</p>
+                <h2>☑ ${dayText}の空き 有り</h2>
+                <p>クリックして予約ページへ</p>
                 <div class="update-time">最終更新: ${updateTime}</div>
             `;
         } else {
             // 予約不可
             banner.className = 'reservation-banner unavailable';
             banner.innerHTML = `
-                <h2>❌ ${dayText}満員</h2>
-                <p>申し訳ございません。予約枠がいっぱいです</p>
+                <h2>✕ ${dayText}の空き 無し</h2>
+                <p>クリックして予約ページへ</p>
+                <div class="note">（後日分の予約は可能です）</div>
                 <div class="update-time">最終更新: ${updateTime}</div>
             `;
         }
