@@ -130,6 +130,7 @@
             
             // 最新の回答（最後の行）を取得
             const lastRow = rows[rows.length - 1];
+            const timestamp = lastRow.c[0].f; // タイムスタンプ
             const status = lastRow.c[1].v; // 予約状況（「空きあり」or「「満」」）
 
             // 現在時刻を取得
@@ -143,7 +144,7 @@
             const isAvailable = status.includes('空きあり');
 
             // バナーを更新
-            displayBanner(isAvailable, isAfter18);
+            displayBanner(isAvailable, isAfter18, timestamp);
             
         } catch (error) {
             console.error('エラー:', error);
@@ -170,15 +171,14 @@
     /**
      * バナーを表示する関数
      */
-    function displayBanner(isAvailable, isAfter18) {
+    function displayBanner(isAvailable, isAfter18, updateTime) {
         const banner = document.getElementById('reservationBanner');
 
         // 「今日」か「明日」を判定
         const dayText = isAfter18 ? '明日' : '本日';
 
-        // 現在時刻を取得してフォーマット
-        const now = new Date();
-        const formattedTime = formatTimestamp(now);
+        // タイムスタンプをフォーマット
+        const formattedTime = formatTimestamp(updateTime);
 
         if (isAvailable) {
             // 予約可能
