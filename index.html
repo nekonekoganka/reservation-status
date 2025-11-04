@@ -1,95 +1,86 @@
-<!-- 予約状況バナー - ホームページ埋め込み用コード -->
-<style>
-    /* バナーのスタイル */
-    .reservation-banner {
-        max-width: 600px;
-        margin: 20px auto;
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
-        font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-
-    /* ホバー時の効果 */
-    .reservation-banner:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    /* 予約可能の時のスタイル */
-    .reservation-banner.available {
-        background: #0056B3;
-        color: white;
-        border: 3px solid #004085;
-    }
-
-    /* 予約不可の時のスタイル */
-    .reservation-banner.unavailable {
-        background: #DC3545;
-        color: white;
-        border: 3px solid #bd2130;
-    }
-
-    /* 読み込み中のスタイル */
-    .reservation-banner.loading {
-        background: #c8d0e7;
-        color: #333;
-    }
-
-    /* メインメッセージ */
-    .reservation-banner h2 {
-        margin: 0 0 10px 0;
-        font-size: 28px;
-        font-weight: bold;
-    }
-
-    /* サブメッセージ */
-    .reservation-banner p {
-        margin: 5px 0;
-        font-size: 18px;
-        opacity: 0.9;
-    }
-
-    /* 補足メッセージ */
-    .reservation-banner .note {
-        margin: 10px 0;
-        font-size: 14px;
-        opacity: 0.85;
-    }
-
-    /* 更新時刻 */
-    .reservation-banner .update-time {
-        margin-top: 15px;
-        font-size: 14px;
-        opacity: 0.8;
-    }
-
-    /* エラーメッセージ */
-    .reservation-banner.error {
-        background: #f5f5f5;
-        color: #666;
-        border: 2px dashed #ccc;
-    }
-
-    /* スマホ対応 */
-    @media (max-width: 600px) {
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>予約状況バナー</title>
+    <style>
+        /* バナーのスタイル */
         .reservation-banner {
-            margin: 10px;
-            padding: 15px;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
         }
 
+        /* 予約可能の時のスタイル */
+        .reservation-banner.available {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        /* 予約不可の時のスタイル */
+        .reservation-banner.unavailable {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        /* 読み込み中のスタイル */
+        .reservation-banner.loading {
+            background: linear-gradient(135deg, #a8b8d8 0%, #c8d0e7 100%);
+            color: #333;
+        }
+
+        /* メインメッセージ */
         .reservation-banner h2 {
-            font-size: 22px;
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            font-weight: bold;
         }
 
+        /* サブメッセージ */
         .reservation-banner p {
+            margin: 5px 0;
             font-size: 16px;
+            opacity: 0.9;
         }
-    }
-</style>
+
+        /* 更新時刻 */
+        .reservation-banner .update-time {
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        /* エラーメッセージ */
+        .reservation-banner.error {
+            background: #f5f5f5;
+            color: #666;
+            border: 2px dashed #ccc;
+        }
+
+        /* スマホ対応 */
+        @media (max-width: 600px) {
+            .reservation-banner {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            .reservation-banner h2 {
+                font-size: 22px;
+            }
+            
+            .reservation-banner p {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
 
 <!-- 予約状況バナー -->
 <div id="reservationBanner" class="reservation-banner loading">
@@ -118,7 +109,7 @@
             const response = await fetch(API_URL);
             const text = await response.text();
             
-            // JSONデータを抽出
+            // JSONデータを抽出（Google特有の形式）
             const json = JSON.parse(text.substring(47).slice(0, -2));
             
             // データの行を取得
@@ -128,21 +119,41 @@
                 throw new Error('データがありません');
             }
             
-            // 最新の回答（最後の行）を取得
-            const lastRow = rows[rows.length - 1];
-            const timestamp = lastRow.c[0].f; // タイムスタンプ
-            const status = lastRow.c[1].v; // 予約状況（「空きあり」or「「満」」）
-
+            // 全ての行から最新のタイムスタンプを探す
+            let latestRow = null;
+            let latestDate = null;
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                if (row.c && row.c[0] && row.c[0].v) {
+                    // タイムスタンプをDateオブジェクトに変換
+                    const timestampStr = row.c[0].f || row.c[0].v;
+                    const date = new Date(timestampStr);
+                    
+                    if (!latestDate || date > latestDate) {
+                        latestDate = date;
+                        latestRow = row;
+                    }
+                }
+            }
+            
+            if (!latestRow) {
+                throw new Error('有効なデータがありません');
+            }
+            
+            const timestamp = latestRow.c[0].f; // タイムスタンプ（フォーマット済み）
+            const status = latestRow.c[1].v; // 予約状況（「空きあり」or「「満」」）
+            
             // 現在時刻を取得
             const now = new Date();
             const currentHour = now.getHours();
-
+            
             // 18時以降かどうかを判定
             const isAfter18 = currentHour >= 18;
-
-            // 予約可能かどうかを判定（「空きあり」が含まれているかチェック）
+            
+            // 予約可能かどうかを判定
             const isAvailable = status.includes('空きあり');
-
+            
             // バナーを更新
             displayBanner(isAvailable, isAfter18, timestamp);
             
@@ -153,51 +164,29 @@
     }
 
     /**
-     * タイムスタンプを「更新：YYYY/MM/DD HH:MM」形式にフォーマット
-     */
-    function formatTimestamp(timestampStr) {
-        // スプレッドシートのタイムスタンプをパース
-        const date = new Date(timestampStr);
-
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-
-        return `更新：${year}/${month}/${day} ${hours}:${minutes}`;
-    }
-
-    /**
      * バナーを表示する関数
      */
     function displayBanner(isAvailable, isAfter18, updateTime) {
         const banner = document.getElementById('reservationBanner');
-
+        
         // 「今日」か「明日」を判定
         const dayText = isAfter18 ? '明日' : '本日';
-
-        // タイムスタンプをフォーマット
-        const formattedTime = formatTimestamp(updateTime);
-
+        
         if (isAvailable) {
             // 予約可能
             banner.className = 'reservation-banner available';
             banner.innerHTML = `
-                <h2>✅ ${dayText}分の予約枠 空きあり</h2>
+                <h2>✅ ${dayText}予約可能</h2>
                 <p>ご予約いただけます</p>
-                <p>クリックして予約ページへ</p>
-                <div class="update-time">${formattedTime}</div>
+                <div class="update-time">最終更新: ${updateTime}</div>
             `;
         } else {
             // 予約不可
             banner.className = 'reservation-banner unavailable';
             banner.innerHTML = `
-                <h2>🙇 ${dayText}の予約は満枠です</h2>
-                <p>大変申し訳ございません</p>
-                <p>翌日以降でご予約ください</p>
-                <p>クリックして予約ページへ</p>
-                <div class="update-time">${formattedTime}</div>
+                <h2>❌ ${dayText}満員</h2>
+                <p>申し訳ございません。予約枠がいっぱいです</p>
+                <div class="update-time">最終更新: ${updateTime}</div>
             `;
         }
     }
@@ -214,14 +203,12 @@
         `;
     }
 
-    // バナーをクリックしたときの処理
-    document.getElementById('reservationBanner').addEventListener('click', function() {
-        window.open('https://ckreserve.com/clinic/fujiminohikari-ganka', '_blank');
-    });
-
     // ページ読み込み時に実行
     updateReservationStatus();
-
+    
     // 1分ごとに自動更新（60000ミリ秒 = 1分）
     setInterval(updateReservationStatus, 60000);
 </script>
+
+</body>
+</html>
