@@ -201,8 +201,38 @@
     function displayBanner(isAvailable, isAfter18, updateTime) {
         const banner = document.getElementById('reservationBanner');
         
-        // 「今日」か「明日」を判定
-        const dayText = isAfter18 ? '明日' : '本日';
+        // 現在時刻を取得して詳細な判定
+        const now = new Date();
+        const dayOfWeek = now.getDay(); // 0=日, 1=月, 2=火, 3=水...
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const isAfter1830 = (hour > 18) || (hour === 18 && minute >= 30);
+        
+        // 表示テキストを決定
+        let dayText = '本日';
+        
+        if (isAfter1830) {
+            // 18:30以降
+            
+            // 月末チェック
+            const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            if (now.getDate() === lastDayOfMonth) {
+                dayText = '翌営業日';
+            } else if (dayOfWeek === 2) {
+                // 火曜日
+                dayText = '木曜';
+            } else {
+                dayText = '明日';
+            }
+        } else {
+            // 18:30より前
+            if (dayOfWeek === 3) {
+                // 水曜日
+                dayText = '木曜';
+            } else {
+                dayText = '本日';
+            }
+        }
         
         // タイムスタンプをフォーマット
         const formattedTime = formatTimestamp(updateTime);
