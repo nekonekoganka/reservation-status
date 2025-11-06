@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "予約状況自動更新",
+  "version": "1.0",
+  "description": "予約ページの空き状況を自動判定してGoogleスプレッドシートに記録します",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://ckreserve.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://ckreserve.com/clinic/fujiminohikari-ganka/fujimino*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}
