@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "予約状況自動更新",
-  "version": "1.0",
-  "description": "予約ページの空き状況を自動判定してGoogleスプレッドシートに記録します",
+  "name": "予約状況チェッカー",
+  "version": "1.1",
+  "description": "予約ページの空き状況を確認するツール",
   "permissions": [
     "activeTab",
     "scripting"
