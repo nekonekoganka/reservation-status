@@ -200,9 +200,9 @@
      */
     function displayBanner(isAvailable, isAfter18, updateTime) {
         const banner = document.getElementById('reservationBanner');
-        
-        // 現在時刻を取得して詳細な判定
-        const now = new Date();
+
+        // スプレッドシートのタイムスタンプで判定
+        const now = new Date(updateTime);
         const dayOfWeek = now.getDay(); // 0=日, 1=月, 2=火, 3=水...
         const hour = now.getHours();
         const minute = now.getMinutes();
