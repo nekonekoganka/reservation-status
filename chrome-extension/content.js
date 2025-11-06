@@ -10,8 +10,37 @@ const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIRL1XS
 // ページ読み込み完了後に実行
 window.addEventListener('load', () => {
   // 少し待ってからボタンを追加（カレンダーの読み込みを待つ）
-  setTimeout(addUpdateButton, 2000);
+  setTimeout(() => {
+    addUpdateButton();
+    // 自動実行フラグをチェック
+    checkAutoRun();
+  }, 2000);
 });
+
+/**
+ * 自動実行フラグをチェックする関数
+ */
+function checkAutoRun() {
+  const autoCheck = localStorage.getItem('autoCheck');
+
+  if (autoCheck === 'true') {
+    // フラグをクリア
+    localStorage.removeItem('autoCheck');
+
+    const button = document.getElementById('reservation-update-button');
+    if (button) {
+      // ボタンを「待機中」表示に変更
+      button.textContent = '⏳ カレンダー読み込み中...';
+      button.disabled = true;
+      button.style.opacity = '0.7';
+
+      // 7秒待ってから自動チェック実行
+      setTimeout(() => {
+        checkReservationStatus();
+      }, 7000);
+    }
+  }
+}
 
 /**
  * 更新ボタンを追加する関数
@@ -56,10 +85,30 @@ function addUpdateButton() {
   });
 
   // クリックイベント
-  button.addEventListener('click', checkReservationStatus);
+  button.addEventListener('click', handleButtonClick);
 
   // ページに追加
   document.body.appendChild(button);
+}
+
+/**
+ * ボタンクリック時の処理
+ */
+function handleButtonClick() {
+  const button = document.getElementById('reservation-update-button');
+
+  // ボタンを「リロード中」表示に変更
+  button.textContent = '🔄 ページを更新中...';
+  button.disabled = true;
+  button.style.opacity = '0.7';
+
+  // 自動実行フラグを保存
+  localStorage.setItem('autoCheck', 'true');
+
+  // ページをリロード
+  setTimeout(() => {
+    location.reload();
+  }, 500);
 }
 
 /**
