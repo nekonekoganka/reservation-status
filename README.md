@@ -30,7 +30,9 @@ reservation-status/
 ├── chrome-extension/           # Chrome拡張機能
 │   ├── content.js
 │   ├── manifest.json
-│   └── README.md
+│   ├── google-apps-script.js
+│   ├── README.md
+│   └── ICON_README.md
 ├── gas/                        # Google Apps Script
 │   └── delete-old-rows-fixed.gs
 └── bookmarklet/                # ブックマークレット（スマホ用）
