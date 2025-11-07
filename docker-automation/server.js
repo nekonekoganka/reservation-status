@@ -119,52 +119,47 @@ async function checkReservationStatus() {
     // ビューポートを設定
     await page.setViewport({ width: 1280, height: 800 });
 
-    // ページに移動（タイムアウトを60秒に延長）
-    console.log('予約ページにアクセス中...');
+    // ページに移動（初回アクセス）
+    console.log('予約ページにアクセス中（初回）...');
     await page.goto(RESERVATION_URL, {
       waitUntil: 'domcontentloaded',
       timeout: 60000
     });
 
-    console.log('ページ読み込み完了（DOMContentLoaded）');
+    console.log('初回読み込み完了');
 
-    // JavaScriptの実行を待つ（カレンダーが動的に読み込まれる可能性があるため）
-    await new Promise(resolve => setTimeout(resolve, 5000));
-    console.log('5秒待機完了');
+    // Chrome拡張機能と同じアプローチ：ページをリロード
+    console.log('ページをリロード中...');
+    await page.reload({
+      waitUntil: 'domcontentloaded',
+      timeout: 60000
+    });
 
-    // カレンダーの読み込みを待つ（複数のセレクタを試行）
-    console.log('カレンダーの読み込みを待機中...');
+    console.log('リロード完了');
 
-    try {
-      // まずtableが存在するか確認
-      await page.waitForSelector('table', { timeout: 60000 });
-      console.log('table要素を検出しました');
+    // Chrome拡張機能と同じ：7秒待機
+    console.log('カレンダーの読み込みを待機中（7秒）...');
+    await new Promise(resolve => setTimeout(resolve, 7000));
+    console.log('7秒待機完了');
 
-      // さらに待機
-      await new Promise(resolve => setTimeout(resolve, 3000));
+    // td要素の存在を確認
+    const tdInfo = await page.evaluate(() => {
+      const tds = document.querySelectorAll('td');
+      return {
+        count: tds.length,
+        samples: Array.from(tds).slice(0, 5).map(td => ({
+          text: td.textContent.trim(),
+          classes: Array.from(td.classList)
+        }))
+      };
+    });
 
-      // tdセルが存在するか確認
-      const tdExists = await page.evaluate(() => {
-        const tds = document.querySelectorAll('td');
-        console.log('td要素の数:', tds.length);
-        return tds.length > 0;
-      });
+    console.log('td要素の数:', tdInfo.count);
+    console.log('td要素のサンプル:', JSON.stringify(tdInfo.samples, null, 2));
 
-      if (!tdExists) {
-        // デバッグ用：ページのHTMLを一部取得
-        const bodyHTML = await page.evaluate(() => document.body.innerHTML.substring(0, 1000));
-        console.log('ページHTML（最初の1000文字）:', bodyHTML);
-        throw new Error('td要素が見つかりません');
-      }
-
-      console.log('カレンダーのtd要素を検出しました');
-
-    } catch (error) {
-      console.error('セレクタ待機エラー:', error.message);
-
-      // デバッグ用：スクリーンショットを保存（ログに出力）
-      const screenshot = await page.screenshot({ encoding: 'base64' });
-      console.log('スクリーンショット取得完了（base64）');
+    // td要素が見つからない場合はデバッグ情報を出力
+    if (tdInfo.count === 0) {
+      console.error('=== デバッグ情報 ===');
 
       // ページのタイトルとURLを確認
       const title = await page.title();
@@ -172,11 +167,34 @@ async function checkReservationStatus() {
       console.log('ページタイトル:', title);
       console.log('現在のURL:', url);
 
-      throw error;
+      // iframe が存在するかチェック
+      const iframes = await page.evaluate(() => {
+        const frames = document.querySelectorAll('iframe');
+        return Array.from(frames).map(f => ({
+          src: f.src,
+          id: f.id,
+          name: f.name
+        }));
+      });
+      console.log('iframe の数:', iframes.length);
+      if (iframes.length > 0) {
+        console.log('iframe 情報:', JSON.stringify(iframes, null, 2));
+      }
+
+      // ページのHTML構造を確認
+      const bodyHTML = await page.evaluate(() => document.body.innerHTML.substring(0, 2000));
+      console.log('ページHTML（最初の2000文字）:', bodyHTML);
+
+      // スクリーンショットを保存
+      const screenshot = await page.screenshot({ encoding: 'base64' });
+      console.log('スクリーンショット（最初の100文字）:', screenshot.substring(0, 100));
+
+      console.log('===================');
+
+      throw new Error('td要素が見つかりません。カレンダーがiframe内にある可能性があります。');
     }
 
-    // さらに少し待つ（カレンダーの完全な読み込みを待つ）
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    console.log('カレンダーのtd要素を検出しました');
 
     // カレンダーのすべてのセルを取得して対象日付を探す
     console.log('カレンダーを解析中...');
