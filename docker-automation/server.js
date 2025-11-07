@@ -155,23 +155,55 @@ async function checkReservationStatus() {
 
     console.log('Chrome拡張機能と同じタイミング完了（合計11秒待機）');
 
-    // Chrome拡張機能と同じ：直接td要素を取得（waitForSelectorなし）
-    const tdInfo = await page.evaluate(() => {
-      const tds = document.querySelectorAll('td');
-      return {
-        count: tds.length,
-        samples: Array.from(tds).slice(0, 10).map(td => ({
-          text: td.textContent.trim(),
-          classes: Array.from(td.classList)
-        }))
-      };
-    });
+    // iframe内のカレンダーにアクセス
+    console.log('iframe を探索中...');
 
-    console.log('td要素の数:', tdInfo.count);
-    console.log('td要素のサンプル（最初の10個）:', JSON.stringify(tdInfo.samples, null, 2));
+    const frames = page.frames();
+    console.log('frame の数:', frames.length);
+
+    // カレンダーがあるiframeを探す（td要素が存在するframeを探す）
+    let calendarFrame = null;
+    let tdInfo = null;
+
+    for (let i = 0; i < frames.length; i++) {
+      const frame = frames[i];
+      const frameUrl = frame.url();
+      console.log(`frame[${i}] URL:`, frameUrl);
+
+      try {
+        // このframe内でtd要素を探す
+        const tdCount = await frame.evaluate(() => {
+          return document.querySelectorAll('td').length;
+        });
+
+        console.log(`frame[${i}] td要素の数:`, tdCount);
+
+        if (tdCount > 0) {
+          // td要素が見つかった！このframeを使う
+          calendarFrame = frame;
+
+          tdInfo = await frame.evaluate(() => {
+            const tds = document.querySelectorAll('td');
+            return {
+              count: tds.length,
+              samples: Array.from(tds).slice(0, 10).map(td => ({
+                text: td.textContent.trim(),
+                classes: Array.from(td.classList)
+              }))
+            };
+          });
+
+          console.log('カレンダーframeを発見！ frame[' + i + ']');
+          console.log('td要素のサンプル（最初の10個）:', JSON.stringify(tdInfo.samples, null, 2));
+          break;
+        }
+      } catch (error) {
+        console.log(`frame[${i}] へのアクセスエラー:`, error.message);
+      }
+    }
 
     // td要素が見つからない場合はデバッグ情報を出力
-    if (tdInfo.count === 0) {
+    if (!calendarFrame || !tdInfo || tdInfo.count === 0) {
       console.error('=== デバッグ情報 ===');
 
       const title = await page.title();
@@ -200,12 +232,14 @@ async function checkReservationStatus() {
 
       console.log('===================');
 
-      throw new Error('td要素が見つかりません。カレンダーがiframe内にある可能性があります。');
+      throw new Error('td要素が見つかりません。全てのframeを探索しましたが見つかりませんでした。');
     }
 
-    // カレンダーのすべてのセルを取得して対象日付を探す
-    console.log('カレンダーを解析中...');
-    const status = await page.evaluate((targetDate) => {
+    console.log('カレンダーのtd要素を検出しました（iframe内）')
+
+    // iframe内のカレンダーのすべてのセルを取得して対象日付を探す
+    console.log('カレンダーを解析中（iframe内）...');
+    const status = await calendarFrame.evaluate((targetDate) => {
       const cells = document.querySelectorAll('td');
 
       for (let cell of cells) {
