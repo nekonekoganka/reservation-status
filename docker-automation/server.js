@@ -105,25 +105,37 @@ async function checkReservationStatus() {
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-gpu'
+        '--disable-gpu',
+        '--ignore-certificate-errors',
+        '--disable-web-security'
       ]
     });
 
     const page = await browser.newPage();
 
-    // ページに移動
+    // User-Agentを設定（通常のブラウザとして振る舞う）
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+
+    // ビューポートを設定
+    await page.setViewport({ width: 1280, height: 800 });
+
+    // ページに移動（タイムアウトを60秒に延長）
     console.log('予約ページにアクセス中...');
     await page.goto(RESERVATION_URL, {
       waitUntil: 'networkidle2',
-      timeout: 30000
+      timeout: 60000
     });
 
-    // カレンダーの読み込みを待つ
+    console.log('ページ読み込み完了');
+
+    // カレンダーの読み込みを待つ（タイムアウトを30秒に延長）
     console.log('カレンダーの読み込みを待機中...');
-    await page.waitForSelector('td', { timeout: 10000 });
+    await page.waitForSelector('td', { timeout: 30000 });
+
+    console.log('カレンダーのtd要素を検出しました');
 
     // さらに少し待つ（カレンダーの完全な読み込みを待つ）
-    await page.waitForTimeout(3000);
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     // カレンダーのすべてのセルを取得して対象日付を探す
     console.log('カレンダーを解析中...');
