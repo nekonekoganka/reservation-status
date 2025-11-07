@@ -161,7 +161,7 @@ async function checkReservationStatus() {
     const frames = page.frames();
     console.log('frame の数:', frames.length);
 
-    // カレンダーがあるiframeを探す（td要素が存在するframeを探す）
+    // カレンダーがあるiframeを探す（カレンダー特有のCSSクラスを持つframeを探す）
     let calendarFrame = null;
     let tdInfo = null;
 
@@ -171,15 +171,26 @@ async function checkReservationStatus() {
       console.log(`frame[${i}] URL:`, frameUrl);
 
       try {
-        // このframe内でtd要素を探す
-        const tdCount = await frame.evaluate(() => {
-          return document.querySelectorAll('td').length;
+        // このframe内でカレンダー特有のCSS クラスを持つtd要素を探す
+        const calendarInfo = await frame.evaluate(() => {
+          const tds = document.querySelectorAll('td');
+          const calendarTds = Array.from(tds).filter(td =>
+            td.classList.contains('select-cell-available') ||
+            td.classList.contains('day-closed') ||
+            td.classList.contains('day-full')
+          );
+
+          return {
+            totalTdCount: tds.length,
+            calendarTdCount: calendarTds.length
+          };
         });
 
-        console.log(`frame[${i}] td要素の数:`, tdCount);
+        console.log(`frame[${i}] td要素の数:`, calendarInfo.totalTdCount);
+        console.log(`frame[${i}] カレンダー特有のtd要素の数:`, calendarInfo.calendarTdCount);
 
-        if (tdCount > 0) {
-          // td要素が見つかった！このframeを使う
+        if (calendarInfo.calendarTdCount > 0) {
+          // カレンダー特有のクラスを持つtd要素が見つかった！このframeを使う
           calendarFrame = frame;
 
           tdInfo = await frame.evaluate(() => {
@@ -232,7 +243,7 @@ async function checkReservationStatus() {
 
       console.log('===================');
 
-      throw new Error('td要素が見つかりません。全てのframeを探索しましたが見つかりませんでした。');
+      throw new Error('カレンダー要素が見つかりません。全てのframeを探索しましたが、カレンダー特有のCSSクラス（select-cell-available, day-closed, day-full）を持つtd要素が見つかりませんでした。');
     }
 
     console.log('カレンダーのtd要素を検出しました（iframe内）')
