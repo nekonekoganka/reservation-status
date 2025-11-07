@@ -14,7 +14,7 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 // 環境変数から設定を取得
-const RESERVATION_URL = process.env.RESERVATION_URL || 'https://ckreserve.com/clinic/fujiminohikari-ganka';
+const RESERVATION_URL = process.env.RESERVATION_URL || 'https://ckreserve.com/clinic/fujiminohikari-ganka/fujimino';
 const GOOGLE_APPS_SCRIPT_URL = process.env.GOOGLE_APPS_SCRIPT_URL;
 
 // タイムゾーンを Asia/Tokyo に設定
@@ -75,6 +75,52 @@ function calculateTargetDate() {
   targetDate.setDate(targetDate.getDate() + daysToAdd);
 
   return { targetDate: targetDate.getDate(), displayText: displayText };
+}
+
+const CALENDAR_CELL_SELECTOR = 'td.select-cell-available, td.day-closed, td.day-full';
+
+/**
+ * 予約カレンダーが存在する Frame/Page を待機して返す
+ *
+ * @param {import('puppeteer').Page} page
+ * @param {number} timeoutMs
+ * @returns {Promise<import('puppeteer').Frame|null>}
+ */
+async function waitForCalendarContext(page, timeoutMs = 20000) {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    try {
+      const mainFrameHasCalendar = await page.evaluate((selector) => {
+        return document.querySelector(selector) !== null;
+      }, CALENDAR_CELL_SELECTOR);
+
+      if (mainFrameHasCalendar) {
+        return page.mainFrame();
+      }
+    } catch (error) {
+      console.log('メインページ判定中にエラーが発生しました:', error.message);
+    }
+
+    for (const frame of page.frames()) {
+      try {
+        const hasCalendar = await frame.evaluate((selector) => {
+          return document.querySelector(selector) !== null;
+        }, CALENDAR_CELL_SELECTOR);
+
+        if (hasCalendar) {
+          return frame;
+        }
+      } catch (error) {
+        // クロスオリジン iframe などアクセスできない frame は無視
+        console.log('frame へのアクセスをスキップ:', frame.url(), error.message);
+      }
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  return null;
 }
 
 /**
@@ -155,66 +201,13 @@ async function checkReservationStatus() {
 
     console.log('Chrome拡張機能と同じタイミング完了（合計11秒待機）');
 
-    // iframe内のカレンダーにアクセス
-    console.log('iframe を探索中...');
+    // カレンダー（メインページまたは iframe）を探索
+    console.log('カレンダー要素を探索中...');
 
-    const frames = page.frames();
-    console.log('frame の数:', frames.length);
-
-    // カレンダーがあるiframeを探す（カレンダー特有のCSSクラスを持つframeを探す）
-    let calendarFrame = null;
-    let tdInfo = null;
-
-    for (let i = 0; i < frames.length; i++) {
-      const frame = frames[i];
-      const frameUrl = frame.url();
-      console.log(`frame[${i}] URL:`, frameUrl);
-
-      try {
-        // このframe内でカレンダー特有のCSS クラスを持つtd要素を探す
-        const calendarInfo = await frame.evaluate(() => {
-          const tds = document.querySelectorAll('td');
-          const calendarTds = Array.from(tds).filter(td =>
-            td.classList.contains('select-cell-available') ||
-            td.classList.contains('day-closed') ||
-            td.classList.contains('day-full')
-          );
-
-          return {
-            totalTdCount: tds.length,
-            calendarTdCount: calendarTds.length
-          };
-        });
-
-        console.log(`frame[${i}] td要素の数:`, calendarInfo.totalTdCount);
-        console.log(`frame[${i}] カレンダー特有のtd要素の数:`, calendarInfo.calendarTdCount);
-
-        if (calendarInfo.calendarTdCount > 0) {
-          // カレンダー特有のクラスを持つtd要素が見つかった！このframeを使う
-          calendarFrame = frame;
-
-          tdInfo = await frame.evaluate(() => {
-            const tds = document.querySelectorAll('td');
-            return {
-              count: tds.length,
-              samples: Array.from(tds).slice(0, 10).map(td => ({
-                text: td.textContent.trim(),
-                classes: Array.from(td.classList)
-              }))
-            };
-          });
-
-          console.log('カレンダーframeを発見！ frame[' + i + ']');
-          console.log('td要素のサンプル（最初の10個）:', JSON.stringify(tdInfo.samples, null, 2));
-          break;
-        }
-      } catch (error) {
-        console.log(`frame[${i}] へのアクセスエラー:`, error.message);
-      }
-    }
+    const calendarFrame = await waitForCalendarContext(page);
 
     // td要素が見つからない場合はデバッグ情報を出力
-    if (!calendarFrame || !tdInfo || tdInfo.count === 0) {
+    if (!calendarFrame) {
       console.error('=== デバッグ情報 ===');
 
       const title = await page.title();
@@ -243,13 +236,15 @@ async function checkReservationStatus() {
 
       console.log('===================');
 
-      throw new Error('カレンダー要素が見つかりません。全てのframeを探索しましたが、カレンダー特有のCSSクラス（select-cell-available, day-closed, day-full）を持つtd要素が見つかりませんでした。');
+      throw new Error('カレンダー要素が見つかりません。ページおよび全てのiframeを探索しましたが、カレンダー特有のCSSクラス（select-cell-available, day-closed, day-full）を持つtd要素が見つかりませんでした。');
     }
 
-    console.log('カレンダーのtd要素を検出しました（iframe内）')
+    const frameType = calendarFrame === page.mainFrame() ? 'メインページ' : 'iframe';
+    console.log(`カレンダーのtd要素を検出しました (${frameType})`);
+    console.log('使用する frame URL:', calendarFrame.url());
 
-    // iframe内のカレンダーのすべてのセルを取得して対象日付を探す
-    console.log('カレンダーを解析中（iframe内）...');
+    // iframe内（もしくはメインページ）のカレンダーのすべてのセルを取得して対象日付を探す
+    console.log('カレンダーを解析中...');
     const status = await calendarFrame.evaluate((targetDate) => {
       const cells = document.querySelectorAll('td');
 
