@@ -122,20 +122,61 @@ async function checkReservationStatus() {
     // ページに移動（タイムアウトを60秒に延長）
     console.log('予約ページにアクセス中...');
     await page.goto(RESERVATION_URL, {
-      waitUntil: 'networkidle2',
+      waitUntil: 'domcontentloaded',
       timeout: 60000
     });
 
-    console.log('ページ読み込み完了');
+    console.log('ページ読み込み完了（DOMContentLoaded）');
 
-    // カレンダーの読み込みを待つ（タイムアウトを30秒に延長）
+    // JavaScriptの実行を待つ（カレンダーが動的に読み込まれる可能性があるため）
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    console.log('5秒待機完了');
+
+    // カレンダーの読み込みを待つ（複数のセレクタを試行）
     console.log('カレンダーの読み込みを待機中...');
-    await page.waitForSelector('td', { timeout: 30000 });
 
-    console.log('カレンダーのtd要素を検出しました');
+    try {
+      // まずtableが存在するか確認
+      await page.waitForSelector('table', { timeout: 60000 });
+      console.log('table要素を検出しました');
+
+      // さらに待機
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      // tdセルが存在するか確認
+      const tdExists = await page.evaluate(() => {
+        const tds = document.querySelectorAll('td');
+        console.log('td要素の数:', tds.length);
+        return tds.length > 0;
+      });
+
+      if (!tdExists) {
+        // デバッグ用：ページのHTMLを一部取得
+        const bodyHTML = await page.evaluate(() => document.body.innerHTML.substring(0, 1000));
+        console.log('ページHTML（最初の1000文字）:', bodyHTML);
+        throw new Error('td要素が見つかりません');
+      }
+
+      console.log('カレンダーのtd要素を検出しました');
+
+    } catch (error) {
+      console.error('セレクタ待機エラー:', error.message);
+
+      // デバッグ用：スクリーンショットを保存（ログに出力）
+      const screenshot = await page.screenshot({ encoding: 'base64' });
+      console.log('スクリーンショット取得完了（base64）');
+
+      // ページのタイトルとURLを確認
+      const title = await page.title();
+      const url = page.url();
+      console.log('ページタイトル:', title);
+      console.log('現在のURL:', url);
+
+      throw error;
+    }
 
     // さらに少し待つ（カレンダーの完全な読み込みを待つ）
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     // カレンダーのすべてのセルを取得して対象日付を探す
     console.log('カレンダーを解析中...');
