@@ -1,7 +1,7 @@
 // 予約状況自動更新ボタンを追加するプログラム
 
 // スプレッドシートの設定
-const SPREADSHEET_ID = '1XRi1YeaMX0DtH-3WbK8jV_EbeGiIHi37kmXvFTGZo1A';
+const SPREADSHEET_ID = '1RSd9aC5B_-gQ1_j5V1aQcZn1iVw9v8mpmhJ78_8gY80';
 const SHEET_NAME = 'フォームの回答 1';
 
 // Google Apps ScriptのWeb App URL
