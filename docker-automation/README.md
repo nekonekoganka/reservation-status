@@ -5,8 +5,8 @@ Node.js + Puppeteer で予約ページを自動チェックし、Google Cloud Ru
 ## 📌 概要
 
 - **実行方式:** Cloud Scheduler + Cloud Run（方式A）
-- **実行頻度:** 2分ごと
-- **コスト:** 月100〜300円程度（ほぼ無料枠内）
+- **実行頻度:** 営業時間中1分ごと、営業時間外5分ごと
+- **コスト:** 月20〜80円程度（ほぼ無料枠内）
 - **ベースコード:** chrome-extension/content.js のロジックを移植
 
 ---
@@ -136,36 +136,68 @@ curl "$SERVICE_URL/test"
 
 ---
 
-### ステップ7: Cloud Scheduler を設定（2分ごとに自動実行）
+### ステップ7: Cloud Scheduler を設定（営業時間ベース）
+
+営業時間中は1分ごと、営業時間外は5分ごとに実行するため、3つのジョブを作成します。
 
 ```bash
-# Cloud Scheduler のジョブを作成
-gcloud scheduler jobs create http reservation-checker-job \
+# ジョブ1: 営業時間中（月火木金土日 9:00-18:59）1分ごと
+gcloud scheduler jobs create http reservation-checker-business-hours \
   --location $REGION \
-  --schedule "*/2 * * * *" \
+  --schedule "* 9-18 * * 0-2,4-6" \
   --uri "$SERVICE_URL/check" \
   --http-method GET \
   --time-zone "Asia/Tokyo" \
-  --description "予約状況を2分ごとにチェック"
+  --description "営業時間中（1分ごと）"
+
+# ジョブ2: 営業時間外（深夜・早朝）5分ごと
+gcloud scheduler jobs create http reservation-checker-off-hours \
+  --location $REGION \
+  --schedule "*/5 0-8,19-23 * * *" \
+  --uri "$SERVICE_URL/check" \
+  --http-method GET \
+  --time-zone "Asia/Tokyo" \
+  --description "営業時間外（5分ごと）"
+
+# ジョブ3: 水曜日（休診日）5分ごと
+gcloud scheduler jobs create http reservation-checker-wednesday \
+  --location $REGION \
+  --schedule "*/5 * * * 3" \
+  --uri "$SERVICE_URL/check" \
+  --http-method GET \
+  --time-zone "Asia/Tokyo" \
+  --description "水曜日・休診日（5分ごと）"
 ```
 
 **スケジュール設定の説明:**
-- `*/2 * * * *` = 2分ごと
-- `*/5 * * * *` = 5分ごと
-- `0 * * * *` = 毎時0分
+- `* 9-18 * * 0-2,4-6` = 月火木金土日の9時-18時台、毎分
+- `*/5 0-8,19-23 * * *` = 毎日0-8時と19-23時、5分ごと
+- `*/5 * * * 3` = 水曜日全時間帯、5分ごと
+
+**実行頻度:**
+- 営業時間中（約208時間/月）: **1分ごと** = 12,480回/月
+- 営業時間外（約512時間/月）: **5分ごと** = 6,144回/月
+- **合計: 約18,600回/月**
+- **月額料金: 20〜80円程度**
 
 ---
 
 ### ステップ8: Cloud Scheduler を手動実行してテスト
 
 ```bash
-# ジョブを手動実行
-gcloud scheduler jobs run reservation-checker-job --location $REGION
+# 営業時間中のジョブを手動実行
+gcloud scheduler jobs run reservation-checker-business-hours --location $REGION
+
+# または、営業時間外のジョブを手動実行
+gcloud scheduler jobs run reservation-checker-off-hours --location $REGION
 
 # ログを確認
 gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=reservation-checker" \
   --limit 50 \
   --format json
+
+# 全ジョブの一覧を確認
+gcloud scheduler jobs list --location $REGION
 ```
 
 ---
@@ -216,16 +248,23 @@ curl http://localhost:8080/test
 
 ## 📊 コスト概算
 
+### 実行頻度（営業時間ベース）
+
+- **営業時間中:** 1分ごと（月火木金土日 9:00-18:59）
+- **営業時間外:** 5分ごと（深夜・早朝・水曜日）
+- **月間実行回数:** 約18,600回
+
 ### Cloud Run
 
-- リクエスト数: 月720回（2分ごと） × 30日 = 21,600回
+- リクエスト数: 約18,600回/月
 - 実行時間: 1回あたり約10秒
+- CPU時間: 約51.7時間/月（無料枠50時間をわずかに超過）
 - メモリ: 1GB
-- **月額: 100〜200円**（無料枠でほぼカバー）
+- **月額: 20〜60円**
 
 ### Cloud Scheduler
 
-- ジョブ数: 1個
+- ジョブ数: 3個（営業時間中、営業時間外、水曜日）
 - **月額: 無料**（月3ジョブまで無料）
 
 ### Cloud Build
@@ -233,7 +272,7 @@ curl http://localhost:8080/test
 - ビルド時間: 初回のみ約5分
 - **月額: ほぼ無料**（月120分まで無料）
 
-**合計: 月100〜300円程度**
+**合計: 月20〜80円程度**
 
 ---
 
@@ -306,16 +345,35 @@ gcloud logging tail "resource.type=cloud_run_revision AND resource.labels.servic
 ### Cloud Scheduler のスケジュールを変更
 
 ```bash
-# 既存のジョブを削除
-gcloud scheduler jobs delete reservation-checker-job --location $REGION
+# 既存のジョブを全て削除
+gcloud scheduler jobs delete reservation-checker-business-hours --location $REGION
+gcloud scheduler jobs delete reservation-checker-off-hours --location $REGION
+gcloud scheduler jobs delete reservation-checker-wednesday --location $REGION
 
-# 新しいスケジュールで再作成（例: 5分ごと）
-gcloud scheduler jobs create http reservation-checker-job \
+# 新しいスケジュールで再作成（例: 営業時間中2分ごと、営業時間外5分ごと）
+gcloud scheduler jobs create http reservation-checker-business-hours \
   --location $REGION \
-  --schedule "*/5 * * * *" \
+  --schedule "*/2 9-18 * * 0-2,4-6" \
   --uri "$SERVICE_URL/check" \
   --http-method GET \
-  --time-zone "Asia/Tokyo"
+  --time-zone "Asia/Tokyo" \
+  --description "営業時間中（2分ごと）"
+
+gcloud scheduler jobs create http reservation-checker-off-hours \
+  --location $REGION \
+  --schedule "*/5 0-8,19-23 * * *" \
+  --uri "$SERVICE_URL/check" \
+  --http-method GET \
+  --time-zone "Asia/Tokyo" \
+  --description "営業時間外（5分ごと）"
+
+gcloud scheduler jobs create http reservation-checker-wednesday \
+  --location $REGION \
+  --schedule "*/5 * * * 3" \
+  --uri "$SERVICE_URL/check" \
+  --http-method GET \
+  --time-zone "Asia/Tokyo" \
+  --description "水曜日・休診日（5分ごと）"
 ```
 
 ---
@@ -362,5 +420,6 @@ gcloud run services add-iam-policy-binding reservation-checker \
 ---
 
 **作成日:** 2025年11月7日
-**バージョン:** 1.0.0
+**最終更新:** 2025年11月9日
+**バージョン:** 1.1.0（営業時間ベース実行対応）
 **対応環境:** Chromebook (Cloud Shell), Linux, macOS
