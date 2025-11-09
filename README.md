@@ -76,7 +76,7 @@ reservation-status/
 
 ### 方式B: Docker自動化（完全自動）🆕 【おすすめ】
 
-Cloud Runで5分ごとに自動実行（月額100〜300円）
+Cloud Runで営業時間中1分ごと、営業時間外5分ごとに自動実行
 
 ```bash
 # 詳細なセットアップ手順はこちら
@@ -84,7 +84,10 @@ docker-automation/README.md
 ```
 
 - **メリット:** 完全自動、メンテナンス不要
-- **デメリット:** わずかな費用が発生（月100〜300円）
+- **デメリット:** わずかな費用が発生（月20〜80円）
+- **Google Cloudプロジェクト:**
+  - プロジェクト番号: 224924651996
+  - プロジェクト ID: forward-script-470815-c5
 - 詳細：[docker-automation/README.md](docker-automation/README.md)
 
 ### 方式C: ブックマークレット（スマホ用）
@@ -126,6 +129,8 @@ docker-automation/README.md
 - **Browser Extension:** Chrome Extension (Manifest V3)
 - **Automation:** Node.js, Puppeteer, Docker 🆕
 - **Cloud Platform:** Google Cloud Run, Cloud Scheduler 🆕
+  - プロジェクト番号: 224924651996
+  - プロジェクト ID: forward-script-470815-c5
 
 ---
 
