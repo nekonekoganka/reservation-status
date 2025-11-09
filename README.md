@@ -28,7 +28,8 @@ reservation-status/
 ├── Downloads/                  # バナー用画像ファイル 🆕
 │   ├── vacant_reservation.png  # 予約空きありバナー
 │   ├── full_reservation.png    # 予約満バナー
-│   └── closed_days.png         # 休診日バナー
+│   ├── closed_days.png         # 休診日バナー
+│   └── chrome-store-screenshot.png  # プレースホルダー（ローカル保存済、今後更新予定）
 ├── docs/                       # ドキュメント
 │   ├── handover-to-claude-code.md      # システム全体の引き継ぎ資料
 │   ├── implementation-guide-v5.md      # 実装手順
@@ -173,6 +174,28 @@ const SHEET_NAME = 'フォームの回答 1';
 ```
 https://ckreserve.com/clinic/fujiminohikari-ganka
 ```
+
+### 予約ページURLの使い分け
+
+システム内で2つの異なるURLを使用しています：
+
+#### 1. **人間向け（バナーのクリック先）**
+```
+https://ckreserve.com/clinic/fujiminohikari-ganka
+```
+- 予約ページの**入り口**
+- 事前の注意事項などが書いてあるページ
+- 人間がまず見るべきページ
+- **index.html のリンクはこれを使用** ✅
+
+#### 2. **システム向け（Docker自動化）**
+```
+https://ckreserve.com/clinic/fujiminohikari-ganka/fujimino
+```
+- 具体的な**予約カレンダーページ**
+- 本日が空いてる/埋まってるが分かるページ
+- 自動チェックシステムはここを見る必要がある
+- **Docker自動化システムはこれを使用** ✅
 
 ---
 

@@ -13,7 +13,7 @@
 ### 1-1. スクリプトエディタを開く
 
 1. Googleスプレッドシートを開く
-   https://docs.google.com/spreadsheets/d/1XRi1YeaMX0DtH-3WbK8jV_EbeGiIHi37kmXvFTGZo1A/edit
+   https://docs.google.com/spreadsheets/d/1RSd9aC5B_-gQ1_j5V1aQcZn1iVw9v8mpmhJ78_8gY80/edit
 
 2. メニューから「拡張機能」→「Apps Script」をクリック
 
