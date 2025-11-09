@@ -29,7 +29,9 @@ docker-automation/
 ### 前提条件
 
 - Google Cloud アカウント
-- Google Cloud プロジェクト（既存または新規）
+- Google Cloud プロジェクト
+  - **プロジェクト番号:** 224924651996
+  - **プロジェクト ID:** forward-script-470815-c5
 - 課金の有効化（無料枠でも課金設定が必要）
 
 ---
@@ -56,12 +58,13 @@ cd reservation-status/docker-automation
 ### ステップ3: Google Cloud の設定
 
 ```bash
-# プロジェクトIDを確認（まだ作成していない場合は作成）
-gcloud projects list
-
-# プロジェクトIDを設定（YOUR_PROJECT_ID を実際のIDに置き換える）
-export PROJECT_ID="YOUR_PROJECT_ID"
+# プロジェクトIDを設定
+export PROJECT_ID="forward-script-470815-c5"
 gcloud config set project $PROJECT_ID
+
+# プロジェクト情報を確認
+# プロジェクト番号: 224924651996
+# プロジェクト ID: forward-script-470815-c5
 
 # リージョンを設定（東京リージョン推奨）
 export REGION="asia-northeast1"
@@ -389,9 +392,10 @@ gcloud run services update reservation-checker \
   --no-allow-unauthenticated
 
 # Cloud Scheduler のサービスアカウントに権限を付与
+# プロジェクト番号: 224924651996
 gcloud run services add-iam-policy-binding reservation-checker \
   --region $REGION \
-  --member="serviceAccount:PROJECT_NUMBER-compute@developer.gserviceaccount.com" \
+  --member="serviceAccount:224924651996-compute@developer.gserviceaccount.com" \
   --role="roles/run.invoker"
 ```
 
