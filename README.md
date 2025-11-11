@@ -4,19 +4,22 @@
 
 ## 🌐 デモ
 
-**バナー表示：** https://nekonekoganka.github.io/reservation-status/
+**バナー表示（ホームページ埋め込み用）：** https://nekonekoganka.github.io/reservation-status/
+
+**全画面ディスプレイ（クリニック入口用 1920×1080）：** https://nekonekoganka.github.io/reservation-status/display.html
 
 ---
 
 ## 📌 主な機能
 
 1. **Chrome拡張機能** - 予約ページから空き状況を自動判定
-2. **Docker自動化システム** - Cloud Runで5分ごとに完全自動実行 🆕
+2. **Docker自動化システム** - Cloud Runで営業時間に応じて自動実行 🆕
 3. **Googleスプレッドシート連携** - 判定結果を自動記録
 4. **GitHub Pagesバナー** - ホームページに埋め込み可能なバナー
-5. **曜日・時間対応** - 火曜18:30以降は木曜、水曜は木曜をチェック
-6. **自動データ管理** - 20,000行以上の古いデータを自動削除
-7. **iframe対応** - iframe内のカレンダーも正しく検出 🆕
+5. **全画面ディスプレイ** - クリニック入口用1920×1080ディスプレイ 🆕
+6. **曜日・時間対応** - 火曜18:30以降は木曜、水曜は木曜をチェック
+7. **自動データ管理** - 20,000行以上の古いデータを自動削除
+8. **iframe対応** - iframe内のカレンダーも正しく検出
 
 ---
 
@@ -24,8 +27,9 @@
 
 ```
 reservation-status/
-├── index.html                  # バナー表示用HTML
-├── Downloads/                  # バナー用画像ファイル 🆕
+├── index.html                  # バナー表示用HTML（ホームページ埋め込み用）
+├── display.html                # 全画面ディスプレイ用HTML（1920×1080・クリニック入口用）🆕
+├── Downloads/                  # バナー用画像ファイル
 │   ├── vacant_reservation.png  # 予約空きありバナー
 │   ├── full_reservation.png    # 予約満バナー
 │   └── closed_days.png         # 休診日バナー

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>予約状況ディスプレイ - ふじみ野ひかり眼科</title>
+    <style>
+        /* 全画面表示用のリセット */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* ディスプレイ全体のスタイル */
+        .display-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 80px;
+            text-align: center;
+            color: white;
+            transition: background-color 0.5s ease;
+        }
+
+        /* 予約可能の時のスタイル（濃い黄緑色） */
+        .display-container.available {
+            background: linear-gradient(135deg, #27AE60 0%, #229954 100%);
+        }
+
+        /* 予約不可の時のスタイル（赤色） */
+        .display-container.unavailable {
+            background: linear-gradient(135deg, #DC3545 0%, #C82333 100%);
+        }
+
+        /* 読み込み中のスタイル */
+        .display-container.loading {
+            background: linear-gradient(135deg, #6C757D 0%, #5A6268 100%);
+        }
+
+        /* クリニック名 */
+        .clinic-name {
+            font-size: 64px;
+            font-weight: bold;
+            margin-bottom: 60px;
+            opacity: 0.95;
+            letter-spacing: 8px;
+        }
+
+        /* アイコン */
+        .icon {
+            font-size: 200px;
+            margin-bottom: 40px;
+            line-height: 1;
+        }
+
+        /* メインメッセージ（空きあり/満枠） */
+        .main-message {
+            font-size: 120px;
+            font-weight: bold;
+            margin-bottom: 80px;
+            line-height: 1.4;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* サブメッセージ */
+        .sub-message {
+            font-size: 56px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+
+        /* QRコードメッセージ */
+        .qr-message {
+            font-size: 64px;
+            font-weight: bold;
+            margin-top: 60px;
+            margin-bottom: 60px;
+            opacity: 0.95;
+        }
+
+        /* 更新時刻 */
+        .update-time {
+            font-size: 40px;
+            opacity: 0.85;
+            margin-top: 40px;
+        }
+
+        /* エラー時のスタイル */
+        .display-container.error {
+            background: linear-gradient(135deg, #868E96 0%, #6C757D 100%);
+        }
+
+        .error-message {
+            font-size: 72px;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="displayContainer" class="display-container loading">
+    <div class="clinic-name">ふじみ野ひかり眼科</div>
+    <div class="icon">⏳</div>
+    <div class="main-message">読み込み中...</div>
+    <div class="sub-message">予約状況を確認しています</div>
+</div>
+
+<script>
+    // スプレッドシートのID
+    const SPREADSHEET_ID = '1RSd9aC5B_-gQ1_j5V1aQcZn1iVw9v8mpmhJ78_8gY80';
+
+    // スプレッドシートのシート名
+    const SHEET_NAME = 'フォームの回答 1';
+
+    // Google Sheets APIのURL
+    const API_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+    /**
+     * 予約状況を取得して表示する関数
+     */
+    async function updateReservationStatus() {
+        const container = document.getElementById('displayContainer');
+
+        try {
+            // スプレッドシートからデータを取得
+            const response = await fetch(API_URL);
+            const text = await response.text();
+
+            // JSONデータを抽出（Google特有の形式）
+            const json = JSON.parse(text.substring(47).slice(0, -2));
+
+            // データの行を取得
+            const rows = json.table.rows;
+
+            if (rows.length === 0) {
+                throw new Error('データがありません');
+            }
+
+            // 全ての行から最新のタイムスタンプを探す
+            let latestRow = null;
+            let latestDate = null;
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                if (row.c && row.c[0] && row.c[0].v) {
+                    // タイムスタンプをDateオブジェクトに変換
+                    const timestampStr = row.c[0].f || row.c[0].v;
+                    const date = new Date(timestampStr);
+
+                    if (!latestDate || date > latestDate) {
+                        latestDate = date;
+                        latestRow = row;
+                    }
+                }
+            }
+
+            if (!latestRow) {
+                throw new Error('有効なデータがありません');
+            }
+
+            const timestamp = latestRow.c[0].f; // タイムスタンプ（フォーマット済み）
+            const status = latestRow.c[1].v; // 予約状況（「空きあり」or「「満」」）
+
+            // 予約可能かどうかを判定（「空きあり」が含まれているかチェック）
+            const isAvailable = status.includes('空きあり');
+
+            // ディスプレイを更新
+            displayStatus(isAvailable, timestamp);
+
+        } catch (error) {
+            console.error('エラー:', error);
+            displayError();
+        }
+    }
+
+    /**
+     * タイムスタンプを「更新：YYYY/MM/DD HH:MM」形式にフォーマット
+     */
+    function formatTimestamp(timestampStr) {
+        // スプレッドシートのタイムスタンプをパース
+        const date = new Date(timestampStr);
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return `更新：${year}/${month}/${day} ${hours}:${minutes}`;
+    }
+
+    /**
+     * 日付テキストを計算する関数
+     */
+    function calculateDayText(updateTime) {
+        const now = new Date(updateTime);
+        const dayOfWeek = now.getDay(); // 0=日, 1=月, 2=火, 3=水...
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const isAfter1830 = (hour > 18) || (hour === 18 && minute >= 30);
+
+        let dayText = '本日';
+
+        if (isAfter1830) {
+            // 18:30以降
+
+            // 月末チェック
+            const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            if (now.getDate() === lastDayOfMonth) {
+                dayText = '翌営業日';
+            } else if (dayOfWeek === 2) {
+                // 火曜日
+                dayText = '木曜';
+            } else {
+                dayText = '明日';
+            }
+        } else {
+            // 18:30より前
+            if (dayOfWeek === 3) {
+                // 水曜日
+                dayText = '木曜';
+            } else {
+                dayText = '本日';
+            }
+        }
+
+        return dayText;
+    }
+
+    /**
+     * ディスプレイを表示する関数
+     */
+    function displayStatus(isAvailable, updateTime) {
+        const container = document.getElementById('displayContainer');
+
+        // 日付テキストを計算
+        const dayText = calculateDayText(updateTime);
+
+        // タイムスタンプをフォーマット
+        const formattedTime = formatTimestamp(updateTime);
+
+        if (isAvailable) {
+            // 予約可能（濃い黄緑色）
+            container.className = 'display-container available';
+            container.innerHTML = `
+                <div class="clinic-name">ふじみ野ひかり眼科</div>
+                <div class="icon">✅</div>
+                <div class="main-message">✅ ${dayText}分の予約枠 空きあり</div>
+                <div class="qr-message">QRコードから ご予約ください</div>
+                <div class="update-time">${formattedTime}</div>
+            `;
+        } else {
+            // 予約不可（赤色）
+            container.className = 'display-container unavailable';
+            container.innerHTML = `
+                <div class="clinic-name">ふじみ野ひかり眼科</div>
+                <div class="icon">🙇</div>
+                <div class="main-message">🙇 ${dayText}の予約は 満枠です</div>
+                <div class="sub-message">誠に恐れ入りますが、翌診療日以降で ご予約ください</div>
+                <div class="qr-message">QRコードから ご予約ください</div>
+                <div class="update-time">${formattedTime}</div>
+            `;
+        }
+    }
+
+    /**
+     * エラー表示する関数
+     */
+    function displayError() {
+        const container = document.getElementById('displayContainer');
+        container.className = 'display-container error';
+        container.innerHTML = `
+            <div class="clinic-name">ふじみ野ひかり眼科</div>
+            <div class="icon">⚠️</div>
+            <div class="main-message">情報を取得できません</div>
+            <div class="error-message">しばらくしてから再度お試しください</div>
+        `;
+    }
+
+    // ページ読み込み時に実行
+    updateReservationStatus();
+
+    // 1分ごとに自動更新（60000ミリ秒 = 1分）
+    setInterval(updateReservationStatus, 60000);
+</script>
+
+</body>
+</html>
