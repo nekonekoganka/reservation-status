@@ -40,16 +40,33 @@
         /* 予約可能の時のスタイル（濃い黄緑色） */
         .display-container.available {
             background: linear-gradient(135deg, #27AE60 0%, #229954 100%);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
         }
 
         /* 予約不可の時のスタイル（赤色） */
         .display-container.unavailable {
             background: linear-gradient(135deg, #DC3545 0%, #C82333 100%);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
         }
 
         /* 読み込み中のスタイル */
         .display-container.loading {
             background: linear-gradient(135deg, #6C757D 0%, #5A6268 100%);
+        }
+
+        /* 背景グラデーションアニメーション */
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         /* クリニック名 */
@@ -66,6 +83,20 @@
             font-size: 200px;
             margin-bottom: 40px;
             line-height: 1;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* アイコンのパルスアニメーション */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
         }
 
         /* メインメッセージ（空きあり/満枠） */
@@ -75,6 +106,19 @@
             margin-bottom: 80px;
             line-height: 1.4;
             text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 1s ease-in;
+        }
+
+        /* フェードインアニメーション */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* サブメッセージ */
