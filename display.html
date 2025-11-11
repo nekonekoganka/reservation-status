@@ -173,6 +173,26 @@
         .lunch-break-banner.show {
             display: block;
         }
+
+        /* QRコード（左下固定） */
+        .qr-code-corner {
+            position: fixed;
+            bottom: 60px;
+            left: 40px;
+            width: 180px;
+            height: 180px;
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+
+        .qr-code-corner img {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -180,6 +200,11 @@
 <!-- 昼休みバナー -->
 <div id="lunchBreakBanner" class="lunch-break-banner">
     🕐 昼休み中　午後３時より診療再開
+</div>
+
+<!-- QRコード（左下固定） -->
+<div class="qr-code-corner">
+    <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード">
 </div>
 
 <div id="displayContainer" class="display-container loading">
