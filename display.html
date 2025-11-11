@@ -39,34 +39,17 @@
 
         /* 予約可能の時のスタイル（濃い黄緑色） */
         .display-container.available {
-            background: linear-gradient(135deg, #1E8449 0%, #27AE60 50%, #52BE80 100%);
-            background-size: 300% 300%;
-            animation: gradientShift 4s ease infinite;
+            background: #27AE60;
         }
 
         /* 予約不可の時のスタイル（赤色） */
         .display-container.unavailable {
-            background: linear-gradient(135deg, #A93226 0%, #DC3545 50%, #E74C3C 100%);
-            background-size: 300% 300%;
-            animation: gradientShift 4s ease infinite;
+            background: #DC3545;
         }
 
         /* 読み込み中のスタイル */
         .display-container.loading {
-            background: linear-gradient(135deg, #6C757D 0%, #5A6268 100%);
-        }
-
-        /* 背景グラデーションアニメーション */
-        @keyframes gradientShift {
-            0% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-            100% {
-                background-position: 0% 50%;
-            }
+            background: #6C757D;
         }
 
         /* クリニック名 */
@@ -109,28 +92,25 @@
             animation: fadeIn 1s ease-in;
         }
 
-        /* 空きあり専用：光が流れる効果 */
+        /* 空きあり専用：光る効果 */
         .main-message.available-shine {
-            position: relative;
-            background: linear-gradient(90deg,
-                rgba(255,255,255,0) 0%,
-                rgba(255,255,255,0.3) 25%,
-                rgba(255,255,255,0.5) 50%,
-                rgba(255,255,255,0.3) 75%,
-                rgba(255,255,255,0) 100%);
-            background-size: 200% 100%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            animation: fadeIn 1s ease-in, shine 3s linear infinite;
+            animation: fadeIn 1s ease-in, textGlow 2s ease-in-out infinite;
         }
 
-        /* シャインアニメーション */
-        @keyframes shine {
+        /* 文字が光るアニメーション */
+        @keyframes textGlow {
             0% {
-                background-position: -200% 0;
+                text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3),
+                             0 0 10px rgba(255, 255, 255, 0.2);
+            }
+            50% {
+                text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3),
+                             0 0 30px rgba(255, 255, 255, 0.8),
+                             0 0 40px rgba(255, 255, 255, 0.6);
             }
             100% {
-                background-position: 200% 0;
+                text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3),
+                             0 0 10px rgba(255, 255, 255, 0.2);
             }
         }
 
