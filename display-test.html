@@ -478,6 +478,7 @@
 
         <div class="debug-section">
             <label>時間帯:</label>
+            <button onclick="setTestTime(9, 0)">営業時間前 (9:00)</button>
             <button onclick="setTestTime(10, 0)">営業時間中 (10:00)</button>
             <button onclick="setTestTime(14, 0)">昼休み (14:00)</button>
             <button onclick="setTestTime(19, 0)">営業時間外 (19:00)</button>
@@ -546,24 +547,26 @@
         <div class="debug-section">
             <label>空きありアイコン:</label>
             <div class="icon-selector">
+                <button onclick="selectIcon('available', '😊')">😊</button>
                 <button onclick="selectIcon('available', '✅')">✅</button>
                 <button onclick="selectIcon('available', '✔️')">✔️</button>
                 <button onclick="selectIcon('available', '⭕')">⭕</button>
                 <button onclick="selectIcon('available', '🟢')">🟢</button>
                 <button onclick="selectIcon('available', '👍')">👍</button>
-                <input type="text" class="customize-input" id="customAvailableIcon" value="⭕" placeholder="カスタム" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
+                <input type="text" class="customize-input" id="customAvailableIcon" value="😊" placeholder="カスタム" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
             </div>
         </div>
 
         <div class="debug-section">
             <label>満枠アイコン:</label>
             <div class="icon-selector">
+                <button onclick="selectIcon('full', '😔')">😔</button>
                 <button onclick="selectIcon('full', '❌')">❌</button>
                 <button onclick="selectIcon('full', '✖️')">✖️</button>
                 <button onclick="selectIcon('full', '🙇')">🙇</button>
                 <button onclick="selectIcon('full', '⛔')">⛔</button>
                 <button onclick="selectIcon('full', '🚫')">🚫</button>
-                <input type="text" class="customize-input" id="customFullIcon" value="❌" placeholder="カスタム" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
+                <input type="text" class="customize-input" id="customFullIcon" value="😔" placeholder="カスタム" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
             </div>
         </div>
 
@@ -656,8 +659,8 @@
         fullMsg: '{day}の予約は 満枠です',
         subMsg: '誠に恐れ入りますが、翌診療日以降で ご予約ください',
         qrMsg: '受付窓口 もしくは QRコードから ご予約ください',
-        availableIcon: '⭕',
-        fullIcon: '❌',
+        availableIcon: '😊',
+        fullIcon: '😔',
         availableBg: '#27AE60',
         fullBg: '#DC3545',
         bannerBg: '#FFC107',
@@ -903,8 +906,8 @@
         customizeState.fullMsg = '{day}の予約は 満枠です';
         customizeState.subMsg = '誠に恐れ入りますが、翌診療日以降で ご予約ください';
         customizeState.qrMsg = '受付窓口 もしくは QRコードから ご予約ください';
-        customizeState.availableIcon = '⭕';
-        customizeState.fullIcon = '❌';
+        customizeState.availableIcon = '😊';
+        customizeState.fullIcon = '😔';
         customizeState.availableBg = '#27AE60';
         customizeState.fullBg = '#DC3545';
         customizeState.bannerBg = '#FFC107';
