@@ -52,11 +52,25 @@
             background: #6C757D;
         }
 
+        /* クリニック名エリア */
+        .clinic-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 60px;
+            gap: 30px;
+        }
+
+        /* クリニックロゴ */
+        .clinic-logo {
+            height: 80px;
+            width: auto;
+        }
+
         /* クリニック名 */
         .clinic-name {
             font-size: 64px;
             font-weight: bold;
-            margin-bottom: 60px;
             opacity: 0.95;
             letter-spacing: 8px;
         }
@@ -134,12 +148,30 @@
             opacity: 0.95;
         }
 
+        /* QRコードエリア */
+        .qr-section {
+            margin-top: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* QRコード画像 */
+        .qr-code {
+            width: 250px;
+            height: 250px;
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
         /* QRコードメッセージ */
         .qr-message {
             font-size: 64px;
             font-weight: bold;
-            margin-top: 60px;
-            margin-bottom: 60px;
+            margin-bottom: 20px;
             opacity: 0.95;
         }
 
@@ -308,21 +340,33 @@
             // 予約可能（濃い黄緑色）
             container.className = 'display-container available';
             container.innerHTML = `
-                <div class="clinic-name">ふじみ野ひかり眼科</div>
+                <div class="clinic-header">
+                    <img src="Downloads/fujimino_logo_highres.png" alt="クリニックロゴ" class="clinic-logo">
+                    <div class="clinic-name">ふじみ野ひかり眼科</div>
+                </div>
                 <div class="icon">✅</div>
                 <div class="main-message available-shine">✅ ${dayText}分の予約枠 空きあり</div>
-                <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
+                <div class="qr-section">
+                    <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード" class="qr-code">
+                    <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
+                </div>
                 <div class="update-time">${formattedTime}</div>
             `;
         } else {
             // 予約不可（赤色）
             container.className = 'display-container unavailable';
             container.innerHTML = `
-                <div class="clinic-name">ふじみ野ひかり眼科</div>
+                <div class="clinic-header">
+                    <img src="Downloads/fujimino_logo_highres.png" alt="クリニックロゴ" class="clinic-logo">
+                    <div class="clinic-name">ふじみ野ひかり眼科</div>
+                </div>
                 <div class="icon">❌</div>
                 <div class="main-message">❌ ${dayText}の予約は 満枠です</div>
                 <div class="sub-message">誠に恐れ入りますが、翌診療日以降で ご予約ください</div>
-                <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
+                <div class="qr-section">
+                    <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード" class="qr-code">
+                    <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
+                </div>
                 <div class="update-time">${formattedTime}</div>
             `;
         }
