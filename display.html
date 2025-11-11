@@ -152,9 +152,35 @@
             font-size: 72px;
             margin-top: 40px;
         }
+
+        /* 昼休みバナー */
+        .lunch-break-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #FFC107;
+            color: #212529;
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none;
+        }
+
+        .lunch-break-banner.show {
+            display: block;
+        }
     </style>
 </head>
 <body>
+
+<!-- 昼休みバナー -->
+<div id="lunchBreakBanner" class="lunch-break-banner">
+    🕐 昼休み中　午後３時より診療再開
+</div>
 
 <div id="displayContainer" class="display-container loading">
     <div class="clinic-name">ふじみ野ひかり眼科</div>
@@ -286,10 +312,36 @@
     }
 
     /**
+     * 昼休み判定関数
+     */
+    function isLunchBreak(updateTime) {
+        const now = new Date(updateTime);
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        // 13:30-15:00の間
+        return (hour === 13 && minute >= 30) || (hour === 14);
+    }
+
+    /**
+     * 昼休みバナーの表示/非表示を更新
+     */
+    function updateLunchBreakBanner(updateTime) {
+        const banner = document.getElementById('lunchBreakBanner');
+        if (isLunchBreak(updateTime)) {
+            banner.classList.add('show');
+        } else {
+            banner.classList.remove('show');
+        }
+    }
+
+    /**
      * ディスプレイを表示する関数
      */
     function displayStatus(isAvailable, updateTime) {
         const container = document.getElementById('displayContainer');
+
+        // 昼休みバナーを更新
+        updateLunchBreakBanner(updateTime);
 
         // 日付テキストを計算
         const dayText = calculateDayText(updateTime);

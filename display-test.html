@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>デバッグ - 予約状況ディスプレイ - ふじみ野ひかり眼科</title>
+    <style>
+        /* 全画面表示用のリセット */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            overflow: hidden;
+        }
+
+        /* ディスプレイエリア */
+        .display-area {
+            width: 1920px;
+            height: 1080px;
+            position: relative;
+        }
+
+        /* ディスプレイ全体のスタイル */
+        .display-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 80px;
+            text-align: center;
+            color: white;
+            transition: background-color 0.5s ease;
+        }
+
+        /* 予約可能の時のスタイル（濃い黄緑色） */
+        .display-container.available {
+            background: #27AE60;
+        }
+
+        /* 予約不可の時のスタイル（赤色） */
+        .display-container.unavailable {
+            background: #DC3545;
+        }
+
+        /* 読み込み中のスタイル */
+        .display-container.loading {
+            background: #6C757D;
+        }
+
+        /* クリニック名 */
+        .clinic-name {
+            font-size: 64px;
+            font-weight: bold;
+            margin-bottom: 60px;
+            opacity: 0.95;
+            letter-spacing: 8px;
+        }
+
+        /* アイコン */
+        .icon {
+            font-size: 200px;
+            margin-bottom: 40px;
+            line-height: 1;
+            animation: pulse 2s ease-in-out infinite;
+            /* 白い縁取り効果 */
+            text-shadow:
+                -4px -4px 0 white,
+                4px -4px 0 white,
+                -4px 4px 0 white,
+                4px 4px 0 white,
+                0 -4px 0 white,
+                0 4px 0 white,
+                -4px 0 0 white,
+                4px 0 0 white,
+                -3px -3px 0 white,
+                3px -3px 0 white,
+                -3px 3px 0 white,
+                3px 3px 0 white;
+        }
+
+        /* アイコンのパルスアニメーション */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.15);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* メインメッセージ（空きあり/満枠） */
+        .main-message {
+            font-size: 120px;
+            font-weight: bold;
+            margin-bottom: 80px;
+            line-height: 1.4;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 1s ease-in;
+        }
+
+        /* フェードインアニメーション */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* サブメッセージ */
+        .sub-message {
+            font-size: 56px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+
+        /* QRコードメッセージ */
+        .qr-message {
+            font-size: 64px;
+            font-weight: bold;
+            margin-top: 60px;
+            margin-bottom: 60px;
+            opacity: 0.95;
+        }
+
+        /* 更新時刻 */
+        .update-time {
+            font-size: 40px;
+            opacity: 0.85;
+            margin-top: 40px;
+        }
+
+        /* エラー時のスタイル */
+        .display-container.error {
+            background: linear-gradient(135deg, #868E96 0%, #6C757D 100%);
+        }
+
+        .error-message {
+            font-size: 72px;
+            margin-top: 40px;
+        }
+
+        /* 昼休みバナー */
+        .lunch-break-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 1920px;
+            background: #FFC107;
+            color: #212529;
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none;
+        }
+
+        .lunch-break-banner.show {
+            display: block;
+        }
+
+        /* デバッグパネル */
+        .debug-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #2C3E50;
+            color: white;
+            padding: 20px;
+            z-index: 9999;
+            box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3);
+            font-size: 16px;
+        }
+
+        .debug-panel h3 {
+            margin-bottom: 15px;
+            font-size: 20px;
+            color: #FFC107;
+        }
+
+        .debug-section {
+            margin-bottom: 15px;
+        }
+
+        .debug-section label {
+            display: inline-block;
+            width: 100px;
+            font-weight: bold;
+        }
+
+        .debug-panel button {
+            background: #3498DB;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .debug-panel button:hover {
+            background: #2980B9;
+        }
+
+        .debug-panel button.active {
+            background: #E74C3C;
+        }
+
+        .debug-panel input[type="time"] {
+            padding: 8px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #555;
+        }
+
+        .debug-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #34495E;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .debug-info div {
+            margin: 5px 0;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+
+        .status-indicator.on {
+            background: #2ECC71;
+        }
+
+        .status-indicator.off {
+            background: #95A5A6;
+        }
+    </style>
+</head>
+<body>
+
+<div class="display-area">
+    <!-- 昼休みバナー -->
+    <div id="lunchBreakBanner" class="lunch-break-banner">
+        🕐 昼休み中　午後３時より診療再開
+    </div>
+
+    <div id="displayContainer" class="display-container loading">
+        <div class="clinic-name">ふじみ野ひかり眼科</div>
+        <div class="icon">⏳</div>
+        <div class="main-message">読み込み中...</div>
+        <div class="sub-message">デバッグモード起動中</div>
+    </div>
+</div>
+
+<!-- デバッグパネル -->
+<div class="debug-panel">
+    <h3>🛠️ デバッグコントロール</h3>
+
+    <div class="debug-section">
+        <label>予約状況:</label>
+        <button id="btnAvailable" onclick="setAvailability(true)">✅ 空きあり</button>
+        <button id="btnUnavailable" onclick="setAvailability(false)">❌ 満枠</button>
+    </div>
+
+    <div class="debug-section">
+        <label>時間帯:</label>
+        <button onclick="setTestTime(10, 0)">営業時間中 (10:00)</button>
+        <button onclick="setTestTime(14, 0)">昼休み (14:00)</button>
+        <button onclick="setTestTime(19, 0)">営業時間外 (19:00)</button>
+        <button onclick="setTestTime(18, 45)">18:30以降 (18:45)</button>
+    </div>
+
+    <div class="debug-section">
+        <label>曜日:</label>
+        <button onclick="setDayOfWeek(0)">日</button>
+        <button onclick="setDayOfWeek(1)">月</button>
+        <button onclick="setDayOfWeek(2)">火</button>
+        <button onclick="setDayOfWeek(3)">水</button>
+        <button onclick="setDayOfWeek(4)">木</button>
+        <button onclick="setDayOfWeek(5)">金</button>
+        <button onclick="setDayOfWeek(6)">土</button>
+    </div>
+
+    <div class="debug-section">
+        <label>時刻設定:</label>
+        <input type="time" id="timeInput" value="14:00">
+        <button onclick="applyCustomTime()">適用</button>
+        <button onclick="resetToCurrentTime()">現在時刻にリセット</button>
+    </div>
+
+    <div class="debug-info">
+        <div><strong>📊 現在のテスト条件:</strong></div>
+        <div>予約状況: <span id="statusDisplay">空きあり</span></div>
+        <div>日時: <span id="dateTimeDisplay">2025/11/11 (火) 14:00</span></div>
+        <div>昼休みバナー: <span id="lunchDisplay">表示中</span> <span id="lunchIndicator" class="status-indicator on"></span></div>
+        <div>日付テキスト: <span id="dayTextDisplay">本日</span></div>
+    </div>
+</div>
+
+<script>
+    // テスト用の状態管理
+    const testState = {
+        isAvailable: true,
+        year: 2025,
+        month: 11,
+        day: 11,
+        dayOfWeek: 2, // 0=日, 1=月, 2=火...
+        hour: 14,
+        minute: 0
+    };
+
+    /**
+     * 予約可否を設定
+     */
+    function setAvailability(available) {
+        testState.isAvailable = available;
+        updateActiveButton('btnAvailable', 'btnUnavailable', available);
+        updateDisplay();
+    }
+
+    /**
+     * テスト時刻を設定
+     */
+    function setTestTime(hour, minute) {
+        testState.hour = hour;
+        testState.minute = minute;
+        document.getElementById('timeInput').value =
+            String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
+        updateDisplay();
+    }
+
+    /**
+     * 曜日を設定
+     */
+    function setDayOfWeek(dayOfWeek) {
+        testState.dayOfWeek = dayOfWeek;
+        // 日付も調整（2025/11/9が日曜日として計算）
+        testState.day = 9 + dayOfWeek;
+        updateDisplay();
+    }
+
+    /**
+     * カスタム時刻を適用
+     */
+    function applyCustomTime() {
+        const timeValue = document.getElementById('timeInput').value;
+        const [hour, minute] = timeValue.split(':').map(Number);
+        testState.hour = hour;
+        testState.minute = minute;
+        updateDisplay();
+    }
+
+    /**
+     * 現在時刻にリセット
+     */
+    function resetToCurrentTime() {
+        const now = new Date();
+        testState.year = now.getFullYear();
+        testState.month = now.getMonth() + 1;
+        testState.day = now.getDate();
+        testState.dayOfWeek = now.getDay();
+        testState.hour = now.getHours();
+        testState.minute = now.getMinutes();
+        document.getElementById('timeInput').value =
+            String(testState.hour).padStart(2, '0') + ':' + String(testState.minute).padStart(2, '0');
+        updateDisplay();
+    }
+
+    /**
+     * アクティブボタンの表示を更新
+     */
+    function updateActiveButton(btn1Id, btn2Id, isFirstActive) {
+        const btn1 = document.getElementById(btn1Id);
+        const btn2 = document.getElementById(btn2Id);
+        if (isFirstActive) {
+            btn1.classList.add('active');
+            btn2.classList.remove('active');
+        } else {
+            btn1.classList.remove('active');
+            btn2.classList.add('active');
+        }
+    }
+
+    /**
+     * テスト状態から日時文字列を生成
+     */
+    function getTestTimestamp() {
+        return `${testState.year}/${String(testState.month).padStart(2, '0')}/${String(testState.day).padStart(2, '0')} ${String(testState.hour).padStart(2, '0')}:${String(testState.minute).padStart(2, '0')}`;
+    }
+
+    /**
+     * タイムスタンプを「更新：YYYY/MM/DD HH:MM」形式にフォーマット
+     */
+    function formatTimestamp(timestampStr) {
+        return `更新：${timestampStr}`;
+    }
+
+    /**
+     * 日付テキストを計算する関数
+     */
+    function calculateDayText(updateTime) {
+        const now = new Date(updateTime);
+        const dayOfWeek = now.getDay();
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const isAfter1830 = (hour > 18) || (hour === 18 && minute >= 30);
+
+        let dayText = '本日';
+
+        if (isAfter1830) {
+            const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            if (now.getDate() === lastDayOfMonth) {
+                dayText = '翌営業日';
+            } else if (dayOfWeek === 2) {
+                dayText = '木曜';
+            } else {
+                dayText = '明日';
+            }
+        } else {
+            if (dayOfWeek === 3) {
+                dayText = '木曜';
+            } else {
+                dayText = '本日';
+            }
+        }
+
+        return dayText;
+    }
+
+    /**
+     * 昼休み判定関数
+     */
+    function isLunchBreak(updateTime) {
+        const now = new Date(updateTime);
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        return (hour === 13 && minute >= 30) || (hour === 14);
+    }
+
+    /**
+     * 昼休みバナーの表示/非表示を更新
+     */
+    function updateLunchBreakBanner(updateTime) {
+        const banner = document.getElementById('lunchBreakBanner');
+        if (isLunchBreak(updateTime)) {
+            banner.classList.add('show');
+        } else {
+            banner.classList.remove('show');
+        }
+    }
+
+    /**
+     * ディスプレイを更新
+     */
+    function updateDisplay() {
+        const container = document.getElementById('displayContainer');
+        const timestampStr = getTestTimestamp();
+        const isAvailable = testState.isAvailable;
+
+        // 昼休みバナーを更新
+        updateLunchBreakBanner(timestampStr);
+
+        // 日付テキストを計算
+        const dayText = calculateDayText(timestampStr);
+
+        // タイムスタンプをフォーマット
+        const formattedTime = formatTimestamp(timestampStr);
+
+        if (isAvailable) {
+            container.className = 'display-container available';
+            container.innerHTML = `
+                <div class="clinic-name">ふじみ野ひかり眼科</div>
+                <div class="icon">✅</div>
+                <div class="main-message">✅ ${dayText}分の予約枠 空きあり</div>
+                <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
+                <div class="update-time">${formattedTime}</div>
+            `;
+        } else {
+            container.className = 'display-container unavailable';
+            container.innerHTML = `
+                <div class="clinic-name">ふじみ野ひかり眼科</div>
+                <div class="icon">🙇</div>
+                <div class="main-message">❌ ${dayText}の予約は 満枠です</div>
+                <div class="sub-message">誠に恐れ入りますが、翌診療日以降で ご予約ください</div>
+                <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
+                <div class="update-time">${formattedTime}</div>
+            `;
+        }
+
+        // デバッグ情報を更新
+        updateDebugInfo(timestampStr, dayText);
+    }
+
+    /**
+     * デバッグ情報表示を更新
+     */
+    function updateDebugInfo(timestampStr, dayText) {
+        const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+
+        document.getElementById('statusDisplay').textContent =
+            testState.isAvailable ? '空きあり' : '満枠';
+
+        document.getElementById('dateTimeDisplay').textContent =
+            `${timestampStr} (${dayNames[testState.dayOfWeek]})`;
+
+        const isLunch = isLunchBreak(timestampStr);
+        document.getElementById('lunchDisplay').textContent =
+            isLunch ? '表示中' : '非表示';
+
+        const indicator = document.getElementById('lunchIndicator');
+        indicator.className = 'status-indicator ' + (isLunch ? 'on' : 'off');
+
+        document.getElementById('dayTextDisplay').textContent = dayText;
+    }
+
+    // 初期表示
+    setAvailability(true);
+    updateDisplay();
+</script>
+
+</body>
+</html>
