@@ -481,6 +481,7 @@
         <button class="debug-tab" onclick="switchTab('animation')">⚡ アニメ1</button>
         <button class="debug-tab" onclick="switchTab('effects')">✨ エフェクト</button>
         <button class="debug-tab" onclick="switchTab('background')">🌈 背景</button>
+        <button class="debug-tab" onclick="switchTab('presets')">💾 設定</button>
     </div>
 
     <!-- 時間タブ -->
@@ -751,9 +752,101 @@
             <small style="opacity: 0.7; display: block; margin-top: 5px;">※ グラデーションがゆっくり動きます</small>
         </div>
     </div>
+
+    <!-- 設定タブ -->
+    <div id="tab-presets" class="debug-tab-content">
+        <div class="debug-section">
+            <h4 style="color: #FFC107; margin-bottom: 15px;">💾 プリセット管理</h4>
+            <p style="opacity: 0.8; margin-bottom: 20px; font-size: 14px;">
+                現在の設定を保存して、いつでも呼び出せます。季節や状況に応じて使い分けましょう！
+            </p>
+        </div>
+
+        <div style="display: grid; gap: 15px;">
+            <!-- プリセット 1 -->
+            <div class="preset-item">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <span style="font-weight: bold; width: 80px;">プリセット 1:</span>
+                    <input type="text" id="presetName1" class="customize-input" placeholder="設定名を入力" style="flex: 1;">
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <button onclick="savePreset(1)" style="flex: 1; background: #2ECC71;">💾 保存</button>
+                    <button onclick="loadPreset(1)" style="flex: 1; background: #3498DB;">📥 読込</button>
+                    <button onclick="deletePreset(1)" style="background: #E74C3C;">🗑️</button>
+                </div>
+            </div>
+
+            <!-- プリセット 2 -->
+            <div class="preset-item">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <span style="font-weight: bold; width: 80px;">プリセット 2:</span>
+                    <input type="text" id="presetName2" class="customize-input" placeholder="設定名を入力" style="flex: 1;">
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <button onclick="savePreset(2)" style="flex: 1; background: #2ECC71;">💾 保存</button>
+                    <button onclick="loadPreset(2)" style="flex: 1; background: #3498DB;">📥 読込</button>
+                    <button onclick="deletePreset(2)" style="background: #E74C3C;">🗑️</button>
+                </div>
+            </div>
+
+            <!-- プリセット 3 -->
+            <div class="preset-item">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <span style="font-weight: bold; width: 80px;">プリセット 3:</span>
+                    <input type="text" id="presetName3" class="customize-input" placeholder="設定名を入力" style="flex: 1;">
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <button onclick="savePreset(3)" style="flex: 1; background: #2ECC71;">💾 保存</button>
+                    <button onclick="loadPreset(3)" style="flex: 1; background: #3498DB;">📥 読込</button>
+                    <button onclick="deletePreset(3)" style="background: #E74C3C;">🗑️</button>
+                </div>
+            </div>
+
+            <!-- プリセット 4 -->
+            <div class="preset-item">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <span style="font-weight: bold; width: 80px;">プリセット 4:</span>
+                    <input type="text" id="presetName4" class="customize-input" placeholder="設定名を入力" style="flex: 1;">
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <button onclick="savePreset(4)" style="flex: 1; background: #2ECC71;">💾 保存</button>
+                    <button onclick="loadPreset(4)" style="flex: 1; background: #3498DB;">📥 読込</button>
+                    <button onclick="deletePreset(4)" style="background: #E74C3C;">🗑️</button>
+                </div>
+            </div>
+
+            <!-- プリセット 5 -->
+            <div class="preset-item">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <span style="font-weight: bold; width: 80px;">プリセット 5:</span>
+                    <input type="text" id="presetName5" class="customize-input" placeholder="設定名を入力" style="flex: 1;">
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <button onclick="savePreset(5)" style="flex: 1; background: #2ECC71;">💾 保存</button>
+                    <button onclick="loadPreset(5)" style="flex: 1; background: #3498DB;">📥 読込</button>
+                    <button onclick="deletePreset(5)" style="background: #E74C3C;">🗑️</button>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; padding: 15px; background: #34495E; border-radius: 5px;">
+            <div style="font-weight: bold; margin-bottom: 10px;">📌 現在の設定:</div>
+            <div id="currentPresetInfo" style="opacity: 0.8; font-size: 14px;">デフォルト設定</div>
+        </div>
+    </div>
 </div>
 
 <script>
+    // モード管理
+    let isDebugMode = false;
+    let apiUpdateInterval = null;
+    let currentPresetSlot = null;
+
+    // スプレッドシートのID
+    const SPREADSHEET_ID = '1RSd9aC5B_-gQ1_j5V1aQcZn1iVw9v8mpmhJ78_8gY80';
+    const SHEET_NAME = 'フォームの回答 1';
+    const API_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
     // テスト用の状態管理
     const testState = {
         isAvailable: true,
@@ -1216,6 +1309,165 @@
     }
 
     /**
+     * プリセットを保存
+     */
+    function savePreset(slotNumber) {
+        const nameInput = document.getElementById(`presetName${slotNumber}`);
+        const presetName = nameInput.value.trim() || `プリセット ${slotNumber}`;
+
+        // カスタマイズステートを保存
+        const presetData = {
+            name: presetName,
+            state: JSON.parse(JSON.stringify(customizeState)),
+            savedAt: new Date().toISOString()
+        };
+
+        localStorage.setItem(`displayPreset${slotNumber}`, JSON.stringify(presetData));
+
+        // 名前を更新
+        nameInput.value = presetName;
+
+        // 現在の設定を更新
+        currentPresetSlot = slotNumber;
+        updateCurrentPresetInfo();
+
+        alert(`✅ 「${presetName}」として保存しました！`);
+    }
+
+    /**
+     * プリセットを読み込み
+     */
+    function loadPreset(slotNumber) {
+        const presetData = localStorage.getItem(`displayPreset${slotNumber}`);
+
+        if (!presetData) {
+            alert('❌ このスロットには保存されていません');
+            return;
+        }
+
+        const preset = JSON.parse(presetData);
+
+        // カスタマイズステートを復元
+        Object.assign(customizeState, preset.state);
+
+        // UIを更新
+        applyCustomizationsFromState();
+
+        // 現在の設定を更新
+        currentPresetSlot = slotNumber;
+        updateCurrentPresetInfo();
+
+        alert(`✅ 「${preset.name}」を読み込みました！`);
+    }
+
+    /**
+     * プリセットを削除
+     */
+    function deletePreset(slotNumber) {
+        const presetData = localStorage.getItem(`displayPreset${slotNumber}`);
+
+        if (!presetData) {
+            alert('❌ このスロットには保存されていません');
+            return;
+        }
+
+        const preset = JSON.parse(presetData);
+
+        if (confirm(`「${preset.name}」を削除しますか？`)) {
+            localStorage.removeItem(`displayPreset${slotNumber}`);
+            document.getElementById(`presetName${slotNumber}`).value = '';
+
+            if (currentPresetSlot === slotNumber) {
+                currentPresetSlot = null;
+                updateCurrentPresetInfo();
+            }
+
+            alert(`✅ 「${preset.name}」を削除しました`);
+        }
+    }
+
+    /**
+     * 現在のプリセット情報を更新
+     */
+    function updateCurrentPresetInfo() {
+        const infoDiv = document.getElementById('currentPresetInfo');
+
+        if (currentPresetSlot) {
+            const presetData = localStorage.getItem(`displayPreset${currentPresetSlot}`);
+            if (presetData) {
+                const preset = JSON.parse(presetData);
+                infoDiv.textContent = `プリセット ${currentPresetSlot}: ${preset.name}`;
+            } else {
+                infoDiv.textContent = 'デフォルト設定';
+            }
+        } else {
+            infoDiv.textContent = 'デフォルト設定';
+        }
+    }
+
+    /**
+     * 保存されているプリセット名を読み込み
+     */
+    function loadPresetNames() {
+        for (let i = 1; i <= 5; i++) {
+            const presetData = localStorage.getItem(`displayPreset${i}`);
+            if (presetData) {
+                const preset = JSON.parse(presetData);
+                document.getElementById(`presetName${i}`).value = preset.name;
+            }
+        }
+    }
+
+    /**
+     * ステートからすべてのUIを更新
+     */
+    function applyCustomizationsFromState() {
+        // テキスト
+        document.getElementById('customClinicName').value = customizeState.clinicName;
+        document.getElementById('customAvailableMsg').value = customizeState.availableMsg;
+        document.getElementById('customFullMsg').value = customizeState.fullMsg;
+        document.getElementById('customSubMsg').value = customizeState.subMsg;
+        document.getElementById('customQrMsg').value = customizeState.qrMsg;
+
+        // アイコン
+        document.getElementById('customAvailableIcon').value = customizeState.availableIcon;
+        document.getElementById('customFullIcon').value = customizeState.fullIcon;
+
+        // 色
+        document.getElementById('customAvailableBg').value = customizeState.availableBg;
+        document.getElementById('customFullBg').value = customizeState.fullBg;
+        document.getElementById('customBannerBg').value = customizeState.bannerBg;
+        document.getElementById('customBannerText').value = customizeState.bannerText;
+
+        // アニメーション
+        document.getElementById('pulseSpeed').value = customizeState.pulseSpeed;
+        document.getElementById('pulseScale').value = customizeState.pulseScale;
+        document.getElementById('clinicSize').value = customizeState.clinicSize;
+        document.getElementById('iconSize').value = customizeState.iconSize;
+        document.getElementById('mainMsgSize').value = customizeState.mainMsgSize;
+
+        // グラデーション
+        document.getElementById('customGradientColor1').value = customizeState.gradientColor1;
+        document.getElementById('customGradientColor2').value = customizeState.gradientColor2;
+
+        // ボタン状態を更新
+        updateActiveButton('btnPulseOn', 'btnPulseOff', customizeState.pulseEnabled);
+        updateActiveButton('btnFadeOn', 'btnFadeOff', customizeState.fadeEnabled);
+        updateActiveButton('btnGlowOn', 'btnGlowOff', customizeState.glowEnabled);
+        updateActiveButton('btnGlowPulseOn', 'btnGlowPulseOff', customizeState.glowPulse);
+        updateActiveButton('btnRotateOn', 'btnRotateOff', customizeState.rotateEnabled);
+        updateActiveButton('btnRotateCW', 'btnRotateCCW', customizeState.rotateDirection === 'cw');
+        updateActiveButton('btnGradientOn', 'btnGradientOff', customizeState.gradientEnabled);
+        updateActiveButton('btnGradientAnimOn', 'btnGradientAnimOff', customizeState.gradientAnimEnabled);
+
+        // ディスプレイを更新
+        applyCustomizations();
+        updateAnimationStyle();
+        updateEffectsStyle();
+        applyFontSizes();
+    }
+
+    /**
      * すべてのカスタマイズをリセット
      */
     function resetAllCustomizations() {
@@ -1323,11 +1575,15 @@
         const btn = document.getElementById('debugToggleBtn');
 
         if (panel.classList.contains('show')) {
+            // パネルを閉じる → 本番モードに切り替え
             panel.classList.remove('show');
             btn.classList.remove('active');
+            startProductionMode();
         } else {
+            // パネルを開く → デバッグモードに切り替え
             panel.classList.add('show');
             btn.classList.add('active');
+            stopProductionMode();
         }
     }
 
@@ -1657,9 +1913,249 @@
         document.getElementById('dayTextDisplay').textContent = dayText;
     }
 
+    /**
+     * タイムスタンプを「更新：YYYY/MM/DD HH:MM」形式にフォーマット（本番モード用）
+     */
+    function formatTimestampProduction(timestampStr) {
+        // スプレッドシートのタイムスタンプをパース
+        const date = new Date(timestampStr);
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return `更新：${year}/${month}/${day} ${hours}:${minutes}`;
+    }
+
+    /**
+     * 【本番モード】予約状況を取得して表示する関数
+     */
+    async function updateReservationStatus() {
+        const container = document.getElementById('displayContainer');
+
+        try {
+            // スプレッドシートからデータを取得
+            const response = await fetch(API_URL);
+            const text = await response.text();
+
+            // JSONデータを抽出（Google特有の形式）
+            const json = JSON.parse(text.substring(47).slice(0, -2));
+
+            // データの行を取得
+            const rows = json.table.rows;
+
+            if (rows.length === 0) {
+                throw new Error('データがありません');
+            }
+
+            // 全ての行から最新のタイムスタンプを探す
+            let latestRow = null;
+            let latestDate = null;
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                if (row.c && row.c[0] && row.c[0].v) {
+                    // タイムスタンプをDateオブジェクトに変換
+                    const timestampStr = row.c[0].f || row.c[0].v;
+                    const date = new Date(timestampStr);
+
+                    if (!latestDate || date > latestDate) {
+                        latestDate = date;
+                        latestRow = row;
+                    }
+                }
+            }
+
+            if (!latestRow) {
+                throw new Error('有効なデータがありません');
+            }
+
+            const timestamp = latestRow.c[0].f; // タイムスタンプ（フォーマット済み）
+            const status = latestRow.c[1].v; // 予約状況（「空きあり」or「満」）
+
+            // 予約可能かどうかを判定（「空きあり」が含まれているかチェック）
+            const isAvailable = status.includes('空きあり');
+
+            // ディスプレイを更新（本番モード）
+            displayStatusProduction(isAvailable, timestamp);
+
+        } catch (error) {
+            console.error('エラー:', error);
+            displayError();
+        }
+    }
+
+    /**
+     * 【本番モード】ディスプレイを表示する関数
+     */
+    function displayStatusProduction(isAvailable, updateTime) {
+        const container = document.getElementById('displayContainer');
+
+        // バナーを更新
+        updateBanners(updateTime);
+
+        // 日付テキストを計算
+        const dayText = calculateDayText(updateTime);
+
+        // タイムスタンプをフォーマット
+        const formattedTime = formatTimestampProduction(updateTime);
+
+        // メッセージのプレースホルダーを置換
+        const availableMsg = customizeState.availableMsg.replace('{day}', dayText);
+        const fullMsg = customizeState.fullMsg.replace('{day}', dayText);
+
+        if (isAvailable) {
+            container.className = 'display-container available';
+
+            // グラデーション適用
+            if (customizeState.gradientEnabled) {
+                const c1 = customizeState.gradientColor1;
+                const c2 = customizeState.gradientColor2;
+                switch (customizeState.gradientType) {
+                    case 'diagonal':
+                        container.style.background = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
+                        break;
+                    case 'radial':
+                        container.style.background = `radial-gradient(circle, ${c1} 0%, ${c2} 100%)`;
+                        break;
+                    case 'horizontal':
+                        container.style.background = `linear-gradient(90deg, ${c1} 0%, ${c2} 100%)`;
+                        break;
+                    case 'vertical':
+                        container.style.background = `linear-gradient(180deg, ${c1} 0%, ${c2} 100%)`;
+                        break;
+                }
+
+                if (customizeState.gradientAnimEnabled) {
+                    container.style.backgroundSize = '200% 200%';
+                    container.style.animation = 'gradientShift 10s ease infinite';
+                } else {
+                    container.style.backgroundSize = '';
+                    container.style.animation = '';
+                }
+            } else {
+                container.style.background = customizeState.availableBg;
+                container.style.backgroundSize = '';
+                container.style.animation = '';
+            }
+
+            container.innerHTML = `
+                <div class="clinic-name">${customizeState.clinicName}</div>
+                <div class="icon">${customizeState.availableIcon}</div>
+                <div class="main-message">${availableMsg}</div>
+                <div class="qr-message">${customizeState.qrMsg}</div>
+                <div class="update-time">${formattedTime}</div>
+            `;
+        } else {
+            container.className = 'display-container unavailable';
+
+            // グラデーション適用
+            if (customizeState.gradientEnabled) {
+                const c1 = customizeState.gradientColor1;
+                const c2 = customizeState.gradientColor2;
+                switch (customizeState.gradientType) {
+                    case 'diagonal':
+                        container.style.background = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
+                        break;
+                    case 'radial':
+                        container.style.background = `radial-gradient(circle, ${c1} 0%, ${c2} 100%)`;
+                        break;
+                    case 'horizontal':
+                        container.style.background = `linear-gradient(90deg, ${c1} 0%, ${c2} 100%)`;
+                        break;
+                    case 'vertical':
+                        container.style.background = `linear-gradient(180deg, ${c1} 0%, ${c2} 100%)`;
+                        break;
+                }
+
+                if (customizeState.gradientAnimEnabled) {
+                    container.style.backgroundSize = '200% 200%';
+                    container.style.animation = 'gradientShift 10s ease infinite';
+                } else {
+                    container.style.backgroundSize = '';
+                    container.style.animation = '';
+                }
+            } else {
+                container.style.background = customizeState.fullBg;
+                container.style.backgroundSize = '';
+                container.style.animation = '';
+            }
+
+            container.innerHTML = `
+                <div class="clinic-name">${customizeState.clinicName}</div>
+                <div class="icon">${customizeState.fullIcon}</div>
+                <div class="main-message">${fullMsg}</div>
+                <div class="sub-message">${customizeState.subMsg}</div>
+                <div class="qr-message">${customizeState.qrMsg}</div>
+                <div class="update-time">${formattedTime}</div>
+            `;
+        }
+
+        // バナーの色を適用
+        const openingSoonBanner = document.getElementById('openingSoonBanner');
+        const lunchBreakBanner = document.getElementById('lunchBreakBanner');
+        openingSoonBanner.style.background = customizeState.bannerBg;
+        openingSoonBanner.style.color = customizeState.bannerText;
+        lunchBreakBanner.style.background = customizeState.bannerBg;
+        lunchBreakBanner.style.color = customizeState.bannerText;
+
+        // エフェクトを適用
+        updateAnimationStyle();
+        updateEffectsStyle();
+        applyFontSizes();
+    }
+
+    /**
+     * エラー表示する関数
+     */
+    function displayError() {
+        const container = document.getElementById('displayContainer');
+        container.className = 'display-container error';
+        container.innerHTML = `
+            <div class="clinic-name">${customizeState.clinicName}</div>
+            <div class="icon">⚠️</div>
+            <div class="main-message">情報を取得できません</div>
+            <div class="error-message">しばらくしてから再度お試しください</div>
+        `;
+    }
+
+    /**
+     * 本番モードを開始
+     */
+    function startProductionMode() {
+        if (apiUpdateInterval) {
+            clearInterval(apiUpdateInterval);
+        }
+
+        // 即座に1回実行
+        updateReservationStatus();
+
+        // 1分ごとに自動更新
+        apiUpdateInterval = setInterval(updateReservationStatus, 60000);
+
+        isDebugMode = false;
+    }
+
+    /**
+     * 本番モードを停止
+     */
+    function stopProductionMode() {
+        if (apiUpdateInterval) {
+            clearInterval(apiUpdateInterval);
+            apiUpdateInterval = null;
+        }
+
+        isDebugMode = true;
+    }
+
     // 初期表示
-    setAvailability(true);
-    updateDisplay();
+    loadPresetNames();
+    updateCurrentPresetInfo();
+
+    // 本番モードで開始（デバッグパネルは閉じた状態）
+    startProductionMode();
 </script>
 
 </body>
