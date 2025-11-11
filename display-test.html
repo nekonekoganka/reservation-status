@@ -94,6 +94,19 @@
             }
         }
 
+        /* グラデーションシフトアニメーション */
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
         /* メインメッセージ（空きあり/満枠） */
         .main-message {
             font-size: clamp(60px, 6vw, 120px);
@@ -465,7 +478,9 @@
         <button class="debug-tab active" onclick="switchTab('time')">⏰ 時間</button>
         <button class="debug-tab" onclick="switchTab('text')">📝 テキスト</button>
         <button class="debug-tab" onclick="switchTab('design')">🎨 デザイン</button>
-        <button class="debug-tab" onclick="switchTab('animation')">⚡ アニメ</button>
+        <button class="debug-tab" onclick="switchTab('animation')">⚡ アニメ1</button>
+        <button class="debug-tab" onclick="switchTab('effects')">✨ エフェクト</button>
+        <button class="debug-tab" onclick="switchTab('background')">🌈 背景</button>
     </div>
 
     <!-- 時間タブ -->
@@ -638,6 +653,104 @@
             <button onclick="resetAllCustomizations()" style="background: #E74C3C;">🔄 すべてリセット</button>
         </div>
     </div>
+
+    <!-- エフェクトタブ -->
+    <div id="tab-effects" class="debug-tab-content">
+        <div class="debug-section">
+            <label>テキストグロー（光る文字）:</label>
+            <button id="btnGlowOn" onclick="toggleGlow(true)">ON</button>
+            <button id="btnGlowOff" onclick="toggleGlow(false)">OFF</button>
+        </div>
+
+        <div class="slider-group">
+            <label>光の強さ: <span id="glowIntensityValue">中</span></label>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button onclick="setGlowIntensity('weak')">弱</button>
+                <button onclick="setGlowIntensity('medium')">中</button>
+                <button onclick="setGlowIntensity('strong')">強</button>
+            </div>
+        </div>
+
+        <div class="slider-group">
+            <label>光の色:</label>
+            <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                <button onclick="setGlowColor('white')" style="background: white; color: black;">⚪ 白</button>
+                <button onclick="setGlowColor('yellow')" style="background: #FFD700; color: black;">🟡 黄</button>
+                <button onclick="setGlowColor('cyan')" style="background: #00FFFF; color: black;">🔵 青</button>
+                <button onclick="setGlowColor('lime')" style="background: #00FF00; color: black;">🟢 緑</button>
+                <button onclick="setGlowColor('rainbow')" style="background: linear-gradient(90deg, red, yellow, green, cyan, blue, magenta); color: white;">🌈 虹</button>
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <label>パルス光（点滅）:</label>
+            <button id="btnGlowPulseOn" onclick="toggleGlowPulse(true)">ON</button>
+            <button id="btnGlowPulseOff" onclick="toggleGlowPulse(false)">OFF</button>
+        </div>
+
+        <hr style="margin: 20px 0; border: 1px solid #555;">
+
+        <div class="debug-section">
+            <label>アイコン回転:</label>
+            <button id="btnRotateOn" onclick="toggleRotate(true)">ON</button>
+            <button id="btnRotateOff" onclick="toggleRotate(false)">OFF</button>
+        </div>
+
+        <div class="slider-group">
+            <label>回転速度: <span id="rotateSpeedValue">普通</span></label>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button onclick="setRotateSpeed('slow')">遅い</button>
+                <button onclick="setRotateSpeed('normal')">普通</button>
+                <button onclick="setRotateSpeed('fast')">速い</button>
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <label>回転方向:</label>
+            <button id="btnRotateCW" onclick="setRotateDirection('cw')">⟳ 時計回り</button>
+            <button id="btnRotateCCW" onclick="setRotateDirection('ccw')">⟲ 反時計回り</button>
+        </div>
+    </div>
+
+    <!-- 背景タブ -->
+    <div id="tab-background" class="debug-tab-content">
+        <div class="debug-section">
+            <label>グラデーション:</label>
+            <button id="btnGradientOn" onclick="toggleGradient(true)">ON</button>
+            <button id="btnGradientOff" onclick="toggleGradient(false)">OFF</button>
+        </div>
+
+        <div class="slider-group">
+            <label>グラデーション種類: <span id="gradientTypeValue">斜め</span></label>
+            <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                <button onclick="setGradientType('diagonal')">斜め</button>
+                <button onclick="setGradientType('radial')">放射状</button>
+                <button onclick="setGradientType('horizontal')">横</button>
+                <button onclick="setGradientType('vertical')">縦</button>
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <label>グラデーション色:</label>
+            <div class="color-picker-group">
+                <span>色1:</span>
+                <input type="color" id="customGradientColor1" value="#27AE60" oninput="applyGradient()">
+                <span id="gradientColor1Value">#27AE60</span>
+            </div>
+            <div class="color-picker-group">
+                <span>色2:</span>
+                <input type="color" id="customGradientColor2" value="#1E8449" oninput="applyGradient()">
+                <span id="gradientColor2Value">#1E8449</span>
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <label>グラデーションアニメーション:</label>
+            <button id="btnGradientAnimOn" onclick="toggleGradientAnim(true)">ON</button>
+            <button id="btnGradientAnimOff" onclick="toggleGradientAnim(false)">OFF</button>
+            <small style="opacity: 0.7; display: block; margin-top: 5px;">※ グラデーションがゆっくり動きます</small>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -671,7 +784,21 @@
         fadeEnabled: true,
         clinicSize: 3.5,
         iconSize: 10,
-        mainMsgSize: 6.0
+        mainMsgSize: 6.0,
+        // エフェクト
+        glowEnabled: false,
+        glowIntensity: 'medium',
+        glowColor: 'white',
+        glowPulse: false,
+        rotateEnabled: false,
+        rotateSpeed: 'normal',
+        rotateDirection: 'cw',
+        // 背景
+        gradientEnabled: false,
+        gradientType: 'diagonal',
+        gradientColor1: '#27AE60',
+        gradientColor2: '#1E8449',
+        gradientAnimEnabled: false
     };
 
     /**
@@ -897,6 +1024,198 @@
     }
 
     /**
+     * テキストグロー ON/OFF
+     */
+    function toggleGlow(enabled) {
+        customizeState.glowEnabled = enabled;
+        updateActiveButton('btnGlowOn', 'btnGlowOff', enabled);
+        updateEffectsStyle();
+    }
+
+    /**
+     * グロー強度設定
+     */
+    function setGlowIntensity(intensity) {
+        customizeState.glowIntensity = intensity;
+        const labels = { weak: '弱', medium: '中', strong: '強' };
+        document.getElementById('glowIntensityValue').textContent = labels[intensity];
+        updateEffectsStyle();
+    }
+
+    /**
+     * グロー色設定
+     */
+    function setGlowColor(color) {
+        customizeState.glowColor = color;
+        updateEffectsStyle();
+    }
+
+    /**
+     * グローパルス ON/OFF
+     */
+    function toggleGlowPulse(enabled) {
+        customizeState.glowPulse = enabled;
+        updateActiveButton('btnGlowPulseOn', 'btnGlowPulseOff', enabled);
+        updateEffectsStyle();
+    }
+
+    /**
+     * アイコン回転 ON/OFF
+     */
+    function toggleRotate(enabled) {
+        customizeState.rotateEnabled = enabled;
+        updateActiveButton('btnRotateOn', 'btnRotateOff', enabled);
+        updateEffectsStyle();
+    }
+
+    /**
+     * 回転速度設定
+     */
+    function setRotateSpeed(speed) {
+        customizeState.rotateSpeed = speed;
+        const labels = { slow: '遅い', normal: '普通', fast: '速い' };
+        document.getElementById('rotateSpeedValue').textContent = labels[speed];
+        updateEffectsStyle();
+    }
+
+    /**
+     * 回転方向設定
+     */
+    function setRotateDirection(direction) {
+        customizeState.rotateDirection = direction;
+        updateActiveButton('btnRotateCW', 'btnRotateCCW', direction === 'cw');
+        updateEffectsStyle();
+    }
+
+    /**
+     * グラデーション ON/OFF
+     */
+    function toggleGradient(enabled) {
+        customizeState.gradientEnabled = enabled;
+        updateActiveButton('btnGradientOn', 'btnGradientOff', enabled);
+        applyGradient();
+    }
+
+    /**
+     * グラデーション種類設定
+     */
+    function setGradientType(type) {
+        customizeState.gradientType = type;
+        const labels = { diagonal: '斜め', radial: '放射状', horizontal: '横', vertical: '縦' };
+        document.getElementById('gradientTypeValue').textContent = labels[type];
+        applyGradient();
+    }
+
+    /**
+     * グラデーション適用
+     */
+    function applyGradient() {
+        customizeState.gradientColor1 = document.getElementById('customGradientColor1').value;
+        customizeState.gradientColor2 = document.getElementById('customGradientColor2').value;
+        document.getElementById('gradientColor1Value').textContent = customizeState.gradientColor1;
+        document.getElementById('gradientColor2Value').textContent = customizeState.gradientColor2;
+        updateBackgroundStyle();
+    }
+
+    /**
+     * グラデーションアニメーション ON/OFF
+     */
+    function toggleGradientAnim(enabled) {
+        customizeState.gradientAnimEnabled = enabled;
+        updateActiveButton('btnGradientAnimOn', 'btnGradientAnimOff', enabled);
+        updateBackgroundStyle();
+    }
+
+    /**
+     * エフェクトスタイルを動的に更新
+     */
+    function updateEffectsStyle() {
+        const existingStyle = document.getElementById('dynamic-effects-style');
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+
+        const style = document.createElement('style');
+        style.id = 'dynamic-effects-style';
+        let css = '';
+
+        // テキストグロー
+        if (customizeState.glowEnabled) {
+            const intensities = {
+                weak: '0 0 10px, 0 0 20px',
+                medium: '0 0 20px, 0 0 40px, 0 0 60px',
+                strong: '0 0 30px, 0 0 60px, 0 0 90px, 0 0 120px'
+            };
+            const colors = {
+                white: 'rgba(255, 255, 255, 0.8)',
+                yellow: 'rgba(255, 215, 0, 0.9)',
+                cyan: 'rgba(0, 255, 255, 0.9)',
+                lime: 'rgba(0, 255, 0, 0.9)',
+                rainbow: 'hsl(0, 100%, 50%)'
+            };
+
+            const glowColor = colors[customizeState.glowColor];
+            const glowIntensity = intensities[customizeState.glowIntensity];
+
+            if (customizeState.glowPulse && customizeState.glowColor === 'rainbow') {
+                css += `
+                    .main-message {
+                        text-shadow: ${glowIntensity.split(',').map(s => s + ' ' + glowColor).join(',')};
+                        animation: rainbowGlow 3s linear infinite !important;
+                    }
+                    @keyframes rainbowGlow {
+                        0% { filter: hue-rotate(0deg) brightness(1.2); }
+                        100% { filter: hue-rotate(360deg) brightness(1.2); }
+                    }
+                `;
+            } else if (customizeState.glowPulse) {
+                css += `
+                    .main-message {
+                        animation: textGlowPulse 2s ease-in-out infinite !important;
+                    }
+                    @keyframes textGlowPulse {
+                        0%, 100% { text-shadow: ${glowIntensity.split(',').map(s => s + ' ' + glowColor).join(',')}; }
+                        50% { text-shadow: 0 0 5px ${glowColor}; }
+                    }
+                `;
+            } else {
+                css += `
+                    .main-message {
+                        text-shadow: ${glowIntensity.split(',').map(s => s + ' ' + glowColor).join(',')} !important;
+                    }
+                `;
+            }
+        }
+
+        // アイコン回転
+        if (customizeState.rotateEnabled) {
+            const speeds = { slow: '6s', normal: '3s', fast: '1.5s' };
+            const speed = speeds[customizeState.rotateSpeed];
+            const direction = customizeState.rotateDirection === 'cw' ? 'normal' : 'reverse';
+
+            css += `
+                .icon {
+                    animation: iconRotate ${speed} linear infinite ${direction} !important;
+                }
+                @keyframes iconRotate {
+                    from { transform: rotate(0deg) scale(1); }
+                    to { transform: rotate(360deg) scale(1); }
+                }
+            `;
+        }
+
+        style.textContent = css;
+        document.head.appendChild(style);
+    }
+
+    /**
+     * 背景スタイルを動的に更新
+     */
+    function updateBackgroundStyle() {
+        updateDisplay(); // グラデーションは updateDisplay で適用
+    }
+
+    /**
      * すべてのカスタマイズをリセット
      */
     function resetAllCustomizations() {
@@ -919,6 +1238,20 @@
         customizeState.clinicSize = 3.5;
         customizeState.iconSize = 10;
         customizeState.mainMsgSize = 6.0;
+        // エフェクト
+        customizeState.glowEnabled = false;
+        customizeState.glowIntensity = 'medium';
+        customizeState.glowColor = 'white';
+        customizeState.glowPulse = false;
+        customizeState.rotateEnabled = false;
+        customizeState.rotateSpeed = 'normal';
+        customizeState.rotateDirection = 'cw';
+        // 背景
+        customizeState.gradientEnabled = false;
+        customizeState.gradientType = 'diagonal';
+        customizeState.gradientColor1 = '#27AE60';
+        customizeState.gradientColor2 = '#1E8449';
+        customizeState.gradientAnimEnabled = false;
 
         // 入力フィールドを更新
         document.getElementById('customClinicName').value = customizeState.clinicName;
@@ -944,9 +1277,26 @@
         document.getElementById('mainMsgSize').value = customizeState.mainMsgSize;
         document.getElementById('mainMsgSizeValue').textContent = customizeState.mainMsgSize + 'vw';
 
+        // エフェクトタブの値をリセット
+        document.getElementById('glowIntensityValue').textContent = '中';
+        document.getElementById('rotateSpeedValue').textContent = '普通';
+
+        // 背景タブの値をリセット
+        document.getElementById('gradientTypeValue').textContent = '斜め';
+        document.getElementById('customGradientColor1').value = customizeState.gradientColor1;
+        document.getElementById('customGradientColor2').value = customizeState.gradientColor2;
+        document.getElementById('gradientColor1Value').textContent = customizeState.gradientColor1;
+        document.getElementById('gradientColor2Value').textContent = customizeState.gradientColor2;
+
         // ボタンの状態を更新
         updateActiveButton('btnPulseOn', 'btnPulseOff', true);
         updateActiveButton('btnFadeOn', 'btnFadeOff', true);
+        updateActiveButton('btnGlowOn', 'btnGlowOff', false);
+        updateActiveButton('btnGlowPulseOn', 'btnGlowPulseOff', false);
+        updateActiveButton('btnRotateOn', 'btnRotateOff', false);
+        updateActiveButton('btnRotateCW', 'btnRotateCCW', true);
+        updateActiveButton('btnGradientOn', 'btnGradientOff', false);
+        updateActiveButton('btnGradientAnimOn', 'btnGradientAnimOff', false);
 
         // アイコン選択をリセット
         document.querySelectorAll('.icon-selector button').forEach(btn => btn.classList.remove('selected'));
@@ -956,6 +1306,8 @@
         if (animStyle) animStyle.remove();
         const fontStyle = document.getElementById('dynamic-fontsize-style');
         if (fontStyle) fontStyle.remove();
+        const effectsStyle = document.getElementById('dynamic-effects-style');
+        if (effectsStyle) effectsStyle.remove();
 
         // ディスプレイを更新
         applyCustomizations();
@@ -1177,7 +1529,40 @@
 
         if (isAvailable) {
             container.className = 'display-container available';
-            container.style.background = customizeState.availableBg;
+
+            // グラデーション適用
+            if (customizeState.gradientEnabled) {
+                const c1 = customizeState.gradientColor1;
+                const c2 = customizeState.gradientColor2;
+                switch (customizeState.gradientType) {
+                    case 'diagonal':
+                        container.style.background = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
+                        break;
+                    case 'radial':
+                        container.style.background = `radial-gradient(circle, ${c1} 0%, ${c2} 100%)`;
+                        break;
+                    case 'horizontal':
+                        container.style.background = `linear-gradient(90deg, ${c1} 0%, ${c2} 100%)`;
+                        break;
+                    case 'vertical':
+                        container.style.background = `linear-gradient(180deg, ${c1} 0%, ${c2} 100%)`;
+                        break;
+                }
+
+                // グラデーションアニメーション
+                if (customizeState.gradientAnimEnabled) {
+                    container.style.backgroundSize = '200% 200%';
+                    container.style.animation = 'gradientShift 10s ease infinite';
+                } else {
+                    container.style.backgroundSize = '';
+                    container.style.animation = '';
+                }
+            } else {
+                container.style.background = customizeState.availableBg;
+                container.style.backgroundSize = '';
+                container.style.animation = '';
+            }
+
             container.innerHTML = `
                 <div class="clinic-name">${customizeState.clinicName}</div>
                 <div class="icon">${customizeState.availableIcon}</div>
@@ -1187,7 +1572,40 @@
             `;
         } else {
             container.className = 'display-container unavailable';
-            container.style.background = customizeState.fullBg;
+
+            // グラデーション適用
+            if (customizeState.gradientEnabled) {
+                const c1 = customizeState.gradientColor1;
+                const c2 = customizeState.gradientColor2;
+                switch (customizeState.gradientType) {
+                    case 'diagonal':
+                        container.style.background = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
+                        break;
+                    case 'radial':
+                        container.style.background = `radial-gradient(circle, ${c1} 0%, ${c2} 100%)`;
+                        break;
+                    case 'horizontal':
+                        container.style.background = `linear-gradient(90deg, ${c1} 0%, ${c2} 100%)`;
+                        break;
+                    case 'vertical':
+                        container.style.background = `linear-gradient(180deg, ${c1} 0%, ${c2} 100%)`;
+                        break;
+                }
+
+                // グラデーションアニメーション
+                if (customizeState.gradientAnimEnabled) {
+                    container.style.backgroundSize = '200% 200%';
+                    container.style.animation = 'gradientShift 10s ease infinite';
+                } else {
+                    container.style.backgroundSize = '';
+                    container.style.animation = '';
+                }
+            } else {
+                container.style.background = customizeState.fullBg;
+                container.style.backgroundSize = '';
+                container.style.animation = '';
+            }
+
             container.innerHTML = `
                 <div class="clinic-name">${customizeState.clinicName}</div>
                 <div class="icon">${customizeState.fullIcon}</div>
