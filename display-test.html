@@ -251,6 +251,102 @@
             align-items: center;
         }
 
+        /* タブナビゲーション */
+        .debug-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #34495E;
+        }
+
+        .debug-tab {
+            background: #34495E;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px 5px 0 0;
+            transition: background 0.3s;
+        }
+
+        .debug-tab:hover {
+            background: #415a77;
+        }
+
+        .debug-tab.active {
+            background: #3498DB;
+        }
+
+        .debug-tab-content {
+            display: none;
+        }
+
+        .debug-tab-content.active {
+            display: block;
+        }
+
+        /* カスタマイズ入力 */
+        .customize-input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #555;
+            border-radius: 5px;
+            font-size: 14px;
+            background: #34495E;
+            color: white;
+        }
+
+        .icon-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .icon-selector button {
+            font-size: 32px;
+            padding: 10px;
+            background: #34495E;
+            border: 2px solid #555;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .icon-selector button:hover {
+            background: #415a77;
+        }
+
+        .icon-selector button.selected {
+            border-color: #3498DB;
+            background: #3498DB;
+        }
+
+        .color-picker-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .color-picker-group input[type="color"] {
+            width: 60px;
+            height: 40px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .slider-group {
+            margin: 15px 0;
+        }
+
+        .slider-group input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+
         .debug-close-btn {
             background: #E74C3C;
             color: white;
@@ -367,45 +463,180 @@
         <button class="debug-close-btn" onclick="toggleDebugPanel()">× 閉じる</button>
     </h3>
 
-    <div class="debug-section">
-        <label>予約状況:</label>
-        <button id="btnAvailable" onclick="setAvailability(true)">✅ 空きあり</button>
-        <button id="btnUnavailable" onclick="setAvailability(false)">❌ 満枠</button>
+    <!-- タブナビゲーション -->
+    <div class="debug-tabs">
+        <button class="debug-tab active" onclick="switchTab('time')">⏰ 時間</button>
+        <button class="debug-tab" onclick="switchTab('text')">📝 テキスト</button>
+        <button class="debug-tab" onclick="switchTab('design')">🎨 デザイン</button>
+        <button class="debug-tab" onclick="switchTab('animation')">⚡ アニメ</button>
     </div>
 
-    <div class="debug-section">
-        <label>時間帯:</label>
-        <button onclick="setTestTime(10, 0)">営業時間中 (10:00)</button>
-        <button onclick="setTestTime(14, 0)">昼休み (14:00)</button>
-        <button onclick="setTestTime(19, 0)">営業時間外 (19:00)</button>
-        <button onclick="setTestTime(18, 45)">18:30以降 (18:45)</button>
+    <!-- 時間タブ -->
+    <div id="tab-time" class="debug-tab-content active">
+        <div class="debug-section">
+            <label>予約状況:</label>
+            <button id="btnAvailable" onclick="setAvailability(true)">✅ 空きあり</button>
+            <button id="btnUnavailable" onclick="setAvailability(false)">❌ 満枠</button>
+        </div>
+
+        <div class="debug-section">
+            <label>時間帯:</label>
+            <button onclick="setTestTime(10, 0)">営業時間中 (10:00)</button>
+            <button onclick="setTestTime(14, 0)">昼休み (14:00)</button>
+            <button onclick="setTestTime(19, 0)">営業時間外 (19:00)</button>
+            <button onclick="setTestTime(18, 45)">18:30以降 (18:45)</button>
+        </div>
+
+        <div class="debug-section">
+            <label>曜日:</label>
+            <button onclick="setDayOfWeek(0)">日</button>
+            <button onclick="setDayOfWeek(1)">月</button>
+            <button onclick="setDayOfWeek(2)">火</button>
+            <button onclick="setDayOfWeek(3)">水</button>
+            <button onclick="setDayOfWeek(4)">木</button>
+            <button onclick="setDayOfWeek(5)">金</button>
+            <button onclick="setDayOfWeek(6)">土</button>
+        </div>
+
+        <div class="debug-section">
+            <label>時刻設定:</label>
+            <input type="time" id="timeInput" value="14:00">
+            <button onclick="applyCustomTime()">適用</button>
+            <button onclick="resetToCurrentTime()">現在時刻にリセット</button>
+        </div>
+
+        <div class="debug-info">
+            <div><strong>📊 現在のテスト条件:</strong></div>
+            <div>予約状況: <span id="statusDisplay">空きあり</span></div>
+            <div>日時: <span id="dateTimeDisplay">2025/11/11 (火) 14:00</span></div>
+            <div>営業時間前バナー: <span id="openingDisplay">非表示</span> <span id="openingIndicator" class="status-indicator off"></span></div>
+            <div>昼休みバナー: <span id="lunchDisplay">表示中</span> <span id="lunchIndicator" class="status-indicator on"></span></div>
+            <div>日付テキスト: <span id="dayTextDisplay">本日</span></div>
+        </div>
     </div>
 
-    <div class="debug-section">
-        <label>曜日:</label>
-        <button onclick="setDayOfWeek(0)">日</button>
-        <button onclick="setDayOfWeek(1)">月</button>
-        <button onclick="setDayOfWeek(2)">火</button>
-        <button onclick="setDayOfWeek(3)">水</button>
-        <button onclick="setDayOfWeek(4)">木</button>
-        <button onclick="setDayOfWeek(5)">金</button>
-        <button onclick="setDayOfWeek(6)">土</button>
+    <!-- テキストタブ -->
+    <div id="tab-text" class="debug-tab-content">
+        <div class="debug-section">
+            <label>クリニック名:</label>
+            <input type="text" class="customize-input" id="customClinicName" value="ふじみ野ひかり眼科" oninput="applyCustomizations()">
+        </div>
+
+        <div class="debug-section">
+            <label>空きありメッセージ:</label>
+            <input type="text" class="customize-input" id="customAvailableMsg" value="✅ {day}分の予約枠 空きあり" oninput="applyCustomizations()">
+            <small style="opacity: 0.7;">※ {day} は自動で本日/明日/木曜に置き換わります</small>
+        </div>
+
+        <div class="debug-section">
+            <label>満枠メッセージ:</label>
+            <input type="text" class="customize-input" id="customFullMsg" value="❌ {day}の予約は 満枠です" oninput="applyCustomizations()">
+        </div>
+
+        <div class="debug-section">
+            <label>サブメッセージ:</label>
+            <input type="text" class="customize-input" id="customSubMsg" value="誠に恐れ入りますが、翌診療日以降で ご予約ください" oninput="applyCustomizations()">
+        </div>
+
+        <div class="debug-section">
+            <label>QRメッセージ:</label>
+            <input type="text" class="customize-input" id="customQrMsg" value="受付窓口 もしくは QRコードから ご予約ください" oninput="applyCustomizations()">
+        </div>
     </div>
 
-    <div class="debug-section">
-        <label>時刻設定:</label>
-        <input type="time" id="timeInput" value="14:00">
-        <button onclick="applyCustomTime()">適用</button>
-        <button onclick="resetToCurrentTime()">現在時刻にリセット</button>
+    <!-- デザインタブ -->
+    <div id="tab-design" class="debug-tab-content">
+        <div class="debug-section">
+            <label>空きありアイコン:</label>
+            <div class="icon-selector">
+                <button onclick="selectIcon('available', '✅')">✅</button>
+                <button onclick="selectIcon('available', '✔️')">✔️</button>
+                <button onclick="selectIcon('available', '⭕')">⭕</button>
+                <button onclick="selectIcon('available', '🟢')">🟢</button>
+                <button onclick="selectIcon('available', '👍')">👍</button>
+                <input type="text" class="customize-input" id="customAvailableIcon" value="✅" placeholder="カスタム" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <label>満枠アイコン:</label>
+            <div class="icon-selector">
+                <button onclick="selectIcon('full', '❌')">❌</button>
+                <button onclick="selectIcon('full', '✖️')">✖️</button>
+                <button onclick="selectIcon('full', '🙇')">🙇</button>
+                <button onclick="selectIcon('full', '⛔')">⛔</button>
+                <button onclick="selectIcon('full', '🚫')">🚫</button>
+                <input type="text" class="customize-input" id="customFullIcon" value="🙇" placeholder="カスタム" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <label>背景色:</label>
+            <div class="color-picker-group">
+                <span>空きあり:</span>
+                <input type="color" id="customAvailableBg" value="#27AE60" oninput="applyCustomizations()">
+                <span id="availableBgValue">#27AE60</span>
+            </div>
+            <div class="color-picker-group">
+                <span>満枠:</span>
+                <input type="color" id="customFullBg" value="#DC3545" oninput="applyCustomizations()">
+                <span id="fullBgValue">#DC3545</span>
+            </div>
+            <div class="color-picker-group">
+                <span>バナー背景:</span>
+                <input type="color" id="customBannerBg" value="#FFC107" oninput="applyCustomizations()">
+                <span id="bannerBgValue">#FFC107</span>
+            </div>
+            <div class="color-picker-group">
+                <span>バナー文字:</span>
+                <input type="color" id="customBannerText" value="#212529" oninput="applyCustomizations()">
+                <span id="bannerTextValue">#212529</span>
+            </div>
+        </div>
     </div>
 
-    <div class="debug-info">
-        <div><strong>📊 現在のテスト条件:</strong></div>
-        <div>予約状況: <span id="statusDisplay">空きあり</span></div>
-        <div>日時: <span id="dateTimeDisplay">2025/11/11 (火) 14:00</span></div>
-        <div>営業時間前バナー: <span id="openingDisplay">非表示</span> <span id="openingIndicator" class="status-indicator off"></span></div>
-        <div>昼休みバナー: <span id="lunchDisplay">表示中</span> <span id="lunchIndicator" class="status-indicator on"></span></div>
-        <div>日付テキスト: <span id="dayTextDisplay">本日</span></div>
+    <!-- アニメーションタブ -->
+    <div id="tab-animation" class="debug-tab-content">
+        <div class="debug-section">
+            <label>パルスアニメーション:</label>
+            <button id="btnPulseOn" onclick="togglePulse(true)">ON</button>
+            <button id="btnPulseOff" onclick="togglePulse(false)">OFF</button>
+        </div>
+
+        <div class="slider-group">
+            <label>パルス速度: <span id="pulseSpeedValue">2.0秒</span></label>
+            <input type="range" id="pulseSpeed" min="0.5" max="5.0" step="0.1" value="2.0" oninput="updatePulseSpeed(this.value)">
+        </div>
+
+        <div class="slider-group">
+            <label>パルス拡大率: <span id="pulseScaleValue">1.15</span></label>
+            <input type="range" id="pulseScale" min="1.0" max="1.5" step="0.05" value="1.15" oninput="updatePulseScale(this.value)">
+        </div>
+
+        <div class="debug-section">
+            <label>フェードインアニメーション:</label>
+            <button id="btnFadeOn" onclick="toggleFade(true)">ON</button>
+            <button id="btnFadeOff" onclick="toggleFade(false)">OFF</button>
+        </div>
+
+        <div class="slider-group">
+            <label>クリニック名サイズ: <span id="clinicSizeValue">3.5vw</span></label>
+            <input type="range" id="clinicSize" min="2.0" max="6.0" step="0.1" value="3.5" oninput="updateClinicSize(this.value)">
+        </div>
+
+        <div class="slider-group">
+            <label>アイコンサイズ: <span id="iconSizeValue">10vw</span></label>
+            <input type="range" id="iconSize" min="6" max="15" step="0.5" value="10" oninput="updateIconSize(this.value)">
+        </div>
+
+        <div class="slider-group">
+            <label>メインメッセージサイズ: <span id="mainMsgSizeValue">6vw</span></label>
+            <input type="range" id="mainMsgSize" min="4.0" max="10.0" step="0.5" value="6.0" oninput="updateMainMsgSize(this.value)">
+        </div>
+
+        <div class="debug-section" style="margin-top: 20px;">
+            <button onclick="resetAllCustomizations()" style="background: #E74C3C;">🔄 すべてリセット</button>
+        </div>
     </div>
 </div>
 
@@ -420,6 +651,317 @@
         hour: 14,
         minute: 0
     };
+
+    // カスタマイズの状態管理
+    const customizeState = {
+        clinicName: 'ふじみ野ひかり眼科',
+        availableMsg: '✅ {day}分の予約枠 空きあり',
+        fullMsg: '❌ {day}の予約は 満枠です',
+        subMsg: '誠に恐れ入りますが、翌診療日以降で ご予約ください',
+        qrMsg: '受付窓口 もしくは QRコードから ご予約ください',
+        availableIcon: '✅',
+        fullIcon: '🙇',
+        availableBg: '#27AE60',
+        fullBg: '#DC3545',
+        bannerBg: '#FFC107',
+        bannerText: '#212529',
+        pulseEnabled: true,
+        pulseSpeed: 2.0,
+        pulseScale: 1.15,
+        fadeEnabled: true,
+        clinicSize: 3.5,
+        iconSize: 10,
+        mainMsgSize: 6.0
+    };
+
+    /**
+     * タブを切り替える
+     */
+    function switchTab(tabName) {
+        // すべてのタブボタンとコンテンツからactiveクラスを削除
+        document.querySelectorAll('.debug-tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.debug-tab-content').forEach(content => content.classList.remove('active'));
+
+        // 選択されたタブをアクティブにする
+        event.target.classList.add('active');
+        document.getElementById('tab-' + tabName).classList.add('active');
+    }
+
+    /**
+     * アイコンを選択
+     */
+    function selectIcon(type, icon) {
+        if (type === 'available') {
+            document.getElementById('customAvailableIcon').value = icon;
+            customizeState.availableIcon = icon;
+        } else if (type === 'full') {
+            document.getElementById('customFullIcon').value = icon;
+            customizeState.fullIcon = icon;
+        }
+
+        // 選択状態のビジュアル更新
+        const buttons = event.target.parentElement.querySelectorAll('button');
+        buttons.forEach(btn => btn.classList.remove('selected'));
+        event.target.classList.add('selected');
+
+        applyCustomizations();
+    }
+
+    /**
+     * カスタマイズを適用
+     */
+    function applyCustomizations() {
+        // テキスト
+        customizeState.clinicName = document.getElementById('customClinicName').value;
+        customizeState.availableMsg = document.getElementById('customAvailableMsg').value;
+        customizeState.fullMsg = document.getElementById('customFullMsg').value;
+        customizeState.subMsg = document.getElementById('customSubMsg').value;
+        customizeState.qrMsg = document.getElementById('customQrMsg').value;
+
+        // アイコン
+        customizeState.availableIcon = document.getElementById('customAvailableIcon').value;
+        customizeState.fullIcon = document.getElementById('customFullIcon').value;
+
+        // 色
+        customizeState.availableBg = document.getElementById('customAvailableBg').value;
+        customizeState.fullBg = document.getElementById('customFullBg').value;
+        customizeState.bannerBg = document.getElementById('customBannerBg').value;
+        customizeState.bannerText = document.getElementById('customBannerText').value;
+
+        // カラーピッカーの値表示を更新
+        document.getElementById('availableBgValue').textContent = customizeState.availableBg;
+        document.getElementById('fullBgValue').textContent = customizeState.fullBg;
+        document.getElementById('bannerBgValue').textContent = customizeState.bannerBg;
+        document.getElementById('bannerTextValue').textContent = customizeState.bannerText;
+
+        // ディスプレイを更新
+        updateDisplay();
+    }
+
+    /**
+     * パルスアニメーションON/OFF
+     */
+    function togglePulse(enabled) {
+        customizeState.pulseEnabled = enabled;
+        updateActiveButton('btnPulseOn', 'btnPulseOff', enabled);
+        updateAnimationStyle();
+    }
+
+    /**
+     * パルス速度を更新
+     */
+    function updatePulseSpeed(value) {
+        customizeState.pulseSpeed = parseFloat(value);
+        document.getElementById('pulseSpeedValue').textContent = value + '秒';
+        updateAnimationStyle();
+    }
+
+    /**
+     * パルス拡大率を更新
+     */
+    function updatePulseScale(value) {
+        customizeState.pulseScale = parseFloat(value);
+        document.getElementById('pulseScaleValue').textContent = value;
+        updateAnimationStyle();
+    }
+
+    /**
+     * フェードインアニメーションON/OFF
+     */
+    function toggleFade(enabled) {
+        customizeState.fadeEnabled = enabled;
+        updateActiveButton('btnFadeOn', 'btnFadeOff', enabled);
+        updateAnimationStyle();
+    }
+
+    /**
+     * クリニック名サイズを更新
+     */
+    function updateClinicSize(value) {
+        customizeState.clinicSize = parseFloat(value);
+        document.getElementById('clinicSizeValue').textContent = value + 'vw';
+        applyFontSizes();
+    }
+
+    /**
+     * アイコンサイズを更新
+     */
+    function updateIconSize(value) {
+        customizeState.iconSize = parseFloat(value);
+        document.getElementById('iconSizeValue').textContent = value + 'vw';
+        applyFontSizes();
+    }
+
+    /**
+     * メインメッセージサイズを更新
+     */
+    function updateMainMsgSize(value) {
+        customizeState.mainMsgSize = parseFloat(value);
+        document.getElementById('mainMsgSizeValue').textContent = value + 'vw';
+        applyFontSizes();
+    }
+
+    /**
+     * アニメーションスタイルを動的に更新
+     */
+    function updateAnimationStyle() {
+        // 既存のスタイルタグを削除
+        const existingStyle = document.getElementById('dynamic-animation-style');
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+
+        // 新しいスタイルタグを作成
+        const style = document.createElement('style');
+        style.id = 'dynamic-animation-style';
+
+        let css = '';
+
+        // パルスアニメーション
+        if (customizeState.pulseEnabled) {
+            css += `
+                .icon {
+                    animation: pulse ${customizeState.pulseSpeed}s ease-in-out infinite !important;
+                }
+                @keyframes pulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(${customizeState.pulseScale}); }
+                    100% { transform: scale(1); }
+                }
+            `;
+        } else {
+            css += `
+                .icon {
+                    animation: none !important;
+                }
+            `;
+        }
+
+        // フェードインアニメーション
+        if (customizeState.fadeEnabled) {
+            css += `
+                .main-message {
+                    animation: fadeIn 1s ease-in !important;
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            `;
+        } else {
+            css += `
+                .main-message {
+                    animation: none !important;
+                }
+            `;
+        }
+
+        style.textContent = css;
+        document.head.appendChild(style);
+    }
+
+    /**
+     * フォントサイズを動的に適用
+     */
+    function applyFontSizes() {
+        const existingStyle = document.getElementById('dynamic-fontsize-style');
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+
+        const style = document.createElement('style');
+        style.id = 'dynamic-fontsize-style';
+
+        const minClinic = Math.max(32, customizeState.clinicSize * 10);
+        const maxClinic = Math.min(64, customizeState.clinicSize * 20);
+
+        const minIcon = Math.max(120, customizeState.iconSize * 12);
+        const maxIcon = Math.min(200, customizeState.iconSize * 20);
+
+        const minMain = Math.max(60, customizeState.mainMsgSize * 10);
+        const maxMain = Math.min(120, customizeState.mainMsgSize * 20);
+
+        style.textContent = `
+            .clinic-name {
+                font-size: clamp(${minClinic}px, ${customizeState.clinicSize}vw, ${maxClinic}px) !important;
+            }
+            .icon {
+                font-size: clamp(${minIcon}px, ${customizeState.iconSize}vw, ${maxIcon}px) !important;
+            }
+            .main-message {
+                font-size: clamp(${minMain}px, ${customizeState.mainMsgSize}vw, ${maxMain}px) !important;
+            }
+        `;
+
+        document.head.appendChild(style);
+    }
+
+    /**
+     * すべてのカスタマイズをリセット
+     */
+    function resetAllCustomizations() {
+        // カスタマイズ状態をデフォルトに戻す
+        customizeState.clinicName = 'ふじみ野ひかり眼科';
+        customizeState.availableMsg = '✅ {day}分の予約枠 空きあり';
+        customizeState.fullMsg = '❌ {day}の予約は 満枠です';
+        customizeState.subMsg = '誠に恐れ入りますが、翌診療日以降で ご予約ください';
+        customizeState.qrMsg = '受付窓口 もしくは QRコードから ご予約ください';
+        customizeState.availableIcon = '✅';
+        customizeState.fullIcon = '🙇';
+        customizeState.availableBg = '#27AE60';
+        customizeState.fullBg = '#DC3545';
+        customizeState.bannerBg = '#FFC107';
+        customizeState.bannerText = '#212529';
+        customizeState.pulseEnabled = true;
+        customizeState.pulseSpeed = 2.0;
+        customizeState.pulseScale = 1.15;
+        customizeState.fadeEnabled = true;
+        customizeState.clinicSize = 3.5;
+        customizeState.iconSize = 10;
+        customizeState.mainMsgSize = 6.0;
+
+        // 入力フィールドを更新
+        document.getElementById('customClinicName').value = customizeState.clinicName;
+        document.getElementById('customAvailableMsg').value = customizeState.availableMsg;
+        document.getElementById('customFullMsg').value = customizeState.fullMsg;
+        document.getElementById('customSubMsg').value = customizeState.subMsg;
+        document.getElementById('customQrMsg').value = customizeState.qrMsg;
+        document.getElementById('customAvailableIcon').value = customizeState.availableIcon;
+        document.getElementById('customFullIcon').value = customizeState.fullIcon;
+        document.getElementById('customAvailableBg').value = customizeState.availableBg;
+        document.getElementById('customFullBg').value = customizeState.fullBg;
+        document.getElementById('customBannerBg').value = customizeState.bannerBg;
+        document.getElementById('customBannerText').value = customizeState.bannerText;
+
+        document.getElementById('pulseSpeed').value = customizeState.pulseSpeed;
+        document.getElementById('pulseSpeedValue').textContent = customizeState.pulseSpeed + '秒';
+        document.getElementById('pulseScale').value = customizeState.pulseScale;
+        document.getElementById('pulseScaleValue').textContent = customizeState.pulseScale;
+        document.getElementById('clinicSize').value = customizeState.clinicSize;
+        document.getElementById('clinicSizeValue').textContent = customizeState.clinicSize + 'vw';
+        document.getElementById('iconSize').value = customizeState.iconSize;
+        document.getElementById('iconSizeValue').textContent = customizeState.iconSize + 'vw';
+        document.getElementById('mainMsgSize').value = customizeState.mainMsgSize;
+        document.getElementById('mainMsgSizeValue').textContent = customizeState.mainMsgSize + 'vw';
+
+        // ボタンの状態を更新
+        updateActiveButton('btnPulseOn', 'btnPulseOff', true);
+        updateActiveButton('btnFadeOn', 'btnFadeOff', true);
+
+        // アイコン選択をリセット
+        document.querySelectorAll('.icon-selector button').forEach(btn => btn.classList.remove('selected'));
+
+        // 動的スタイルを削除
+        const animStyle = document.getElementById('dynamic-animation-style');
+        if (animStyle) animStyle.remove();
+        const fontStyle = document.getElementById('dynamic-fontsize-style');
+        if (fontStyle) fontStyle.remove();
+
+        // ディスプレイを更新
+        applyCustomizations();
+
+        alert('すべての設定をデフォルトに戻しました');
+    }
 
     /**
      * デバッグパネルの表示/非表示を切り替え
@@ -629,26 +1171,40 @@
         // タイムスタンプをフォーマット
         const formattedTime = formatTimestamp(timestampStr);
 
+        // メッセージのプレースホルダーを置換
+        const availableMsg = customizeState.availableMsg.replace('{day}', dayText);
+        const fullMsg = customizeState.fullMsg.replace('{day}', dayText);
+
         if (isAvailable) {
             container.className = 'display-container available';
+            container.style.background = customizeState.availableBg;
             container.innerHTML = `
-                <div class="clinic-name">ふじみ野ひかり眼科</div>
-                <div class="icon">✅</div>
-                <div class="main-message">✅ ${dayText}分の予約枠 空きあり</div>
-                <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
+                <div class="clinic-name">${customizeState.clinicName}</div>
+                <div class="icon">${customizeState.availableIcon}</div>
+                <div class="main-message">${availableMsg}</div>
+                <div class="qr-message">${customizeState.qrMsg}</div>
                 <div class="update-time">${formattedTime}</div>
             `;
         } else {
             container.className = 'display-container unavailable';
+            container.style.background = customizeState.fullBg;
             container.innerHTML = `
-                <div class="clinic-name">ふじみ野ひかり眼科</div>
-                <div class="icon">🙇</div>
-                <div class="main-message">❌ ${dayText}の予約は 満枠です</div>
-                <div class="sub-message">誠に恐れ入りますが、翌診療日以降で ご予約ください</div>
-                <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
+                <div class="clinic-name">${customizeState.clinicName}</div>
+                <div class="icon">${customizeState.fullIcon}</div>
+                <div class="main-message">${fullMsg}</div>
+                <div class="sub-message">${customizeState.subMsg}</div>
+                <div class="qr-message">${customizeState.qrMsg}</div>
                 <div class="update-time">${formattedTime}</div>
             `;
         }
+
+        // バナーの色を適用
+        const openingSoonBanner = document.getElementById('openingSoonBanner');
+        const lunchBreakBanner = document.getElementById('lunchBreakBanner');
+        openingSoonBanner.style.background = customizeState.bannerBg;
+        openingSoonBanner.style.color = customizeState.bannerText;
+        lunchBreakBanner.style.background = customizeState.bannerBg;
+        lunchBreakBanner.style.color = customizeState.bannerText;
 
         // デバッグ情報を更新
         updateDebugInfo(timestampStr, dayText);
