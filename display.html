@@ -67,6 +67,20 @@
             margin-bottom: 40px;
             line-height: 1;
             animation: pulse 2s ease-in-out infinite;
+            /* 白い縁取り効果 */
+            text-shadow:
+                -4px -4px 0 white,
+                4px -4px 0 white,
+                -4px 4px 0 white,
+                4px 4px 0 white,
+                0 -4px 0 white,
+                0 4px 0 white,
+                -4px 0 0 white,
+                4px 0 0 white,
+                -3px -3px 0 white,
+                3px -3px 0 white,
+                -3px 3px 0 white,
+                3px 3px 0 white;
         }
 
         /* アイコンのパルスアニメーション */
@@ -92,27 +106,6 @@
             animation: fadeIn 1s ease-in;
         }
 
-        /* 空きあり専用：光る効果 */
-        .main-message.available-shine {
-            animation: fadeIn 1s ease-in, textGlow 2s ease-in-out infinite;
-        }
-
-        /* 文字が光るアニメーション */
-        @keyframes textGlow {
-            0% {
-                text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3),
-                             0 0 10px rgba(255, 255, 255, 0.2);
-            }
-            50% {
-                text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3),
-                             0 0 30px rgba(255, 255, 255, 0.8),
-                             0 0 40px rgba(255, 255, 255, 0.6);
-            }
-            100% {
-                text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3),
-                             0 0 10px rgba(255, 255, 255, 0.2);
-            }
-        }
 
         /* フェードインアニメーション */
         @keyframes fadeIn {
@@ -310,7 +303,7 @@
             container.innerHTML = `
                 <div class="clinic-name">ふじみ野ひかり眼科</div>
                 <div class="icon">✅</div>
-                <div class="main-message available-shine">✅ ${dayText}分の予約枠 空きあり</div>
+                <div class="main-message">✅ ${dayText}分の予約枠 空きあり</div>
                 <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
                 <div class="update-time">${formattedTime}</div>
             `;
