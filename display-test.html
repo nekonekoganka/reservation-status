@@ -401,6 +401,72 @@
             background: #E74C3C;
         }
 
+        /* モードトグルスイッチ */
+        .mode-toggle-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 15px;
+            background: #34495E;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .mode-toggle-label {
+            font-weight: bold;
+            color: #FFC107;
+        }
+
+        .mode-toggle-switch {
+            display: flex;
+            background: #2C3E50;
+            border-radius: 25px;
+            padding: 3px;
+            gap: 3px;
+        }
+
+        .mode-toggle-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+            background: transparent;
+            color: #95A5A6;
+        }
+
+        .mode-toggle-btn.active {
+            color: white;
+        }
+
+        .mode-toggle-btn.debug.active {
+            background: #2ECC71;
+        }
+
+        .mode-toggle-btn.production.active {
+            background: #3498DB;
+        }
+
+        .mode-status {
+            margin-left: auto;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .mode-status.debug {
+            background: #2ECC71;
+            color: white;
+        }
+
+        .mode-status.production {
+            background: #3498DB;
+            color: white;
+        }
+
         .debug-panel input[type="time"] {
             padding: 8px;
             font-size: 16px;
@@ -472,6 +538,20 @@
         <span>🛠️ デバッグコントロール</span>
         <button class="debug-close-btn" onclick="toggleDebugPanel()">× 閉じる</button>
     </h3>
+
+    <!-- モードトグルスイッチ -->
+    <div class="mode-toggle-container">
+        <span class="mode-toggle-label">モード:</span>
+        <div class="mode-toggle-switch">
+            <button id="btnDebugMode" class="mode-toggle-btn debug active" onclick="switchMode('debug')">
+                🟢 デバッグモード
+            </button>
+            <button id="btnProductionMode" class="mode-toggle-btn production" onclick="switchMode('production')">
+                🔵 本番モード
+            </button>
+        </div>
+        <span id="modeStatus" class="mode-status debug">🟢 デバッグ中</span>
+    </div>
 
     <!-- タブナビゲーション -->
     <div class="debug-tabs">
@@ -1568,22 +1648,50 @@
     }
 
     /**
-     * デバッグパネルの表示/非表示を切り替え
+     * デバッグパネルの表示/非表示を切り替え（モード変更はしない）
      */
     function toggleDebugPanel() {
         const panel = document.getElementById('debugPanel');
         const btn = document.getElementById('debugToggleBtn');
 
         if (panel.classList.contains('show')) {
-            // パネルを閉じる → 本番モードに切り替え
+            // パネルを閉じる（モードは維持）
             panel.classList.remove('show');
             btn.classList.remove('active');
-            startProductionMode();
         } else {
-            // パネルを開く → デバッグモードに切り替え
+            // パネルを開く（モードは維持）
             panel.classList.add('show');
             btn.classList.add('active');
+        }
+    }
+
+    /**
+     * モードを切り替える
+     */
+    function switchMode(mode) {
+        const debugBtn = document.getElementById('btnDebugMode');
+        const productionBtn = document.getElementById('btnProductionMode');
+        const modeStatus = document.getElementById('modeStatus');
+
+        if (mode === 'debug') {
+            // デバッグモードに切り替え
+            debugBtn.classList.add('active');
+            productionBtn.classList.remove('active');
+            modeStatus.className = 'mode-status debug';
+            modeStatus.textContent = '🟢 デバッグ中';
+
             stopProductionMode();
+
+            // デバッグ状態で表示を更新
+            updateDisplay();
+        } else if (mode === 'production') {
+            // 本番モードに切り替え
+            debugBtn.classList.remove('active');
+            productionBtn.classList.add('active');
+            modeStatus.className = 'mode-status production';
+            modeStatus.textContent = '🔵 本番稼働中';
+
+            startProductionMode();
         }
     }
 
@@ -2154,8 +2262,10 @@
     loadPresetNames();
     updateCurrentPresetInfo();
 
-    // 本番モードで開始（デバッグパネルは閉じた状態）
-    startProductionMode();
+    // デバッグモードで開始（デバッグパネルは閉じた状態）
+    isDebugMode = true;
+    setAvailability(true);
+    updateDisplay();
 </script>
 
 </body>
