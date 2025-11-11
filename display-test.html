@@ -371,6 +371,37 @@
             background: #C0392B;
         }
 
+        .debug-export-btn,
+        .debug-import-btn {
+            background: #9B59B6;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+
+        .debug-export-btn:hover,
+        .debug-import-btn:hover {
+            background: #8E44AD;
+        }
+
+        .preset-export-btn {
+            flex: 0.5;
+            background: #9B59B6;
+            font-size: 14px;
+        }
+
+        .preset-export-btn:hover {
+            background: #8E44AD;
+        }
+
+        #importFileInput {
+            display: none;
+        }
+
         .debug-section {
             margin-bottom: 15px;
         }
@@ -536,8 +567,11 @@
 <div id="debugPanel" class="debug-panel">
     <h3>
         <span>🛠️ デバッグコントロール</span>
+        <button class="debug-export-btn" onclick="exportCurrentSettings()">📤 書出</button>
+        <button class="debug-import-btn" onclick="triggerImport()">📥 取込</button>
         <button class="debug-close-btn" onclick="toggleDebugPanel()">× 閉じる</button>
     </h3>
+    <input type="file" id="importFileInput" accept=".json" onchange="importSettings(event)">
 
     <!-- モードトグルスイッチ -->
     <div class="mode-toggle-container">
@@ -852,6 +886,7 @@
                 <div style="display: flex; gap: 5px;">
                     <button onclick="savePreset(1)" style="flex: 1; background: #2ECC71;">💾 保存</button>
                     <button onclick="loadPreset(1)" style="flex: 1; background: #3498DB;">📥 読込</button>
+                    <button onclick="exportPreset(1)" class="preset-export-btn">📤 書出</button>
                     <button onclick="deletePreset(1)" style="background: #E74C3C;">🗑️</button>
                 </div>
             </div>
@@ -865,6 +900,7 @@
                 <div style="display: flex; gap: 5px;">
                     <button onclick="savePreset(2)" style="flex: 1; background: #2ECC71;">💾 保存</button>
                     <button onclick="loadPreset(2)" style="flex: 1; background: #3498DB;">📥 読込</button>
+                    <button onclick="exportPreset(2)" class="preset-export-btn">📤 書出</button>
                     <button onclick="deletePreset(2)" style="background: #E74C3C;">🗑️</button>
                 </div>
             </div>
@@ -878,6 +914,7 @@
                 <div style="display: flex; gap: 5px;">
                     <button onclick="savePreset(3)" style="flex: 1; background: #2ECC71;">💾 保存</button>
                     <button onclick="loadPreset(3)" style="flex: 1; background: #3498DB;">📥 読込</button>
+                    <button onclick="exportPreset(3)" class="preset-export-btn">📤 書出</button>
                     <button onclick="deletePreset(3)" style="background: #E74C3C;">🗑️</button>
                 </div>
             </div>
@@ -891,6 +928,7 @@
                 <div style="display: flex; gap: 5px;">
                     <button onclick="savePreset(4)" style="flex: 1; background: #2ECC71;">💾 保存</button>
                     <button onclick="loadPreset(4)" style="flex: 1; background: #3498DB;">📥 読込</button>
+                    <button onclick="exportPreset(4)" class="preset-export-btn">📤 書出</button>
                     <button onclick="deletePreset(4)" style="background: #E74C3C;">🗑️</button>
                 </div>
             </div>
@@ -904,6 +942,7 @@
                 <div style="display: flex; gap: 5px;">
                     <button onclick="savePreset(5)" style="flex: 1; background: #2ECC71;">💾 保存</button>
                     <button onclick="loadPreset(5)" style="flex: 1; background: #3498DB;">📥 読込</button>
+                    <button onclick="exportPreset(5)" class="preset-export-btn">📤 書出</button>
                     <button onclick="deletePreset(5)" style="background: #E74C3C;">🗑️</button>
                 </div>
             </div>
@@ -1386,6 +1425,111 @@
      */
     function updateBackgroundStyle() {
         updateDisplay(); // グラデーションは updateDisplay で適用
+    }
+
+    /**
+     * 現在の設定をエクスポート（クイックボタン用）
+     */
+    function exportCurrentSettings() {
+        const exportData = {
+            name: "現在の設定",
+            version: "1.0",
+            exportedAt: new Date().toISOString(),
+            settings: JSON.parse(JSON.stringify(customizeState))
+        };
+
+        const filename = `display-preset-現在の設定-${new Date().toISOString().slice(0, 10)}.json`;
+        downloadJSON(exportData, filename);
+
+        alert('✅ 現在の設定をエクスポートしました！');
+    }
+
+    /**
+     * プリセットをエクスポート
+     */
+    function exportPreset(slotNumber) {
+        const presetData = localStorage.getItem(`displayPreset${slotNumber}`);
+
+        if (!presetData) {
+            alert('❌ このスロットには保存されていません');
+            return;
+        }
+
+        const preset = JSON.parse(presetData);
+
+        const exportData = {
+            name: preset.name,
+            version: "1.0",
+            exportedAt: new Date().toISOString(),
+            originalSavedAt: preset.savedAt,
+            settings: preset.state
+        };
+
+        const filename = `display-preset-${preset.name}-${new Date().toISOString().slice(0, 10)}.json`;
+        downloadJSON(exportData, filename);
+
+        alert(`✅ 「${preset.name}」をエクスポートしました！`);
+    }
+
+    /**
+     * ファイル選択ダイアログを開く
+     */
+    function triggerImport() {
+        document.getElementById('importFileInput').click();
+    }
+
+    /**
+     * インポート処理
+     */
+    function importSettings(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importData = JSON.parse(e.target.result);
+
+                // バージョンチェック
+                if (!importData.version || !importData.settings) {
+                    throw new Error('無効なファイル形式です');
+                }
+
+                // 設定を適用
+                Object.assign(customizeState, importData.settings);
+                applyCustomizationsFromState();
+
+                // 現在のプリセットをクリア
+                currentPresetSlot = null;
+                updateCurrentPresetInfo();
+
+                alert(`✅ 「${importData.name}」をインポートしました！\n\nエクスポート日時: ${new Date(importData.exportedAt).toLocaleString('ja-JP')}`);
+            } catch (error) {
+                console.error('インポートエラー:', error);
+                alert(`❌ インポートに失敗しました\n\nエラー: ${error.message}`);
+            }
+        };
+        reader.readAsText(file);
+
+        // ファイル選択をリセット（同じファイルを再選択可能にする）
+        event.target.value = '';
+    }
+
+    /**
+     * JSONファイルをダウンロード
+     */
+    function downloadJSON(data, filename) {
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 
     /**
