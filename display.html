@@ -13,8 +13,8 @@
         }
 
         body {
-            width: 1920px;
-            height: 1080px;
+            width: 100vw;
+            height: 100vh;
             overflow: hidden;
             font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
             display: flex;
@@ -54,7 +54,7 @@
 
         /* クリニック名 */
         .clinic-name {
-            font-size: 64px;
+            font-size: clamp(32px, 3.5vw, 64px);
             font-weight: bold;
             margin-bottom: 60px;
             opacity: 0.95;
@@ -63,7 +63,7 @@
 
         /* アイコン */
         .icon {
-            font-size: 200px;
+            font-size: clamp(120px, 10vw, 200px);
             margin-bottom: 40px;
             line-height: 1;
             animation: pulse 2s ease-in-out infinite;
@@ -98,7 +98,7 @@
 
         /* メインメッセージ（空きあり/満枠） */
         .main-message {
-            font-size: 120px;
+            font-size: clamp(60px, 6vw, 120px);
             font-weight: bold;
             margin-bottom: 80px;
             line-height: 1.4;
@@ -121,7 +121,7 @@
 
         /* サブメッセージ */
         .sub-message {
-            font-size: 56px;
+            font-size: clamp(28px, 3vw, 56px);
             margin-bottom: 20px;
             line-height: 1.6;
             opacity: 0.95;
@@ -129,7 +129,7 @@
 
         /* QRコードメッセージ */
         .qr-message {
-            font-size: 64px;
+            font-size: clamp(32px, 3.5vw, 64px);
             font-weight: bold;
             margin-top: 60px;
             margin-bottom: 60px;
@@ -138,7 +138,7 @@
 
         /* 更新時刻 */
         .update-time {
-            font-size: 40px;
+            font-size: clamp(20px, 2vw, 40px);
             opacity: 0.85;
             margin-top: 40px;
         }
@@ -149,7 +149,7 @@
         }
 
         .error-message {
-            font-size: 72px;
+            font-size: clamp(36px, 4vw, 72px);
             margin-top: 40px;
         }
 
@@ -161,7 +161,7 @@
             width: 100%;
             background: #FFC107;
             color: #212529;
-            font-size: 48px;
+            font-size: clamp(24px, 2.5vw, 48px);
             font-weight: bold;
             text-align: center;
             padding: 20px;
@@ -179,8 +179,8 @@
             position: fixed;
             bottom: 60px;
             left: 40px;
-            width: 180px;
-            height: 180px;
+            width: clamp(120px, 9vw, 180px);
+            height: clamp(120px, 9vw, 180px);
             background: white;
             padding: 15px;
             border-radius: 15px;
@@ -196,6 +196,11 @@
     </style>
 </head>
 <body>
+
+<!-- 営業時間前バナー -->
+<div id="openingSoonBanner" class="lunch-break-banner">
+    🕐 10時に窓口が開きます　お待ち下さい
+</div>
 
 <!-- 昼休みバナー -->
 <div id="lunchBreakBanner" class="lunch-break-banner">
@@ -337,25 +342,59 @@
     }
 
     /**
-     * 昼休み判定関数
+     * 営業時間前判定関数（8:00-10:00、営業日のみ）
+     */
+    function isOpeningSoon(updateTime) {
+        const now = new Date(updateTime);
+        const dayOfWeek = now.getDay(); // 0=日, 1=月, 2=火, 3=水...
+        const hour = now.getHours();
+
+        // 水曜日（休診日）は表示しない
+        if (dayOfWeek === 3) {
+            return false;
+        }
+
+        // 8:00-9:59の間
+        return hour >= 8 && hour < 10;
+    }
+
+    /**
+     * 昼休み判定関数（13:30-15:00、営業日のみ）
      */
     function isLunchBreak(updateTime) {
         const now = new Date(updateTime);
+        const dayOfWeek = now.getDay();
         const hour = now.getHours();
         const minute = now.getMinutes();
+
+        // 水曜日（休診日）は表示しない
+        if (dayOfWeek === 3) {
+            return false;
+        }
+
         // 13:30-15:00の間
         return (hour === 13 && minute >= 30) || (hour === 14);
     }
 
     /**
-     * 昼休みバナーの表示/非表示を更新
+     * バナーの表示/非表示を更新
      */
-    function updateLunchBreakBanner(updateTime) {
-        const banner = document.getElementById('lunchBreakBanner');
-        if (isLunchBreak(updateTime)) {
-            banner.classList.add('show');
+    function updateBanners(updateTime) {
+        const openingSoonBanner = document.getElementById('openingSoonBanner');
+        const lunchBreakBanner = document.getElementById('lunchBreakBanner');
+
+        // 営業時間前バナー
+        if (isOpeningSoon(updateTime)) {
+            openingSoonBanner.classList.add('show');
         } else {
-            banner.classList.remove('show');
+            openingSoonBanner.classList.remove('show');
+        }
+
+        // 昼休みバナー
+        if (isLunchBreak(updateTime)) {
+            lunchBreakBanner.classList.add('show');
+        } else {
+            lunchBreakBanner.classList.remove('show');
         }
     }
 
@@ -365,8 +404,8 @@
     function displayStatus(isAvailable, updateTime) {
         const container = document.getElementById('displayContainer');
 
-        // 昼休みバナーを更新
-        updateLunchBreakBanner(updateTime);
+        // バナーを更新
+        updateBanners(updateTime);
 
         // 日付テキストを計算
         const dayText = calculateDayText(updateTime);
