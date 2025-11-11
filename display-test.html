@@ -206,12 +206,63 @@
             z-index: 9999;
             box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3);
             font-size: 16px;
+            display: none;
+        }
+
+        .debug-panel.show {
+            display: block;
+        }
+
+        /* デバッグトグルボタン（右下固定） */
+        .debug-toggle-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: #3498DB;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 28px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .debug-toggle-btn:hover {
+            background: #2980B9;
+        }
+
+        .debug-toggle-btn.active {
+            background: #E74C3C;
         }
 
         .debug-panel h3 {
             margin-bottom: 15px;
             font-size: 20px;
             color: #FFC107;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .debug-close-btn {
+            background: #E74C3C;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .debug-close-btn:hover {
+            background: #C0392B;
         }
 
         .debug-section {
@@ -301,9 +352,15 @@
     </div>
 </div>
 
+<!-- デバッグトグルボタン（右下固定） -->
+<button id="debugToggleBtn" class="debug-toggle-btn" onclick="toggleDebugPanel()">🛠️</button>
+
 <!-- デバッグパネル -->
-<div class="debug-panel">
-    <h3>🛠️ デバッグコントロール</h3>
+<div id="debugPanel" class="debug-panel">
+    <h3>
+        <span>🛠️ デバッグコントロール</span>
+        <button class="debug-close-btn" onclick="toggleDebugPanel()">× 閉じる</button>
+    </h3>
 
     <div class="debug-section">
         <label>予約状況:</label>
@@ -357,6 +414,22 @@
         hour: 14,
         minute: 0
     };
+
+    /**
+     * デバッグパネルの表示/非表示を切り替え
+     */
+    function toggleDebugPanel() {
+        const panel = document.getElementById('debugPanel');
+        const btn = document.getElementById('debugToggleBtn');
+
+        if (panel.classList.contains('show')) {
+            panel.classList.remove('show');
+            btn.classList.remove('active');
+        } else {
+            panel.classList.add('show');
+            btn.classList.add('active');
+        }
+    }
 
     /**
      * 予約可否を設定
