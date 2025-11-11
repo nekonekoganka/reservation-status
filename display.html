@@ -39,16 +39,16 @@
 
         /* 予約可能の時のスタイル（濃い黄緑色） */
         .display-container.available {
-            background: linear-gradient(135deg, #27AE60 0%, #229954 100%);
-            background-size: 200% 200%;
-            animation: gradientShift 8s ease infinite;
+            background: linear-gradient(135deg, #1E8449 0%, #27AE60 50%, #52BE80 100%);
+            background-size: 300% 300%;
+            animation: gradientShift 4s ease infinite;
         }
 
         /* 予約不可の時のスタイル（赤色） */
         .display-container.unavailable {
-            background: linear-gradient(135deg, #DC3545 0%, #C82333 100%);
-            background-size: 200% 200%;
-            animation: gradientShift 8s ease infinite;
+            background: linear-gradient(135deg, #A93226 0%, #DC3545 50%, #E74C3C 100%);
+            background-size: 300% 300%;
+            animation: gradientShift 4s ease infinite;
         }
 
         /* 読み込み中のスタイル */
@@ -92,7 +92,7 @@
                 transform: scale(1);
             }
             50% {
-                transform: scale(1.1);
+                transform: scale(1.15);
             }
             100% {
                 transform: scale(1);
@@ -107,6 +107,31 @@
             line-height: 1.4;
             text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             animation: fadeIn 1s ease-in;
+        }
+
+        /* 空きあり専用：光が流れる効果 */
+        .main-message.available-shine {
+            position: relative;
+            background: linear-gradient(90deg,
+                rgba(255,255,255,0) 0%,
+                rgba(255,255,255,0.3) 25%,
+                rgba(255,255,255,0.5) 50%,
+                rgba(255,255,255,0.3) 75%,
+                rgba(255,255,255,0) 100%);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: fadeIn 1s ease-in, shine 3s linear infinite;
+        }
+
+        /* シャインアニメーション */
+        @keyframes shine {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
         }
 
         /* フェードインアニメーション */
@@ -305,7 +330,7 @@
             container.innerHTML = `
                 <div class="clinic-name">ふじみ野ひかり眼科</div>
                 <div class="icon">✅</div>
-                <div class="main-message">✅ ${dayText}分の予約枠 空きあり</div>
+                <div class="main-message available-shine">✅ ${dayText}分の予約枠 空きあり</div>
                 <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
                 <div class="update-time">${formattedTime}</div>
             `;
