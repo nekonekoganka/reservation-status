@@ -8,6 +8,8 @@
 
 **全画面ディスプレイ（クリニック入口用 1920×1080）：** https://nekonekoganka.github.io/reservation-status/display.html
 
+**デバッグページ（テスト用）：** https://nekonekoganka.github.io/reservation-status/display-test.html
+
 ---
 
 ## 📌 主な機能
@@ -29,10 +31,12 @@
 reservation-status/
 ├── index.html                  # バナー表示用HTML（ホームページ埋め込み用）
 ├── display.html                # 全画面ディスプレイ用HTML（1920×1080・クリニック入口用）🆕
+├── display-test.html           # デバッグ用テストページ（時間・曜日・状態を変更可能）🆕
 ├── Downloads/                  # バナー用画像ファイル
 │   ├── vacant_reservation.png  # 予約空きありバナー
 │   ├── full_reservation.png    # 予約満バナー
-│   └── closed_days.png         # 休診日バナー
+│   ├── closed_days.png         # 休診日バナー
+│   └── QR_fujiminohikari.png   # 予約QRコード
 ├── docs/                       # ドキュメント
 │   ├── handover-to-claude-code.md      # システム全体の引き継ぎ資料
 │   ├── implementation-guide-v5.md      # 実装手順
