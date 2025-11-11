@@ -52,19 +52,16 @@
             background: #6C757D;
         }
 
-        /* クリニック名 */
+        /* クリニック名（使用しない） */
         .clinic-name {
-            font-size: clamp(32px, 3.5vw, 64px);
-            font-weight: bold;
-            margin-bottom: 60px;
-            opacity: 0.95;
-            letter-spacing: 8px;
+            display: none;
         }
 
         /* アイコン */
         .icon {
             font-size: clamp(120px, 10vw, 200px);
             margin-bottom: 40px;
+            margin-top: 80px;
             line-height: 1;
             animation: pulse 2s ease-in-out infinite;
             /* 白い縁取り効果 */
@@ -417,9 +414,8 @@
             // 予約可能（濃い黄緑色）
             container.className = 'display-container available';
             container.innerHTML = `
-                <div class="clinic-name">ふじみ野ひかり眼科</div>
-                <div class="icon">✅</div>
-                <div class="main-message">✅ ${dayText}分の予約枠 空きあり</div>
+                <div class="icon">⭕</div>
+                <div class="main-message">${dayText}分の予約枠 空きあり</div>
                 <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
                 <div class="update-time">${formattedTime}</div>
             `;
@@ -427,9 +423,8 @@
             // 予約不可（赤色）
             container.className = 'display-container unavailable';
             container.innerHTML = `
-                <div class="clinic-name">ふじみ野ひかり眼科</div>
-                <div class="icon">🙇</div>
-                <div class="main-message">❌ ${dayText}の予約は 満枠です</div>
+                <div class="icon">❌</div>
+                <div class="main-message">${dayText}の予約は 満枠です</div>
                 <div class="sub-message">誠に恐れ入りますが、翌診療日以降で ご予約ください</div>
                 <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
                 <div class="update-time">${formattedTime}</div>

@@ -53,19 +53,16 @@
             background: #6C757D;
         }
 
-        /* クリニック名 */
+        /* クリニック名（デバッグ用に非表示） */
         .clinic-name {
-            font-size: clamp(32px, 3.5vw, 64px);
-            font-weight: bold;
-            margin-bottom: 60px;
-            opacity: 0.95;
-            letter-spacing: 8px;
+            display: none;
         }
 
         /* アイコン */
         .icon {
             font-size: clamp(120px, 10vw, 200px);
             margin-bottom: 40px;
+            margin-top: 80px;
             line-height: 1;
             animation: pulse 2s ease-in-out infinite;
             /* 白い縁取り効果 */
@@ -524,13 +521,13 @@
 
         <div class="debug-section">
             <label>空きありメッセージ:</label>
-            <input type="text" class="customize-input" id="customAvailableMsg" value="✅ {day}分の予約枠 空きあり" oninput="applyCustomizations()">
+            <input type="text" class="customize-input" id="customAvailableMsg" value="{day}分の予約枠 空きあり" oninput="applyCustomizations()">
             <small style="opacity: 0.7;">※ {day} は自動で本日/明日/木曜に置き換わります</small>
         </div>
 
         <div class="debug-section">
             <label>満枠メッセージ:</label>
-            <input type="text" class="customize-input" id="customFullMsg" value="❌ {day}の予約は 満枠です" oninput="applyCustomizations()">
+            <input type="text" class="customize-input" id="customFullMsg" value="{day}の予約は 満枠です" oninput="applyCustomizations()">
         </div>
 
         <div class="debug-section">
@@ -554,7 +551,7 @@
                 <button onclick="selectIcon('available', '⭕')">⭕</button>
                 <button onclick="selectIcon('available', '🟢')">🟢</button>
                 <button onclick="selectIcon('available', '👍')">👍</button>
-                <input type="text" class="customize-input" id="customAvailableIcon" value="✅" placeholder="カスタム" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
+                <input type="text" class="customize-input" id="customAvailableIcon" value="⭕" placeholder="カスタム" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
             </div>
         </div>
 
@@ -566,7 +563,7 @@
                 <button onclick="selectIcon('full', '🙇')">🙇</button>
                 <button onclick="selectIcon('full', '⛔')">⛔</button>
                 <button onclick="selectIcon('full', '🚫')">🚫</button>
-                <input type="text" class="customize-input" id="customFullIcon" value="🙇" placeholder="カスタム" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
+                <input type="text" class="customize-input" id="customFullIcon" value="❌" placeholder="カスタム" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
             </div>
         </div>
 
@@ -655,12 +652,12 @@
     // カスタマイズの状態管理
     const customizeState = {
         clinicName: 'ふじみ野ひかり眼科',
-        availableMsg: '✅ {day}分の予約枠 空きあり',
-        fullMsg: '❌ {day}の予約は 満枠です',
+        availableMsg: '{day}分の予約枠 空きあり',
+        fullMsg: '{day}の予約は 満枠です',
         subMsg: '誠に恐れ入りますが、翌診療日以降で ご予約ください',
         qrMsg: '受付窓口 もしくは QRコードから ご予約ください',
-        availableIcon: '✅',
-        fullIcon: '🙇',
+        availableIcon: '⭕',
+        fullIcon: '❌',
         availableBg: '#27AE60',
         fullBg: '#DC3545',
         bannerBg: '#FFC107',
@@ -902,12 +899,12 @@
     function resetAllCustomizations() {
         // カスタマイズ状態をデフォルトに戻す
         customizeState.clinicName = 'ふじみ野ひかり眼科';
-        customizeState.availableMsg = '✅ {day}分の予約枠 空きあり';
-        customizeState.fullMsg = '❌ {day}の予約は 満枠です';
+        customizeState.availableMsg = '{day}分の予約枠 空きあり';
+        customizeState.fullMsg = '{day}の予約は 満枠です';
         customizeState.subMsg = '誠に恐れ入りますが、翌診療日以降で ご予約ください';
         customizeState.qrMsg = '受付窓口 もしくは QRコードから ご予約ください';
-        customizeState.availableIcon = '✅';
-        customizeState.fullIcon = '🙇';
+        customizeState.availableIcon = '⭕';
+        customizeState.fullIcon = '❌';
         customizeState.availableBg = '#27AE60';
         customizeState.fullBg = '#DC3545';
         customizeState.bannerBg = '#FFC107';
