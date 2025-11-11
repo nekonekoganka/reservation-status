@@ -148,38 +148,45 @@
             opacity: 0.95;
         }
 
-        /* QRコードエリア */
+        /* QRコードエリア - 左下固定配置 */
         .qr-section {
-            margin-top: 60px;
+            position: fixed;
+            bottom: 80px;
+            left: 40px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 20px;
+            align-items: flex-start;
+            gap: 15px;
+            z-index: 100;
         }
 
         /* QRコード画像 */
         .qr-code {
-            width: 250px;
-            height: 250px;
+            width: 200px;
+            height: 200px;
             background: white;
-            padding: 20px;
-            border-radius: 20px;
+            padding: 15px;
+            border-radius: 15px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
         }
 
         /* QRコードメッセージ */
         .qr-message {
-            font-size: 64px;
+            font-size: 32px;
             font-weight: bold;
-            margin-bottom: 20px;
             opacity: 0.95;
+            max-width: 500px;
+            line-height: 1.4;
         }
 
-        /* 更新時刻 */
+        /* 更新時刻 - 左下固定配置 */
         .update-time {
-            font-size: 40px;
+            position: fixed;
+            bottom: 20px;
+            left: 40px;
+            font-size: 28px;
             opacity: 0.85;
-            margin-top: 40px;
+            z-index: 100;
         }
 
         /* エラー時のスタイル */
@@ -201,6 +208,15 @@
     <div class="main-message">読み込み中...</div>
     <div class="sub-message">予約状況を確認しています</div>
 </div>
+
+<!-- QRコードエリア（左下固定） -->
+<div id="qrSection" class="qr-section" style="display: none;">
+    <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード" class="qr-code">
+    <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
+</div>
+
+<!-- 更新時刻（左下固定） -->
+<div id="updateTime" class="update-time" style="display: none;"></div>
 
 <script>
     // スプレッドシートのID
@@ -329,6 +345,8 @@
      */
     function displayStatus(isAvailable, updateTime) {
         const container = document.getElementById('displayContainer');
+        const qrSection = document.getElementById('qrSection');
+        const updateTimeEl = document.getElementById('updateTime');
 
         // 日付テキストを計算
         const dayText = calculateDayText(updateTime);
@@ -346,11 +364,6 @@
                 </div>
                 <div class="icon">✅</div>
                 <div class="main-message available-shine">✅ ${dayText}分の予約枠 空きあり</div>
-                <div class="qr-section">
-                    <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード" class="qr-code">
-                    <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
-                </div>
-                <div class="update-time">${formattedTime}</div>
             `;
         } else {
             // 予約不可（赤色）
@@ -363,13 +376,13 @@
                 <div class="icon">❌</div>
                 <div class="main-message">❌ ${dayText}の予約は 満枠です</div>
                 <div class="sub-message">誠に恐れ入りますが、翌診療日以降で ご予約ください</div>
-                <div class="qr-section">
-                    <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード" class="qr-code">
-                    <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
-                </div>
-                <div class="update-time">${formattedTime}</div>
             `;
         }
+
+        // QRコードと更新時刻を表示（左下固定）
+        qrSection.style.display = 'flex';
+        updateTimeEl.style.display = 'block';
+        updateTimeEl.textContent = formattedTime;
     }
 
     /**
@@ -377,6 +390,9 @@
      */
     function displayError() {
         const container = document.getElementById('displayContainer');
+        const qrSection = document.getElementById('qrSection');
+        const updateTimeEl = document.getElementById('updateTime');
+
         container.className = 'display-container error';
         container.innerHTML = `
             <div class="clinic-name">ふじみ野ひかり眼科</div>
@@ -384,6 +400,10 @@
             <div class="main-message">情報を取得できません</div>
             <div class="error-message">しばらくしてから再度お試しください</div>
         `;
+
+        // エラー時はQRコードと更新時刻を非表示
+        qrSection.style.display = 'none';
+        updateTimeEl.style.display = 'none';
     }
 
     // ページ読み込み時に実行
