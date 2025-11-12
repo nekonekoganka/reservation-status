@@ -763,6 +763,86 @@
                 </div>
             </div>
         </div>
+
+        <div class="debug-section" style="border-top: 2px solid #ccc; padding-top: 20px; margin-top: 20px;">
+            <label style="font-size: 1.1em; font-weight: bold;">🏷️ タブアイコン（ファビコン）:</label>
+
+            <div style="margin: 15px 0;">
+                <div class="button-group">
+                    <button id="btnFaviconOn" class="btn active" onclick="toggleFavicon(true)">ON</button>
+                    <button id="btnFaviconOff" class="btn" onclick="toggleFavicon(false)">OFF</button>
+                </div>
+            </div>
+
+            <div id="faviconSettings" style="display: block;">
+                <div style="margin: 15px 0;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 10px;">デザインスタイル:</label>
+
+                    <div style="margin-bottom: 10px; padding: 12px; background: #f8f9fa; border-radius: 6px; border: 2px solid #4CAF50; cursor: pointer;" onclick="setFaviconStyle('color-shape')">
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                            <input type="radio" name="faviconStyle" value="color-shape" checked onchange="setFaviconStyle('color-shape')" style="width: 18px; height: 18px;">
+                            <div>
+                                <div style="font-weight: bold;">◉ スタイル2: 色+形 (推奨)</div>
+                                <div style="font-size: 0.9em; color: #666; margin-top: 4px;">
+                                    <span style="font-size: 1.4em;">🟢</span> 緑の丸 / <span style="font-size: 1.4em;">🔴</span> 赤いバツ
+                                </div>
+                                <div style="font-size: 0.85em; color: #28a745; margin-top: 4px;">✓ アクセシブル・色弱対応</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div style="margin-bottom: 10px; padding: 12px; background: #f8f9fa; border-radius: 6px; border: 2px solid #ddd; cursor: pointer;" onclick="setFaviconStyle('color-only')">
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                            <input type="radio" name="faviconStyle" value="color-only" onchange="setFaviconStyle('color-only')" style="width: 18px; height: 18px;">
+                            <div>
+                                <div style="font-weight: bold;">○ スタイル1: 色のみ</div>
+                                <div style="font-size: 0.9em; color: #666; margin-top: 4px;">
+                                    <span style="font-size: 1.4em;">🟢</span> 緑の丸 / <span style="font-size: 1.4em;">🔴</span> 赤の丸
+                                </div>
+                                <div style="font-size: 0.85em; color: #666; margin-top: 4px;">シンプル・色覚正常者向け</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <label style="font-weight: bold;">カラー設定:</label>
+
+                    <div class="color-picker-group" style="margin-top: 10px;">
+                        <span>🟢 空きあり:</span>
+                        <input type="color" id="customFaviconAvailableColor" value="#4CAF50" oninput="updateFaviconColor('available', this.value)">
+                        <span id="faviconAvailableColorValue">#4CAF50</span>
+                        <span style="margin-left: 10px; font-size: 1.8em;" id="faviconAvailablePreview">●</span>
+                    </div>
+
+                    <div class="color-picker-group">
+                        <span>🔴 満枠:</span>
+                        <input type="color" id="customFaviconFullColor" value="#F44336" oninput="updateFaviconColor('full', this.value)">
+                        <span id="faviconFullColorValue">#F44336</span>
+                        <span style="margin-left: 10px; font-size: 1.8em;" id="faviconFullPreview">✗</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <label style="font-size: 0.95em;">カラープリセット:</label>
+                    <div class="button-group" style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn" style="font-size: 0.9em; padding: 8px 12px;" onclick="applyFaviconColorPreset('green-red')">🟢🔴 緑/赤</button>
+                        <button class="btn" style="font-size: 0.9em; padding: 8px 12px;" onclick="applyFaviconColorPreset('blue-orange')">🔵🟠 青/橙</button>
+                        <button class="btn" style="font-size: 0.9em; padding: 8px 12px;" onclick="applyFaviconColorPreset('purple-yellow')">🟣🟡 紫/黄</button>
+                        <button class="btn" style="font-size: 0.9em; padding: 8px 12px;" onclick="applyFaviconColorPreset('teal-pink')">🩵💗 青緑/桃</button>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px; padding: 12px; background: #e8f5e9; border-radius: 6px; font-size: 0.85em; color: #2e7d32;">
+                    <strong>💡 ヒント:</strong>
+                    <ul style="margin: 8px 0 0 20px; padding: 0;">
+                        <li><strong>スタイル1</strong>: 最もシンプル。色覚正常な環境向け</li>
+                        <li><strong>スタイル2 (推奨)</strong>: 色と形の両方で判別可能。色覚障害をお持ちの方にも優しい</li>
+                        <li>タブアイコンが変わることで、複数タブを開いている時も一目で状態確認できます</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- サイズタブ -->
@@ -1143,7 +1223,12 @@
         // タブ色
         tabColorEnabled: true,
         availableTabColor: '#4CAF50',
-        fullTabColor: '#F44336'
+        fullTabColor: '#F44336',
+        // ファビコン
+        faviconEnabled: true,
+        faviconStyle: 'color-shape', // 'color-only' or 'color-shape'
+        faviconAvailableColor: '#4CAF50',
+        faviconFullColor: '#F44336'
     };
 
     /**
@@ -1313,6 +1398,203 @@
             // タブ色を更新
             updateThemeColor();
         }
+    }
+
+    /**
+     * ファビコン機能のON/OFF
+     */
+    function toggleFavicon(enabled) {
+        customizeState.faviconEnabled = enabled;
+        updateActiveButton('btnFaviconOn', 'btnFaviconOff', enabled);
+
+        // 設定パネルの表示/非表示
+        const settings = document.getElementById('faviconSettings');
+        if (settings) {
+            settings.style.display = enabled ? 'block' : 'none';
+        }
+
+        // ファビコンを更新
+        updateFavicon();
+    }
+
+    /**
+     * ファビコンスタイルを変更
+     */
+    function setFaviconStyle(style) {
+        customizeState.faviconStyle = style;
+
+        // ラジオボタンを更新
+        const radios = document.querySelectorAll('input[name="faviconStyle"]');
+        radios.forEach(radio => {
+            radio.checked = (radio.value === style);
+        });
+
+        // ボーダーの色を更新（視覚的フィードバック）
+        document.querySelectorAll('[onclick*="setFaviconStyle"]').forEach(div => {
+            if (div.onclick.toString().includes(`'${style}'`)) {
+                div.style.borderColor = '#4CAF50';
+                div.style.borderWidth = '2px';
+            } else {
+                div.style.borderColor = '#ddd';
+                div.style.borderWidth = '2px';
+            }
+        });
+
+        // プレビューを更新
+        updateFaviconPreview();
+
+        // ファビコンを更新
+        updateFavicon();
+    }
+
+    /**
+     * ファビコン色を更新
+     */
+    function updateFaviconColor(type, color) {
+        if (type === 'available') {
+            customizeState.faviconAvailableColor = color;
+            document.getElementById('faviconAvailableColorValue').textContent = color;
+        } else if (type === 'full') {
+            customizeState.faviconFullColor = color;
+            document.getElementById('faviconFullColorValue').textContent = color;
+        }
+
+        // プレビューを更新
+        updateFaviconPreview();
+
+        // ファビコンを更新
+        updateFavicon();
+    }
+
+    /**
+     * ファビコンプレビューを更新
+     */
+    function updateFaviconPreview() {
+        const availablePreview = document.getElementById('faviconAvailablePreview');
+        const fullPreview = document.getElementById('faviconFullPreview');
+
+        if (availablePreview) {
+            availablePreview.style.color = customizeState.faviconAvailableColor;
+            availablePreview.textContent = '●';
+        }
+
+        if (fullPreview) {
+            fullPreview.style.color = customizeState.faviconFullColor;
+            if (customizeState.faviconStyle === 'color-shape') {
+                fullPreview.textContent = '✗';
+            } else {
+                fullPreview.textContent = '●';
+            }
+        }
+    }
+
+    /**
+     * ファビコンカラープリセットを適用
+     */
+    function applyFaviconColorPreset(preset) {
+        const presets = {
+            'green-red': {
+                available: '#4CAF50',
+                full: '#F44336'
+            },
+            'blue-orange': {
+                available: '#2196F3',
+                full: '#FF9800'
+            },
+            'purple-yellow': {
+                available: '#9C27B0',
+                full: '#FFEB3B'
+            },
+            'teal-pink': {
+                available: '#00BCD4',
+                full: '#E91E63'
+            }
+        };
+
+        const colors = presets[preset];
+        if (colors) {
+            customizeState.faviconAvailableColor = colors.available;
+            customizeState.faviconFullColor = colors.full;
+
+            // UIを更新
+            document.getElementById('customFaviconAvailableColor').value = colors.available;
+            document.getElementById('customFaviconFullColor').value = colors.full;
+            document.getElementById('faviconAvailableColorValue').textContent = colors.available;
+            document.getElementById('faviconFullColorValue').textContent = colors.full;
+
+            // プレビューを更新
+            updateFaviconPreview();
+
+            // ファビコンを更新
+            updateFavicon();
+        }
+    }
+
+    /**
+     * SVGファビコンを生成
+     */
+    function generateFaviconSVG(isAvailable) {
+        const color = isAvailable ? customizeState.faviconAvailableColor : customizeState.faviconFullColor;
+        const style = customizeState.faviconStyle;
+
+        let svg = '';
+
+        if (style === 'color-shape') {
+            // スタイル2: 色+形（緑の丸 / 赤いバツ）
+            if (isAvailable) {
+                // 緑の丸
+                svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+                    <circle cx="16" cy="16" r="14" fill="${color}"/>
+                </svg>`;
+            } else {
+                // 赤いバツ
+                svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+                    <rect width="32" height="32" fill="${color}"/>
+                    <line x1="8" y1="8" x2="24" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="24" y1="8" x2="8" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                </svg>`;
+            }
+        } else {
+            // スタイル1: 色のみ（緑の丸 / 赤の丸）
+            svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+                <circle cx="16" cy="16" r="14" fill="${color}"/>
+            </svg>`;
+        }
+
+        return svg;
+    }
+
+    /**
+     * ファビコンを更新
+     */
+    function updateFavicon() {
+        if (!customizeState.faviconEnabled) {
+            return;
+        }
+
+        // 現在の表示状態を取得
+        const container = document.querySelector('.display-container');
+        const isAvailable = container && container.classList.contains('available');
+
+        // SVGを生成
+        const svg = generateFaviconSVG(isAvailable);
+
+        // SVGをBase64エンコード
+        const base64 = btoa(unescape(encodeURIComponent(svg)));
+        const faviconUrl = `data:image/svg+xml;base64,${base64}`;
+
+        // 既存のファビコンを削除
+        const existingFavicon = document.querySelector('link[rel="icon"]');
+        if (existingFavicon) {
+            existingFavicon.remove();
+        }
+
+        // 新しいファビコンを追加
+        const link = document.createElement('link');
+        link.rel = 'icon';
+        link.type = 'image/svg+xml';
+        link.href = faviconUrl;
+        document.head.appendChild(link);
     }
 
     /**
@@ -2169,6 +2451,30 @@
             }
         }
 
+        // ファビコン
+        if (customizeState.faviconEnabled !== undefined) {
+            document.getElementById('customFaviconAvailableColor').value = customizeState.faviconAvailableColor || '#4CAF50';
+            document.getElementById('customFaviconFullColor').value = customizeState.faviconFullColor || '#F44336';
+            document.getElementById('faviconAvailableColorValue').textContent = customizeState.faviconAvailableColor || '#4CAF50';
+            document.getElementById('faviconFullColorValue').textContent = customizeState.faviconFullColor || '#F44336';
+            updateActiveButton('btnFaviconOn', 'btnFaviconOff', customizeState.faviconEnabled);
+
+            // スタイルを復元
+            const faviconStyle = customizeState.faviconStyle || 'color-shape';
+            const radios = document.querySelectorAll('input[name="faviconStyle"]');
+            radios.forEach(radio => {
+                radio.checked = (radio.value === faviconStyle);
+            });
+            setFaviconStyle(faviconStyle);
+
+            const faviconSettings = document.getElementById('faviconSettings');
+            if (faviconSettings) {
+                faviconSettings.style.display = customizeState.faviconEnabled ? 'block' : 'none';
+            }
+
+            updateFaviconPreview();
+        }
+
         // アニメーション
         document.getElementById('pulseSpeed').value = customizeState.pulseSpeed;
         document.getElementById('pulseScale').value = customizeState.pulseScale;
@@ -2251,6 +2557,11 @@
         customizeState.tabColorEnabled = true;
         customizeState.availableTabColor = '#4CAF50';
         customizeState.fullTabColor = '#F44336';
+        // ファビコン
+        customizeState.faviconEnabled = true;
+        customizeState.faviconStyle = 'color-shape';
+        customizeState.faviconAvailableColor = '#4CAF50';
+        customizeState.faviconFullColor = '#F44336';
 
         // 入力フィールドを更新
         document.getElementById('customClinicName').value = customizeState.clinicName;
@@ -2296,6 +2607,17 @@
         document.getElementById('availableTabColorValue').textContent = customizeState.availableTabColor;
         document.getElementById('fullTabColorValue').textContent = customizeState.fullTabColor;
 
+        // ファビコンの値をリセット
+        document.getElementById('customFaviconAvailableColor').value = customizeState.faviconAvailableColor;
+        document.getElementById('customFaviconFullColor').value = customizeState.faviconFullColor;
+        document.getElementById('faviconAvailableColorValue').textContent = customizeState.faviconAvailableColor;
+        document.getElementById('faviconFullColorValue').textContent = customizeState.faviconFullColor;
+        const faviconRadios = document.querySelectorAll('input[name="faviconStyle"]');
+        faviconRadios.forEach(radio => {
+            radio.checked = (radio.value === customizeState.faviconStyle);
+        });
+        setFaviconStyle(customizeState.faviconStyle);
+
         // ボタンの状態を更新
         updateActiveButton('btnPulseOn', 'btnPulseOff', true);
         updateActiveButton('btnGlowOn', 'btnGlowOff', false);
@@ -2303,6 +2625,7 @@
         updateActiveButton('btnGradientOn', 'btnGradientOff', false);
         updateActiveButton('btnGradientAnimOn', 'btnGradientAnimOff', false);
         updateActiveButton('btnTabColorOn', 'btnTabColorOff', true);
+        updateActiveButton('btnFaviconOn', 'btnFaviconOff', true);
 
         // アイコン選択をリセット
         document.querySelectorAll('.icon-selector button').forEach(btn => btn.classList.remove('selected'));
@@ -2669,6 +2992,9 @@
 
         // タブ色を更新
         updateThemeColor();
+
+        // ファビコンを更新
+        updateFavicon();
     }
 
     /**
@@ -2945,6 +3271,10 @@
     isDebugMode = true;
     setAvailability(true);
     updateDisplay();
+
+    // ファビコンとプレビューを初期化
+    updateFaviconPreview();
+    updateFavicon();
 </script>
 
 </body>
