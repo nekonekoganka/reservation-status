@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4CAF50" id="theme-color-meta">
     <title>デバッグ - 予約状況ディスプレイ - ふじみ野ひかり眼科</title>
     <style>
         /* 全画面表示用のリセット */
@@ -724,6 +725,44 @@
                 <span id="bannerTextValue">#212529</span>
             </div>
         </div>
+
+        <div class="debug-section" style="border-top: 2px solid #ccc; padding-top: 20px; margin-top: 20px;">
+            <label style="font-size: 1.1em; font-weight: bold;">🏷️ ブラウザタブの色:</label>
+
+            <div style="margin: 15px 0;">
+                <div class="button-group">
+                    <button id="btnTabColorOn" class="btn active" onclick="toggleTabColor(true)">ON</button>
+                    <button id="btnTabColorOff" class="btn" onclick="toggleTabColor(false)">OFF</button>
+                </div>
+            </div>
+
+            <div id="tabColorSettings" style="display: block;">
+                <div class="color-picker-group">
+                    <span>🟢 空きあり:</span>
+                    <input type="color" id="customAvailableTabColor" value="#4CAF50" oninput="updateTabColor('available', this.value)">
+                    <span id="availableTabColorValue">#4CAF50</span>
+                </div>
+                <div class="color-picker-group">
+                    <span>🔴 満枠:</span>
+                    <input type="color" id="customFullTabColor" value="#F44336" oninput="updateTabColor('full', this.value)">
+                    <span id="fullTabColorValue">#F44336</span>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <label style="font-size: 0.95em;">カラープリセット:</label>
+                    <div class="button-group" style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn" style="font-size: 0.9em; padding: 8px 12px;" onclick="applyTabColorPreset('green-red')">🟢🔴 緑/赤</button>
+                        <button class="btn" style="font-size: 0.9em; padding: 8px 12px;" onclick="applyTabColorPreset('blue-orange')">🔵🟠 青/橙</button>
+                        <button class="btn" style="font-size: 0.9em; padding: 8px 12px;" onclick="applyTabColorPreset('purple-yellow')">🟣🟡 紫/黄</button>
+                        <button class="btn" style="font-size: 0.9em; padding: 8px 12px;" onclick="applyTabColorPreset('teal-pink')">🩵💗 青緑/桃</button>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px; padding: 12px; background: #f0f0f0; border-radius: 6px; font-size: 0.85em; color: #666;">
+                    <strong>💡 ヒント:</strong> タブ色機能は、Chrome・Edge・Safariなどのモダンブラウザで、タブのアドレスバー部分の色を変更します。複数のタブを開いているときに、このページの状態を一目で確認できます。
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- サイズタブ -->
@@ -1100,7 +1139,11 @@
         gradientType: 'diagonal',
         gradientColor1: '#27AE60',
         gradientColor2: '#1E8449',
-        gradientAnimEnabled: false
+        gradientAnimEnabled: false,
+        // タブ色
+        tabColorEnabled: true,
+        availableTabColor: '#4CAF50',
+        fullTabColor: '#F44336'
     };
 
     /**
@@ -1165,6 +1208,111 @@
 
         // ディスプレイを更新
         updateDisplay();
+
+        // タブ色を更新
+        updateThemeColor();
+    }
+
+    /**
+     * ブラウザタブの色を更新
+     */
+    function updateThemeColor() {
+        if (!customizeState.tabColorEnabled) {
+            return;
+        }
+
+        const metaThemeColor = document.getElementById('theme-color-meta');
+        if (!metaThemeColor) {
+            return;
+        }
+
+        // 現在の表示状態を取得
+        const container = document.querySelector('.display-container');
+        const isAvailable = container && container.classList.contains('available');
+
+        // 状態に応じた色を設定
+        const color = isAvailable ? customizeState.availableTabColor : customizeState.fullTabColor;
+        metaThemeColor.setAttribute('content', color);
+    }
+
+    /**
+     * タブ色機能のON/OFF
+     */
+    function toggleTabColor(enabled) {
+        customizeState.tabColorEnabled = enabled;
+        updateActiveButton('btnTabColorOn', 'btnTabColorOff', enabled);
+
+        // 設定パネルの表示/非表示
+        const settings = document.getElementById('tabColorSettings');
+        if (settings) {
+            settings.style.display = enabled ? 'block' : 'none';
+        }
+
+        // タブ色を更新
+        if (enabled) {
+            updateThemeColor();
+        } else {
+            // OFFの場合はデフォルト色に戻す
+            const metaThemeColor = document.getElementById('theme-color-meta');
+            if (metaThemeColor) {
+                metaThemeColor.setAttribute('content', '#4CAF50');
+            }
+        }
+    }
+
+    /**
+     * タブ色を更新（個別）
+     */
+    function updateTabColor(type, color) {
+        if (type === 'available') {
+            customizeState.availableTabColor = color;
+            document.getElementById('availableTabColorValue').textContent = color;
+        } else if (type === 'full') {
+            customizeState.fullTabColor = color;
+            document.getElementById('fullTabColorValue').textContent = color;
+        }
+
+        // 現在の状態に応じてタブ色を更新
+        updateThemeColor();
+    }
+
+    /**
+     * タブ色プリセットを適用
+     */
+    function applyTabColorPreset(preset) {
+        const presets = {
+            'green-red': {
+                available: '#4CAF50',
+                full: '#F44336'
+            },
+            'blue-orange': {
+                available: '#2196F3',
+                full: '#FF9800'
+            },
+            'purple-yellow': {
+                available: '#9C27B0',
+                full: '#FFEB3B'
+            },
+            'teal-pink': {
+                available: '#00BCD4',
+                full: '#E91E63'
+            }
+        };
+
+        const colors = presets[preset];
+        if (colors) {
+            customizeState.availableTabColor = colors.available;
+            customizeState.fullTabColor = colors.full;
+
+            // UIを更新
+            document.getElementById('customAvailableTabColor').value = colors.available;
+            document.getElementById('customFullTabColor').value = colors.full;
+            document.getElementById('availableTabColorValue').textContent = colors.available;
+            document.getElementById('fullTabColorValue').textContent = colors.full;
+
+            // タブ色を更新
+            updateThemeColor();
+        }
     }
 
     /**
@@ -2008,12 +2156,27 @@
         document.getElementById('customBannerBg').value = customizeState.bannerBg;
         document.getElementById('customBannerText').value = customizeState.bannerText;
 
+        // タブ色
+        if (customizeState.tabColorEnabled !== undefined) {
+            document.getElementById('customAvailableTabColor').value = customizeState.availableTabColor || '#4CAF50';
+            document.getElementById('customFullTabColor').value = customizeState.fullTabColor || '#F44336';
+            document.getElementById('availableTabColorValue').textContent = customizeState.availableTabColor || '#4CAF50';
+            document.getElementById('fullTabColorValue').textContent = customizeState.fullTabColor || '#F44336';
+            updateActiveButton('btnTabColorOn', 'btnTabColorOff', customizeState.tabColorEnabled);
+            const settings = document.getElementById('tabColorSettings');
+            if (settings) {
+                settings.style.display = customizeState.tabColorEnabled ? 'block' : 'none';
+            }
+        }
+
         // アニメーション
         document.getElementById('pulseSpeed').value = customizeState.pulseSpeed;
         document.getElementById('pulseScale').value = customizeState.pulseScale;
-        document.getElementById('clinicSize').value = customizeState.clinicSize;
         document.getElementById('iconSize').value = customizeState.iconSize;
         document.getElementById('mainMsgSize').value = customizeState.mainMsgSize;
+        document.getElementById('subMsgSize').value = customizeState.subMsgSize;
+        document.getElementById('qrMsgSize').value = customizeState.qrMsgSize;
+        document.getElementById('updateTimeSize').value = customizeState.updateTimeSize;
 
         // グラデーション
         document.getElementById('customGradientColor1').value = customizeState.gradientColor1;
@@ -2021,17 +2184,18 @@
 
         // ボタン状態を更新
         updateActiveButton('btnPulseOn', 'btnPulseOff', customizeState.pulseEnabled);
-        updateActiveButton('btnFadeOn', 'btnFadeOff', customizeState.fadeEnabled);
         updateActiveButton('btnGlowOn', 'btnGlowOff', customizeState.glowEnabled);
         updateActiveButton('btnGlowPulseOn', 'btnGlowPulseOff', customizeState.glowPulse);
-        updateActiveButton('btnRotateOn', 'btnRotateOff', customizeState.rotateEnabled);
-        updateActiveButton('btnRotateCW', 'btnRotateCCW', customizeState.rotateDirection === 'cw');
         updateActiveButton('btnGradientOn', 'btnGradientOff', customizeState.gradientEnabled);
         updateActiveButton('btnGradientAnimOn', 'btnGradientAnimOff', customizeState.gradientAnimEnabled);
+        if (customizeState.tabColorEnabled !== undefined) {
+            updateActiveButton('btnTabColorOn', 'btnTabColorOff', customizeState.tabColorEnabled);
+        }
 
         // ディスプレイを更新
         applyCustomizations();
         updateAnimationStyle();
+        updateAnimation2Style();
         updateEffectsStyle();
         applyFontSizes();
     }
@@ -2083,6 +2247,10 @@
         customizeState.gradientColor1 = '#27AE60';
         customizeState.gradientColor2 = '#1E8449';
         customizeState.gradientAnimEnabled = false;
+        // タブ色
+        customizeState.tabColorEnabled = true;
+        customizeState.availableTabColor = '#4CAF50';
+        customizeState.fullTabColor = '#F44336';
 
         // 入力フィールドを更新
         document.getElementById('customClinicName').value = customizeState.clinicName;
@@ -2122,12 +2290,19 @@
         document.getElementById('gradientColor1Value').textContent = customizeState.gradientColor1;
         document.getElementById('gradientColor2Value').textContent = customizeState.gradientColor2;
 
+        // タブ色の値をリセット
+        document.getElementById('customAvailableTabColor').value = customizeState.availableTabColor;
+        document.getElementById('customFullTabColor').value = customizeState.fullTabColor;
+        document.getElementById('availableTabColorValue').textContent = customizeState.availableTabColor;
+        document.getElementById('fullTabColorValue').textContent = customizeState.fullTabColor;
+
         // ボタンの状態を更新
         updateActiveButton('btnPulseOn', 'btnPulseOff', true);
         updateActiveButton('btnGlowOn', 'btnGlowOff', false);
         updateActiveButton('btnGlowPulseOn', 'btnGlowPulseOff', false);
         updateActiveButton('btnGradientOn', 'btnGradientOff', false);
         updateActiveButton('btnGradientAnimOn', 'btnGradientAnimOff', false);
+        updateActiveButton('btnTabColorOn', 'btnTabColorOff', true);
 
         // アイコン選択をリセット
         document.querySelectorAll('.icon-selector button').forEach(btn => btn.classList.remove('selected'));
@@ -2491,6 +2666,9 @@
 
         // デバッグ情報を更新
         updateDebugInfo(timestampStr, dayText);
+
+        // タブ色を更新
+        updateThemeColor();
     }
 
     /**
