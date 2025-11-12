@@ -592,8 +592,9 @@
         <button class="debug-tab active" onclick="switchTab('time')">⏰ 時間</button>
         <button class="debug-tab" onclick="switchTab('text')">📝 テキスト</button>
         <button class="debug-tab" onclick="switchTab('design')">🎨 デザイン</button>
+        <button class="debug-tab" onclick="switchTab('size')">📏 サイズ</button>
         <button class="debug-tab" onclick="switchTab('animation')">⚡ アニメ1</button>
-        <button class="debug-tab" onclick="switchTab('effects')">✨ エフェクト</button>
+        <button class="debug-tab" onclick="switchTab('animation2')">✨ アニメ2</button>
         <button class="debug-tab" onclick="switchTab('background')">🌈 背景</button>
         <button class="debug-tab" onclick="switchTab('presets')">💾 設定</button>
     </div>
@@ -725,35 +726,8 @@
         </div>
     </div>
 
-    <!-- アニメーションタブ -->
-    <div id="tab-animation" class="debug-tab-content">
-        <div class="debug-section">
-            <label>パルスアニメーション:</label>
-            <button id="btnPulseOn" onclick="togglePulse(true)">ON</button>
-            <button id="btnPulseOff" onclick="togglePulse(false)">OFF</button>
-        </div>
-
-        <div class="slider-group">
-            <label>パルス速度: <span id="pulseSpeedValue">2.0秒</span></label>
-            <input type="range" id="pulseSpeed" min="0.5" max="5.0" step="0.1" value="2.0" oninput="updatePulseSpeed(this.value)">
-        </div>
-
-        <div class="slider-group">
-            <label>パルス拡大率: <span id="pulseScaleValue">1.15</span></label>
-            <input type="range" id="pulseScale" min="1.0" max="1.5" step="0.05" value="1.15" oninput="updatePulseScale(this.value)">
-        </div>
-
-        <div class="debug-section">
-            <label>フェードインアニメーション:</label>
-            <button id="btnFadeOn" onclick="toggleFade(true)">ON</button>
-            <button id="btnFadeOff" onclick="toggleFade(false)">OFF</button>
-        </div>
-
-        <div class="slider-group">
-            <label>クリニック名サイズ: <span id="clinicSizeValue">3.5vw</span></label>
-            <input type="range" id="clinicSize" min="2.0" max="6.0" step="0.1" value="3.5" oninput="updateClinicSize(this.value)">
-        </div>
-
+    <!-- サイズタブ -->
+    <div id="tab-size" class="debug-tab-content">
         <div class="slider-group">
             <label>アイコンサイズ: <span id="iconSizeValue">10vw</span></label>
             <input type="range" id="iconSize" min="6" max="15" step="0.5" value="10" oninput="updateIconSize(this.value)">
@@ -764,13 +738,46 @@
             <input type="range" id="mainMsgSize" min="4.0" max="10.0" step="0.5" value="6.0" oninput="updateMainMsgSize(this.value)">
         </div>
 
-        <div class="debug-section" style="margin-top: 20px;">
-            <button onclick="resetAllCustomizations()" style="background: #E74C3C;">🔄 すべてリセット</button>
+        <div class="slider-group">
+            <label>サブメッセージサイズ: <span id="subMsgSizeValue">3vw</span></label>
+            <input type="range" id="subMsgSize" min="2.0" max="6.0" step="0.1" value="3.0" oninput="updateSubMsgSize(this.value)">
+        </div>
+
+        <div class="slider-group">
+            <label>QRメッセージサイズ: <span id="qrMsgSizeValue">3.5vw</span></label>
+            <input type="range" id="qrMsgSize" min="2.0" max="6.0" step="0.1" value="3.5" oninput="updateQrMsgSize(this.value)">
+        </div>
+
+        <div class="slider-group">
+            <label>更新時刻サイズ: <span id="updateTimeSizeValue">2vw</span></label>
+            <input type="range" id="updateTimeSize" min="1.0" max="4.0" step="0.1" value="2.0" oninput="updateTimeSize(this.value)">
         </div>
     </div>
 
-    <!-- エフェクトタブ -->
-    <div id="tab-effects" class="debug-tab-content">
+    <!-- アニメ1タブ -->
+    <div id="tab-animation" class="debug-tab-content">
+        <div class="debug-section">
+            <label>パルスアニメーション:</label>
+            <button id="btnPulseOn" onclick="togglePulse(true)">ON</button>
+            <button id="btnPulseOff" onclick="togglePulse(false)">OFF</button>
+        </div>
+
+        <div class="slider-group">
+            <label>パルス速度: <span id="pulseSpeedValue">2.0秒</span></label>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button onclick="setPulseSpeed('slow')">遅い</button>
+                <button onclick="setPulseSpeed('normal')">普通</button>
+                <button onclick="setPulseSpeed('fast')">速い</button>
+            </div>
+        </div>
+
+        <div class="slider-group">
+            <label>パルス拡大率: <span id="pulseScaleValue">1.15</span></label>
+            <input type="range" id="pulseScale" min="1.0" max="1.5" step="0.05" value="1.15" oninput="updatePulseScale(this.value)">
+        </div>
+
+        <hr style="margin: 20px 0; border: 1px solid #555;">
+
         <div class="debug-section">
             <label>テキストグロー（光る文字）:</label>
             <button id="btnGlowOn" onclick="toggleGlow(true)">ON</button>
@@ -802,28 +809,101 @@
             <button id="btnGlowPulseOn" onclick="toggleGlowPulse(true)">ON</button>
             <button id="btnGlowPulseOff" onclick="toggleGlowPulse(false)">OFF</button>
         </div>
+    </div>
+
+    <!-- アニメ2タブ -->
+    <div id="tab-animation2" class="debug-tab-content">
+        <div class="debug-section">
+            <h4 style="color: #FFC107; margin-bottom: 15px;">🎈 ふわふわ浮遊</h4>
+            <div style="margin-bottom: 10px;">
+                <label>対象:</label>
+                <button id="btnFloatIcon" onclick="setFloatTarget('icon')">アイコンのみ</button>
+                <button id="btnFloatText" onclick="setFloatTarget('text')">文字のみ</button>
+                <button id="btnFloatBoth" onclick="setFloatTarget('both')">両方</button>
+                <button id="btnFloatOff" onclick="setFloatTarget('off')">OFF</button>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>速度:</label>
+                <button onclick="setFloatSpeed('slow')">遅い</button>
+                <button onclick="setFloatSpeed('normal')">普通</button>
+                <button onclick="setFloatSpeed('fast')">速い</button>
+            </div>
+        </div>
 
         <hr style="margin: 20px 0; border: 1px solid #555;">
 
         <div class="debug-section">
-            <label>アイコン回転:</label>
-            <button id="btnRotateOn" onclick="toggleRotate(true)">ON</button>
-            <button id="btnRotateOff" onclick="toggleRotate(false)">OFF</button>
-        </div>
-
-        <div class="slider-group">
-            <label>回転速度: <span id="rotateSpeedValue">普通</span></label>
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button onclick="setRotateSpeed('slow')">遅い</button>
-                <button onclick="setRotateSpeed('normal')">普通</button>
-                <button onclick="setRotateSpeed('fast')">速い</button>
+            <h4 style="color: #FFC107; margin-bottom: 15px;">🔍 拡大縮小</h4>
+            <div style="margin-bottom: 10px;">
+                <label>対象:</label>
+                <button id="btnZoomIcon" onclick="setZoomTarget('icon')">アイコンのみ</button>
+                <button id="btnZoomText" onclick="setZoomTarget('text')">文字のみ</button>
+                <button id="btnZoomBoth" onclick="setZoomTarget('both')">両方</button>
+                <button id="btnZoomOff" onclick="setZoomTarget('off')">OFF</button>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>速度:</label>
+                <button onclick="setZoomSpeed('slow')">遅い</button>
+                <button onclick="setZoomSpeed('normal')">普通</button>
+                <button onclick="setZoomSpeed('fast')">速い</button>
             </div>
         </div>
 
+        <hr style="margin: 20px 0; border: 1px solid #555;">
+
         <div class="debug-section">
-            <label>回転方向:</label>
-            <button id="btnRotateCW" onclick="setRotateDirection('cw')">⟳ 時計回り</button>
-            <button id="btnRotateCCW" onclick="setRotateDirection('ccw')">⟲ 反時計回り</button>
+            <h4 style="color: #FFC107; margin-bottom: 15px;">✨ キラキラエフェクト</h4>
+            <button id="btnSparkleOn" onclick="toggleSparkle(true)">ON</button>
+            <button id="btnSparkleOff" onclick="toggleSparkle(false)">OFF</button>
+        </div>
+
+        <hr style="margin: 20px 0; border: 1px solid #555;">
+
+        <div class="debug-section">
+            <h4 style="color: #FFC107; margin-bottom: 15px;">💫 ネオン点滅</h4>
+            <button id="btnNeonOn" onclick="toggleNeon(true)">ON</button>
+            <button id="btnNeonOff" onclick="toggleNeon(false)">OFF</button>
+            <div style="margin-top: 10px;">
+                <label>速度:</label>
+                <button onclick="setNeonSpeed('slow')">遅い</button>
+                <button onclick="setNeonSpeed('normal')">普通</button>
+                <button onclick="setNeonSpeed('fast')">速い</button>
+            </div>
+        </div>
+
+        <hr style="margin: 20px 0; border: 1px solid #555;">
+
+        <div class="debug-section">
+            <h4 style="color: #FFC107; margin-bottom: 15px;">🎯 バウンス（弾む）</h4>
+            <div style="margin-bottom: 10px;">
+                <label>対象:</label>
+                <button id="btnBounceIcon" onclick="setBounceTarget('icon')">アイコンのみ</button>
+                <button id="btnBounceText" onclick="setBounceTarget('text')">文字のみ</button>
+                <button id="btnBounceOff" onclick="setBounceTarget('off')">OFF</button>
+            </div>
+        </div>
+
+        <hr style="margin: 20px 0; border: 1px solid #555;">
+
+        <div class="debug-section">
+            <h4 style="color: #FFC107; margin-bottom: 15px;">🌊 スウィング（揺れる）</h4>
+            <div style="margin-bottom: 10px;">
+                <label>対象:</label>
+                <button id="btnSwingIcon" onclick="setSwingTarget('icon')">アイコンのみ</button>
+                <button id="btnSwingText" onclick="setSwingTarget('text')">文字のみ</button>
+                <button id="btnSwingContainer" onclick="setSwingTarget('container')">全体</button>
+                <button id="btnSwingOff" onclick="setSwingTarget('off')">OFF</button>
+            </div>
+        </div>
+
+        <hr style="margin: 20px 0; border: 1px solid #555;">
+
+        <div class="debug-section">
+            <h4 style="color: #FFC107; margin-bottom: 15px;">🌍 画面全体の動き</h4>
+            <button id="btnScreenNone" onclick="setScreenEffect('none')">なし</button>
+            <button id="btnScreenShakeV" onclick="setScreenEffect('shakeV')">上下揺れ</button>
+            <button id="btnScreenShakeH" onclick="setScreenEffect('shakeH')">左右揺れ</button>
+            <button id="btnScreenZoom" onclick="setScreenEffect('zoom')">拡大縮小</button>
         </div>
     </div>
 
@@ -990,21 +1070,31 @@
         fullBg: '#DC3545',
         bannerBg: '#FFC107',
         bannerText: '#212529',
+        // サイズ
+        iconSize: 10,
+        mainMsgSize: 6.0,
+        subMsgSize: 3.0,
+        qrMsgSize: 3.5,
+        updateTimeSize: 2.0,
+        // アニメ1
         pulseEnabled: true,
         pulseSpeed: 2.0,
         pulseScale: 1.15,
-        fadeEnabled: true,
-        clinicSize: 3.5,
-        iconSize: 10,
-        mainMsgSize: 6.0,
-        // エフェクト
         glowEnabled: false,
         glowIntensity: 'medium',
         glowColor: 'white',
         glowPulse: false,
-        rotateEnabled: false,
-        rotateSpeed: 'normal',
-        rotateDirection: 'cw',
+        // アニメ2
+        floatTarget: 'off',
+        floatSpeed: 'normal',
+        zoomTarget: 'off',
+        zoomSpeed: 'normal',
+        sparkleEnabled: false,
+        neonEnabled: false,
+        neonSpeed: 'normal',
+        bounceTarget: 'off',
+        swingTarget: 'off',
+        screenEffect: 'none',
         // 背景
         gradientEnabled: false,
         gradientType: 'diagonal',
@@ -1176,25 +1266,6 @@
             `;
         }
 
-        // フェードインアニメーション
-        if (customizeState.fadeEnabled) {
-            css += `
-                .main-message {
-                    animation: fadeIn 1s ease-in !important;
-                }
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(-20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-            `;
-        } else {
-            css += `
-                .main-message {
-                    animation: none !important;
-                }
-            `;
-        }
-
         style.textContent = css;
         document.head.appendChild(style);
     }
@@ -1211,28 +1282,84 @@
         const style = document.createElement('style');
         style.id = 'dynamic-fontsize-style';
 
-        const minClinic = Math.max(32, customizeState.clinicSize * 10);
-        const maxClinic = Math.min(64, customizeState.clinicSize * 20);
-
         const minIcon = Math.max(120, customizeState.iconSize * 12);
         const maxIcon = Math.min(200, customizeState.iconSize * 20);
 
         const minMain = Math.max(60, customizeState.mainMsgSize * 10);
         const maxMain = Math.min(120, customizeState.mainMsgSize * 20);
 
+        const minSub = Math.max(28, customizeState.subMsgSize * 10);
+        const maxSub = Math.min(56, customizeState.subMsgSize * 18);
+
+        const minQr = Math.max(32, customizeState.qrMsgSize * 10);
+        const maxQr = Math.min(64, customizeState.qrMsgSize * 18);
+
+        const minUpdate = Math.max(20, customizeState.updateTimeSize * 10);
+        const maxUpdate = Math.min(40, customizeState.updateTimeSize * 20);
+
         style.textContent = `
-            .clinic-name {
-                font-size: clamp(${minClinic}px, ${customizeState.clinicSize}vw, ${maxClinic}px) !important;
-            }
             .icon {
                 font-size: clamp(${minIcon}px, ${customizeState.iconSize}vw, ${maxIcon}px) !important;
             }
             .main-message {
                 font-size: clamp(${minMain}px, ${customizeState.mainMsgSize}vw, ${maxMain}px) !important;
             }
+            .sub-message {
+                font-size: clamp(${minSub}px, ${customizeState.subMsgSize}vw, ${maxSub}px) !important;
+            }
+            .qr-message {
+                font-size: clamp(${minQr}px, ${customizeState.qrMsgSize}vw, ${maxQr}px) !important;
+            }
+            .update-time {
+                font-size: clamp(${minUpdate}px, ${customizeState.updateTimeSize}vw, ${maxUpdate}px) !important;
+            }
         `;
 
         document.head.appendChild(style);
+    }
+
+    /**
+     * サイズ更新関数
+     */
+    function updateIconSize(value) {
+        customizeState.iconSize = parseFloat(value);
+        document.getElementById('iconSizeValue').textContent = value + 'vw';
+        applyFontSizes();
+    }
+
+    function updateMainMsgSize(value) {
+        customizeState.mainMsgSize = parseFloat(value);
+        document.getElementById('mainMsgSizeValue').textContent = value + 'vw';
+        applyFontSizes();
+    }
+
+    function updateSubMsgSize(value) {
+        customizeState.subMsgSize = parseFloat(value);
+        document.getElementById('subMsgSizeValue').textContent = value + 'vw';
+        applyFontSizes();
+    }
+
+    function updateQrMsgSize(value) {
+        customizeState.qrMsgSize = parseFloat(value);
+        document.getElementById('qrMsgSizeValue').textContent = value + 'vw';
+        applyFontSizes();
+    }
+
+    function updateTimeSize(value) {
+        customizeState.updateTimeSize = parseFloat(value);
+        document.getElementById('updateTimeSizeValue').textContent = value + 'vw';
+        applyFontSizes();
+    }
+
+    /**
+     * パルス速度設定（ボタン版）
+     */
+    function setPulseSpeed(speed) {
+        const speeds = { slow: 3.0, normal: 2.0, fast: 1.0 };
+        customizeState.pulseSpeed = speeds[speed];
+        const labels = { slow: '遅い (3.0秒)', normal: '普通 (2.0秒)', fast: '速い (1.0秒)' };
+        document.getElementById('pulseSpeedValue').textContent = labels[speed];
+        updateAnimationStyle();
     }
 
     /**
@@ -1272,31 +1399,266 @@
     }
 
     /**
-     * アイコン回転 ON/OFF
+     * ============================================
+     * アニメ2関数
+     * ============================================
      */
-    function toggleRotate(enabled) {
-        customizeState.rotateEnabled = enabled;
-        updateActiveButton('btnRotateOn', 'btnRotateOff', enabled);
-        updateEffectsStyle();
+
+    /**
+     * ふわふわ浮遊設定
+     */
+    function setFloatTarget(target) {
+        customizeState.floatTarget = target;
+        updateActiveButton4('btnFloatIcon', 'btnFloatText', 'btnFloatBoth', 'btnFloatOff',
+            target === 'icon', target === 'text', target === 'both', target === 'off');
+        updateAnimation2Style();
+    }
+
+    function setFloatSpeed(speed) {
+        customizeState.floatSpeed = speed;
+        updateAnimation2Style();
     }
 
     /**
-     * 回転速度設定
+     * 拡大縮小設定
      */
-    function setRotateSpeed(speed) {
-        customizeState.rotateSpeed = speed;
-        const labels = { slow: '遅い', normal: '普通', fast: '速い' };
-        document.getElementById('rotateSpeedValue').textContent = labels[speed];
-        updateEffectsStyle();
+    function setZoomTarget(target) {
+        customizeState.zoomTarget = target;
+        updateActiveButton4('btnZoomIcon', 'btnZoomText', 'btnZoomBoth', 'btnZoomOff',
+            target === 'icon', target === 'text', target === 'both', target === 'off');
+        updateAnimation2Style();
+    }
+
+    function setZoomSpeed(speed) {
+        customizeState.zoomSpeed = speed;
+        updateAnimation2Style();
     }
 
     /**
-     * 回転方向設定
+     * キラキラエフェクト
      */
-    function setRotateDirection(direction) {
-        customizeState.rotateDirection = direction;
-        updateActiveButton('btnRotateCW', 'btnRotateCCW', direction === 'cw');
-        updateEffectsStyle();
+    function toggleSparkle(enabled) {
+        customizeState.sparkleEnabled = enabled;
+        updateActiveButton('btnSparkleOn', 'btnSparkleOff', enabled);
+        updateAnimation2Style();
+    }
+
+    /**
+     * ネオン点滅
+     */
+    function toggleNeon(enabled) {
+        customizeState.neonEnabled = enabled;
+        updateActiveButton('btnNeonOn', 'btnNeonOff', enabled);
+        updateAnimation2Style();
+    }
+
+    function setNeonSpeed(speed) {
+        customizeState.neonSpeed = speed;
+        updateAnimation2Style();
+    }
+
+    /**
+     * バウンス設定
+     */
+    function setBounceTarget(target) {
+        customizeState.bounceTarget = target;
+        updateActiveButton3('btnBounceIcon', 'btnBounceText', 'btnBounceOff',
+            target === 'icon', target === 'text', target === 'off');
+        updateAnimation2Style();
+    }
+
+    /**
+     * スウィング設定
+     */
+    function setSwingTarget(target) {
+        customizeState.swingTarget = target;
+        updateActiveButton4('btnSwingIcon', 'btnSwingText', 'btnSwingContainer', 'btnSwingOff',
+            target === 'icon', target === 'text', target === 'container', target === 'off');
+        updateAnimation2Style();
+    }
+
+    /**
+     * 画面全体の動き
+     */
+    function setScreenEffect(effect) {
+        customizeState.screenEffect = effect;
+        updateActiveButton4('btnScreenNone', 'btnScreenShakeV', 'btnScreenShakeH', 'btnScreenZoom',
+            effect === 'none', effect === 'shakeV', effect === 'shakeH', effect === 'zoom');
+        updateAnimation2Style();
+    }
+
+    /**
+     * 3ボタン用アクティブ更新
+     */
+    function updateActiveButton3(btn1Id, btn2Id, btn3Id, active1, active2, active3) {
+        const btn1 = document.getElementById(btn1Id);
+        const btn2 = document.getElementById(btn2Id);
+        const btn3 = document.getElementById(btn3Id);
+        if (btn1) btn1.classList.toggle('active', active1);
+        if (btn2) btn2.classList.toggle('active', active2);
+        if (btn3) btn3.classList.toggle('active', active3);
+    }
+
+    /**
+     * 4ボタン用アクティブ更新
+     */
+    function updateActiveButton4(btn1Id, btn2Id, btn3Id, btn4Id, active1, active2, active3, active4) {
+        const btn1 = document.getElementById(btn1Id);
+        const btn2 = document.getElementById(btn2Id);
+        const btn3 = document.getElementById(btn3Id);
+        const btn4 = document.getElementById(btn4Id);
+        if (btn1) btn1.classList.toggle('active', active1);
+        if (btn2) btn2.classList.toggle('active', active2);
+        if (btn3) btn3.classList.toggle('active', active3);
+        if (btn4) btn4.classList.toggle('active', active4);
+    }
+
+    /**
+     * アニメ2スタイルを動的に更新
+     */
+    function updateAnimation2Style() {
+        const existingStyle = document.getElementById('dynamic-animation2-style');
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+
+        const style = document.createElement('style');
+        style.id = 'dynamic-animation2-style';
+        let css = '';
+
+        // ふわふわ浮遊
+        if (customizeState.floatTarget !== 'off') {
+            const speeds = { slow: '4s', normal: '3s', fast: '2s' };
+            const speed = speeds[customizeState.floatSpeed];
+            const selector = customizeState.floatTarget === 'icon' ? '.icon' :
+                           customizeState.floatTarget === 'text' ? '.main-message' :
+                           '.icon, .main-message';
+            css += `
+                ${selector} {
+                    animation: float ${speed} ease-in-out infinite !important;
+                }
+                @keyframes float {
+                    0%, 100% { transform: translateY(0px); }
+                    50% { transform: translateY(-20px); }
+                }
+            `;
+        }
+
+        // 拡大縮小
+        if (customizeState.zoomTarget !== 'off') {
+            const speeds = { slow: '4s', normal: '3s', fast: '2s' };
+            const speed = speeds[customizeState.zoomSpeed];
+            const selector = customizeState.zoomTarget === 'icon' ? '.icon' :
+                           customizeState.zoomTarget === 'text' ? '.main-message' :
+                           '.icon, .main-message';
+            css += `
+                ${selector} {
+                    animation: zoom ${speed} ease-in-out infinite !important;
+                }
+                @keyframes zoom {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.1); }
+                }
+            `;
+        }
+
+        // キラキラエフェクト
+        if (customizeState.sparkleEnabled) {
+            css += `
+                .main-message {
+                    animation: sparkle 1.5s ease-in-out infinite !important;
+                }
+                @keyframes sparkle {
+                    0%, 100% { filter: brightness(1) drop-shadow(0 0 0px white); }
+                    50% { filter: brightness(1.3) drop-shadow(0 0 10px white); }
+                }
+            `;
+        }
+
+        // ネオン点滅
+        if (customizeState.neonEnabled) {
+            const speeds = { slow: '3s', normal: '2s', fast: '1s' };
+            const speed = speeds[customizeState.neonSpeed];
+            css += `
+                .main-message {
+                    animation: neonBlink ${speed} ease-in-out infinite !important;
+                }
+                @keyframes neonBlink {
+                    0%, 100% { opacity: 1; text-shadow: 0 0 20px currentColor, 0 0 40px currentColor; }
+                    50% { opacity: 0.7; text-shadow: 0 0 10px currentColor; }
+                }
+            `;
+        }
+
+        // バウンス
+        if (customizeState.bounceTarget !== 'off') {
+            const selector = customizeState.bounceTarget === 'icon' ? '.icon' : '.main-message';
+            css += `
+                ${selector} {
+                    animation: bounce 2s ease-in-out infinite !important;
+                }
+                @keyframes bounce {
+                    0%, 100% { transform: translateY(0); }
+                    25% { transform: translateY(-30px); }
+                    50% { transform: translateY(0); }
+                }
+            `;
+        }
+
+        // スウィング
+        if (customizeState.swingTarget !== 'off') {
+            const selector = customizeState.swingTarget === 'icon' ? '.icon' :
+                           customizeState.swingTarget === 'text' ? '.main-message' :
+                           '.display-container';
+            css += `
+                ${selector} {
+                    animation: swing 3s ease-in-out infinite !important;
+                }
+                @keyframes swing {
+                    0%, 100% { transform: rotate(0deg); }
+                    25% { transform: rotate(5deg); }
+                    75% { transform: rotate(-5deg); }
+                }
+            `;
+        }
+
+        // 画面全体の動き
+        if (customizeState.screenEffect !== 'none') {
+            if (customizeState.screenEffect === 'shakeV') {
+                css += `
+                    .display-container {
+                        animation: shakeVertical 4s ease-in-out infinite !important;
+                    }
+                    @keyframes shakeVertical {
+                        0%, 100% { transform: translateY(0); }
+                        50% { transform: translateY(-15px); }
+                    }
+                `;
+            } else if (customizeState.screenEffect === 'shakeH') {
+                css += `
+                    .display-container {
+                        animation: shakeHorizontal 4s ease-in-out infinite !important;
+                    }
+                    @keyframes shakeHorizontal {
+                        0%, 100% { transform: translateX(0); }
+                        50% { transform: translateX(-15px); }
+                    }
+                `;
+            } else if (customizeState.screenEffect === 'zoom') {
+                css += `
+                    .display-container {
+                        animation: screenZoom 5s ease-in-out infinite !important;
+                    }
+                    @keyframes screenZoom {
+                        0%, 100% { transform: scale(1); }
+                        50% { transform: scale(1.05); }
+                    }
+                `;
+            }
+        }
+
+        style.textContent = css;
+        document.head.appendChild(style);
     }
 
     /**
@@ -1397,23 +1759,6 @@
                     }
                 `;
             }
-        }
-
-        // アイコン回転
-        if (customizeState.rotateEnabled) {
-            const speeds = { slow: '6s', normal: '3s', fast: '1.5s' };
-            const speed = speeds[customizeState.rotateSpeed];
-            const direction = customizeState.rotateDirection === 'cw' ? 'normal' : 'reverse';
-
-            css += `
-                .icon {
-                    animation: iconRotate ${speed} linear infinite ${direction} !important;
-                }
-                @keyframes iconRotate {
-                    from { transform: rotate(0deg) scale(1); }
-                    to { transform: rotate(360deg) scale(1); }
-                }
-            `;
         }
 
         style.textContent = css;
@@ -1707,21 +2052,31 @@
         customizeState.fullBg = '#DC3545';
         customizeState.bannerBg = '#FFC107';
         customizeState.bannerText = '#212529';
+        // サイズ
+        customizeState.iconSize = 10;
+        customizeState.mainMsgSize = 6.0;
+        customizeState.subMsgSize = 3.0;
+        customizeState.qrMsgSize = 3.5;
+        customizeState.updateTimeSize = 2.0;
+        // アニメ1
         customizeState.pulseEnabled = true;
         customizeState.pulseSpeed = 2.0;
         customizeState.pulseScale = 1.15;
-        customizeState.fadeEnabled = true;
-        customizeState.clinicSize = 3.5;
-        customizeState.iconSize = 10;
-        customizeState.mainMsgSize = 6.0;
-        // エフェクト
         customizeState.glowEnabled = false;
         customizeState.glowIntensity = 'medium';
         customizeState.glowColor = 'white';
         customizeState.glowPulse = false;
-        customizeState.rotateEnabled = false;
-        customizeState.rotateSpeed = 'normal';
-        customizeState.rotateDirection = 'cw';
+        // アニメ2
+        customizeState.floatTarget = 'off';
+        customizeState.floatSpeed = 'normal';
+        customizeState.zoomTarget = 'off';
+        customizeState.zoomSpeed = 'normal';
+        customizeState.sparkleEnabled = false;
+        customizeState.neonEnabled = false;
+        customizeState.neonSpeed = 'normal';
+        customizeState.bounceTarget = 'off';
+        customizeState.swingTarget = 'off';
+        customizeState.screenEffect = 'none';
         // 背景
         customizeState.gradientEnabled = false;
         customizeState.gradientType = 'diagonal';
@@ -1746,16 +2101,19 @@
         document.getElementById('pulseSpeedValue').textContent = customizeState.pulseSpeed + '秒';
         document.getElementById('pulseScale').value = customizeState.pulseScale;
         document.getElementById('pulseScaleValue').textContent = customizeState.pulseScale;
-        document.getElementById('clinicSize').value = customizeState.clinicSize;
-        document.getElementById('clinicSizeValue').textContent = customizeState.clinicSize + 'vw';
         document.getElementById('iconSize').value = customizeState.iconSize;
         document.getElementById('iconSizeValue').textContent = customizeState.iconSize + 'vw';
         document.getElementById('mainMsgSize').value = customizeState.mainMsgSize;
         document.getElementById('mainMsgSizeValue').textContent = customizeState.mainMsgSize + 'vw';
+        document.getElementById('subMsgSize').value = customizeState.subMsgSize;
+        document.getElementById('subMsgSizeValue').textContent = customizeState.subMsgSize + 'vw';
+        document.getElementById('qrMsgSize').value = customizeState.qrMsgSize;
+        document.getElementById('qrMsgSizeValue').textContent = customizeState.qrMsgSize + 'vw';
+        document.getElementById('updateTimeSize').value = customizeState.updateTimeSize;
+        document.getElementById('updateTimeSizeValue').textContent = customizeState.updateTimeSize + 'vw';
 
         // エフェクトタブの値をリセット
         document.getElementById('glowIntensityValue').textContent = '中';
-        document.getElementById('rotateSpeedValue').textContent = '普通';
 
         // 背景タブの値をリセット
         document.getElementById('gradientTypeValue').textContent = '斜め';
@@ -1766,11 +2124,8 @@
 
         // ボタンの状態を更新
         updateActiveButton('btnPulseOn', 'btnPulseOff', true);
-        updateActiveButton('btnFadeOn', 'btnFadeOff', true);
         updateActiveButton('btnGlowOn', 'btnGlowOff', false);
         updateActiveButton('btnGlowPulseOn', 'btnGlowPulseOff', false);
-        updateActiveButton('btnRotateOn', 'btnRotateOff', false);
-        updateActiveButton('btnRotateCW', 'btnRotateCCW', true);
         updateActiveButton('btnGradientOn', 'btnGradientOff', false);
         updateActiveButton('btnGradientAnimOn', 'btnGradientAnimOff', false);
 
@@ -1780,6 +2135,8 @@
         // 動的スタイルを削除
         const animStyle = document.getElementById('dynamic-animation-style');
         if (animStyle) animStyle.remove();
+        const anim2Style = document.getElementById('dynamic-animation2-style');
+        if (anim2Style) anim2Style.remove();
         const fontStyle = document.getElementById('dynamic-fontsize-style');
         if (fontStyle) fontStyle.remove();
         const effectsStyle = document.getElementById('dynamic-effects-style');
