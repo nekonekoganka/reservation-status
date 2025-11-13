@@ -285,6 +285,19 @@
             display: none;
         }
 
+        /* フルスクリーンモード時はpreview-wrapperのパディングを削除 */
+        body.fullscreen-mode .preview-wrapper {
+            padding: 0;
+        }
+
+        /* フルスクリーンモード時はpreview-containerを画面全体に */
+        body.fullscreen-mode .preview-container {
+            width: 100%;
+            height: 100%;
+            max-width: none;
+            aspect-ratio: auto;
+        }
+
         /* デバッグパネル（右側50%） */
         .debug-panel {
             width: 50%;
