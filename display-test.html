@@ -290,6 +290,14 @@
             aspect-ratio: auto;
         }
 
+        /* フルスクリーンモード時はdisplay-areaを100vw/100vhに */
+        body.fullscreen-mode .preview-container .display-area {
+            width: 100vw;
+            height: 100vh;
+            transform: none;
+            position: static;
+        }
+
         /* デバッグパネル（右側50%） */
         .debug-panel {
             width: 50%;
@@ -3499,6 +3507,10 @@
         const openingSoonBanner = document.getElementById('openingSoonBanner');
         const lunchBreakBanner = document.getElementById('lunchBreakBanner');
 
+        // テキストを更新（customizeStateから取得）
+        openingSoonBanner.textContent = customizeState.openingSoonText;
+        lunchBreakBanner.textContent = customizeState.lunchBreakText;
+
         // 営業時間前バナー
         if (isOpeningSoon(updateTime)) {
             openingSoonBanner.classList.add('show');
@@ -3914,9 +3926,8 @@
 
         if (!previewContainer || !displayArea) return;
 
-        // フルスクリーンモード時はスケールを1.0に設定
+        // フルスクリーンモード時はCSSで制御するのでスケール処理をスキップ
         if (document.body.classList.contains('fullscreen-mode')) {
-            displayArea.style.transform = 'translate(-50%, -50%) scale(1)';
             return;
         }
 
