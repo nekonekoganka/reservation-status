@@ -414,8 +414,8 @@
             // 予約可能（濃い黄緑色）
             container.className = 'display-container available';
             container.innerHTML = `
-                <div class="icon">😊</div>
-                <div class="main-message">${dayText}分の予約枠 空きあり</div>
+                <div class="icon">⭕</div>
+                <div class="main-message">${dayText}分の予約枠 「空き」あり</div>
                 <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
                 <div class="update-time">${formattedTime}</div>
             `;
@@ -424,7 +424,7 @@
             container.className = 'display-container unavailable';
             container.innerHTML = `
                 <div class="icon">😔</div>
-                <div class="main-message">${dayText}の予約は 満枠です</div>
+                <div class="main-message">${dayText}の予約は 「満枠」です</div>
                 <div class="sub-message">誠に恐れ入りますが、翌診療日以降で ご予約ください</div>
                 <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
                 <div class="update-time">${formattedTime}</div>
