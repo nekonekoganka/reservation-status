@@ -1679,6 +1679,12 @@
         customizeState.subMsg = document.getElementById('customSubMsg').value;
         customizeState.qrMsg = document.getElementById('customQrMsg').value;
 
+        // バナーテキスト
+        if (document.getElementById('openingSoonText')) {
+            customizeState.openingSoonText = document.getElementById('openingSoonText').value;
+            customizeState.lunchBreakText = document.getElementById('lunchBreakText').value;
+        }
+
         // アイコン
         customizeState.availableIcon = document.getElementById('customAvailableIcon').value;
         customizeState.fullIcon = document.getElementById('customFullIcon').value;
@@ -2959,6 +2965,18 @@
         updateActiveButton('btnGlowPulseOn', 'btnGlowPulseOff', customizeState.glowPulse);
         updateActiveButton('btnGradientOn', 'btnGradientOff', customizeState.gradientEnabled);
         updateActiveButton('btnGradientAnimOn', 'btnGradientAnimOff', customizeState.gradientAnimEnabled);
+
+        // バナーテキスト
+        if (document.getElementById('openingSoonText') && customizeState.openingSoonText !== undefined) {
+            document.getElementById('openingSoonText').value = customizeState.openingSoonText;
+            document.getElementById('lunchBreakText').value = customizeState.lunchBreakText;
+            document.getElementById('bannerFontSize').value = customizeState.bannerFontSize;
+            document.getElementById('bannerFontSizeValue').textContent = customizeState.bannerFontSize + 'vw';
+            document.getElementById('bannerHeight').value = customizeState.bannerHeight;
+            document.getElementById('bannerHeightValue').textContent = customizeState.bannerHeight + 'px';
+            document.getElementById('bannerPadding').value = customizeState.bannerPadding;
+            document.getElementById('bannerPaddingValue').textContent = customizeState.bannerPadding + 'px';
+        }
 
         // QRコード設定
         if (customizeState.qrEnabled !== undefined) {
