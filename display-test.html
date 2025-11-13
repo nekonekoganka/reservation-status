@@ -210,12 +210,6 @@
             overflow: hidden;
         }
 
-        /* フルスクリーンモード時はレイアウトコンテナを全画面に */
-        body.fullscreen-mode .layout-container {
-            height: 100vh;
-            margin-top: 0;
-        }
-
         /* メイン表示エリア（縦横比維持） */
         .preview-wrapper {
             height: 100%;
@@ -250,27 +244,6 @@
             width: 100%;
             height: 100%;
             position: relative;
-        }
-
-        /* フルスクリーンモード時はpreview-wrapperのパディングを削除 */
-        body.fullscreen-mode .preview-wrapper {
-            padding: 0;
-        }
-
-        /* フルスクリーンモード時はpreview-containerを画面全体に */
-        body.fullscreen-mode .preview-container {
-            width: 100%;
-            height: 100%;
-            max-width: none;
-            aspect-ratio: auto;
-        }
-
-        /* フルスクリーンモード時はdisplay-areaを100vw/100vhに */
-        body.fullscreen-mode .preview-container .display-area {
-            width: 100vw;
-            height: 100vh;
-            transform: none;
-            position: static;
         }
 
         /* デバッグパネル（右側にオーバーレイ） */
@@ -308,11 +281,6 @@
             z-index: 10001;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
-        }
-
-        /* フルスクリーンモード時はトップバーを非表示 */
-        body.fullscreen-mode .top-control-bar {
-            display: none;
         }
 
         .top-control-row {
@@ -683,8 +651,8 @@
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
         }
 
-        /* フルスクリーンモード時のみフローティングボタンを表示 */
-        body.fullscreen-mode .floating-toggle-btn {
+        /* デバッグパネル非表示時のみフローティングボタンを表示 */
+        body.panel-hidden .floating-toggle-btn {
             display: block;
         }
     </style>
@@ -3346,22 +3314,23 @@
         const body = document.body;
 
         if (panel.classList.contains('hidden')) {
-            // パネルを表示（通常モードに戻す）
             panel.classList.remove('hidden');
-            body.classList.remove('fullscreen-mode');
+            body.classList.remove('panel-hidden');
             if (btn) {
                 btn.classList.add('active');
                 btn.textContent = '👁️ パネル非表示';
             }
         } else {
-            // パネルを非表示（フルスクリーンモード）
             panel.classList.add('hidden');
-            body.classList.add('fullscreen-mode');
+            body.classList.add('panel-hidden');
             if (btn) {
                 btn.classList.remove('active');
                 btn.textContent = '👁️ パネル表示';
             }
         }
+
+        // パネル表示状態によってプレビューのスケールを調整
+        setTimeout(updatePreviewScale, 300);
     }
 
     /**
@@ -3955,12 +3924,6 @@
 
         if (!previewContainer || !displayArea) return;
 
-        // フルスクリーンモード時はCSSで制御するのでスケール処理をスキップ
-        if (document.body.classList.contains('fullscreen-mode')) {
-            displayArea.style.transform = '';
-            return;
-        }
-
         const containerRect = previewContainer.getBoundingClientRect();
         const containerWidth = containerRect.width;
         const containerHeight = containerRect.height;
@@ -4010,31 +3973,24 @@
     updateFavicon();
     updatePulseSpeedUI();
 
-    // 初期起動時はフルスクリーンモード（デバッグパネル非表示）
+    // 初期起動時はデバッグパネルを非表示にしておく
     const debugPanel = document.getElementById('debugPanel');
     const toggleBtn = document.getElementById('btnTogglePanel');
     debugPanel.classList.add('hidden');
-    document.body.classList.add('fullscreen-mode');
+    document.body.classList.add('panel-hidden');
     if (toggleBtn) {
         toggleBtn.classList.remove('active');
         toggleBtn.textContent = '👁️ パネル表示';
     }
 
-    // プレビューのスケールを初期化（フルスクリーンモード設定後）
+    // プレビューのスケールを初期化
     updatePreviewScale();
 
     // ウィンドウリサイズ時にスケールを再計算
     window.addEventListener('resize', updatePreviewScale);
-
-    // デバッグパネルの表示/非表示でもスケールを再計算
-    const originalToggleDebugPanel = toggleDebugPanel;
-    toggleDebugPanel = function() {
-        originalToggleDebugPanel();
-        setTimeout(updatePreviewScale, 300); // アニメーション後に再計算
-    };
 </script>
 
-<!-- フローティングボタン（右下固定、フルスクリーンモード時のみ表示） -->
+<!-- フローティングボタン（右下固定、パネル非表示時のみ表示） -->
 <button id="floatingToggleBtn" class="floating-toggle-btn" onclick="toggleDebugPanel()">🛠️</button>
 
 </body>
