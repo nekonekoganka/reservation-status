@@ -560,8 +560,8 @@
         }
 
         .debug-panel button {
-            background: #3498DB;
-            color: white;
+            background: #7F8C8D;
+            color: #FFFFFF;
             border: none;
             padding: 10px 20px;
             margin: 5px;
@@ -569,14 +569,16 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: bold;
+            transition: background 0.2s ease, color 0.2s ease;
         }
 
         .debug-panel button:hover {
-            background: #2980B9;
+            background: #95A5A6;
         }
 
         .debug-panel button.active {
-            background: #E74C3C;
+            background: #1B5E20;
+            color: #FFFFFF;
         }
 
         /* モードトグルスイッチ */
@@ -4019,6 +4021,9 @@
     // トップバーのボタンを初期化
     document.getElementById('btnDebugModeTop').classList.add('active');
     document.getElementById('btnAvailableStatus').classList.add('active');
+
+    // カスタマイズUIの状態を反映
+    applyCustomizationsFromState();
 
     // 初期状態を設定
     testState.isAvailable = true;
