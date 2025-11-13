@@ -13,10 +13,8 @@
         }
 
         body {
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
             font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            overflow: hidden;
         }
 
         .display-area {
@@ -37,7 +35,6 @@
             text-align: center;
             color: white;
             transition: background-color 0.5s ease;
-            position: relative;
         }
 
         /* 予約可能の時のスタイル（濃い黄緑色） */
@@ -102,7 +99,6 @@
             font-weight: 900;
             margin-bottom: 60px;
             line-height: 1.2;
-            letter-spacing: 0;
             text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             animation: fadeIn 1s ease-in;
         }
@@ -123,8 +119,6 @@
         /* サブメッセージ */
         .sub-message {
             font-size: clamp(41px, 4.1vw, 56px);
-            font-weight: 400;
-            margin-top: 0;
             margin-bottom: 5px;
             line-height: 1.6;
             opacity: 0.95;
@@ -144,7 +138,6 @@
             font-size: clamp(30px, 3vw, 40px);
             opacity: 0.85;
             margin-top: 0;
-            font-weight: 400;
         }
 
         /* エラー時のスタイル */
@@ -185,18 +178,13 @@
         /* QRコード（左下固定） */
         .qr-code-corner {
             position: absolute;
-            bottom: 20px;
+            bottom: 30px;
             left: 20px;
             z-index: 1200;
         }
 
         .qr-code-corner img {
-            width: 175px;
-            height: 175px;
             display: block;
-            opacity: 1;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
     </style>
 </head>
