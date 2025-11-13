@@ -719,6 +719,7 @@
         <button class="debug-tab" onclick="switchTab('text')">📝 テキスト</button>
         <button class="debug-tab" onclick="switchTab('design')">🎨 デザイン</button>
         <button class="debug-tab" onclick="switchTab('size')">📏 サイズ</button>
+        <button class="debug-tab" onclick="switchTab('layout')">📐 レイアウト</button>
         <button class="debug-tab" onclick="switchTab('banner')">🏷️ バナー</button>
         <button class="debug-tab" onclick="switchTab('animation')">⚡ アニメ1</button>
         <button class="debug-tab" onclick="switchTab('animation2')">✨ アニメ2</button>
@@ -1007,6 +1008,135 @@
         <div class="slider-group">
             <label>更新時刻サイズ: <span id="updateTimeSizeValue">2vw</span></label>
             <input type="range" id="updateTimeSize" min="1.0" max="4.0" step="0.1" value="2.0" oninput="updateTimeSize(this.value)">
+        </div>
+    </div>
+
+    <!-- レイアウトタブ -->
+    <div id="tab-layout" class="debug-tab-content">
+        <div class="debug-section">
+            <h4 style="color: #FFC107; margin-bottom: 15px;">📏 要素間の間隔</h4>
+
+            <div class="slider-group">
+                <label>アイコン → メインメッセージ: <span id="iconToMainGapValue">40px</span></label>
+                <input type="range" id="iconToMainGap" min="0" max="100" step="5" value="40"
+                       oninput="updateIconToMainGap(this.value)">
+            </div>
+
+            <div class="slider-group">
+                <label>メイン → サブメッセージ: <span id="mainToSubGapValue">20px</span></label>
+                <input type="range" id="mainToSubGap" min="0" max="80" step="5" value="20"
+                       oninput="updateMainToSubGap(this.value)">
+            </div>
+
+            <div class="slider-group">
+                <label>サブ → QRメッセージ: <span id="subToQrGapValue">20px</span></label>
+                <input type="range" id="subToQrGap" min="0" max="80" step="5" value="20"
+                       oninput="updateSubToQrGap(this.value)">
+            </div>
+
+            <div class="slider-group">
+                <label>QR → 更新時刻: <span id="qrToUpdateGapValue">20px</span></label>
+                <input type="range" id="qrToUpdateGap" min="0" max="60" step="5" value="20"
+                       oninput="updateQrToUpdateGap(this.value)">
+            </div>
+        </div>
+
+        <div class="debug-section" style="margin-top: 20px;">
+            <h4 style="color: #FFC107; margin-bottom: 15px;">✍️ フォントスタイル</h4>
+
+            <div class="slider-group">
+                <label>メインメッセージの太さ: <span id="mainMsgFontWeightValue">太字</span></label>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button onclick="setMainMsgFontWeight(400)">標準</button>
+                    <button onclick="setMainMsgFontWeight(700)">太字</button>
+                    <button onclick="setMainMsgFontWeight(900)">極太</button>
+                </div>
+            </div>
+
+            <div class="slider-group">
+                <label>サブメッセージの太さ: <span id="subMsgFontWeightValue">標準</span></label>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button onclick="setSubMsgFontWeight(400)">標準</button>
+                    <button onclick="setSubMsgFontWeight(700)">太字</button>
+                    <button onclick="setSubMsgFontWeight(900)">極太</button>
+                </div>
+            </div>
+
+            <div class="slider-group">
+                <label>QRメッセージの太さ: <span id="qrMsgFontWeightValue">標準</span></label>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button onclick="setQrMsgFontWeight(400)">標準</button>
+                    <button onclick="setQrMsgFontWeight(700)">太字</button>
+                    <button onclick="setQrMsgFontWeight(900)">極太</button>
+                </div>
+            </div>
+
+            <div class="slider-group">
+                <label>更新時刻の太さ: <span id="updateTimeFontWeightValue">標準</span></label>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button onclick="setUpdateTimeFontWeight(400)">標準</button>
+                    <button onclick="setUpdateTimeFontWeight(700)">太字</button>
+                    <button onclick="setUpdateTimeFontWeight(900)">極太</button>
+                </div>
+            </div>
+
+            <div class="slider-group">
+                <label>メインメッセージの行間: <span id="mainMsgLineHeightValue">1.2</span></label>
+                <input type="range" id="mainMsgLineHeight" min="1.0" max="2.0" step="0.1" value="1.2"
+                       oninput="updateMainMsgLineHeight(this.value)">
+            </div>
+
+            <div class="slider-group">
+                <label>メインメッセージの文字間隔: <span id="mainMsgLetterSpacingValue">0px</span></label>
+                <input type="range" id="mainMsgLetterSpacing" min="0" max="10" step="1" value="0"
+                       oninput="updateMainMsgLetterSpacing(this.value)">
+            </div>
+        </div>
+
+        <div class="debug-section" style="margin-top: 20px;">
+            <h4 style="color: #FFC107; margin-bottom: 15px;">🎨 テキスト効果</h4>
+
+            <div class="debug-section">
+                <label>テキストの影:</label>
+                <button id="btnTextShadowOn" onclick="toggleTextShadow(true)">ON</button>
+                <button id="btnTextShadowOff" onclick="toggleTextShadow(false)">OFF</button>
+            </div>
+
+            <div class="slider-group">
+                <label>影の色:</label>
+                <input type="color" id="textShadowColor" value="#000000" oninput="applyLayoutSettings()">
+            </div>
+
+            <div class="slider-group">
+                <label>影のぼかし: <span id="textShadowBlurValue">5px</span></label>
+                <input type="range" id="textShadowBlur" min="0" max="20" step="1" value="5"
+                       oninput="updateTextShadowBlur(this.value)">
+            </div>
+
+            <div class="slider-group">
+                <label>影の距離: <span id="textShadowDistanceValue">3px</span></label>
+                <input type="range" id="textShadowDistance" min="0" max="10" step="1" value="3"
+                       oninput="updateTextShadowDistance(this.value)">
+            </div>
+
+            <hr style="margin: 20px 0; border: 1px solid #555;">
+
+            <div class="debug-section">
+                <label>テキストの縁取り:</label>
+                <button id="btnTextStrokeOn" onclick="toggleTextStroke(true)">ON</button>
+                <button id="btnTextStrokeOff" onclick="toggleTextStroke(false)">OFF</button>
+            </div>
+
+            <div class="slider-group">
+                <label>縁取りの色:</label>
+                <input type="color" id="textStrokeColor" value="#FFFFFF" oninput="applyLayoutSettings()">
+            </div>
+
+            <div class="slider-group">
+                <label>縁取りの太さ: <span id="textStrokeWidthValue">2px</span></label>
+                <input type="range" id="textStrokeWidth" min="1" max="5" step="1" value="2"
+                       oninput="updateTextStrokeWidth(this.value)">
+            </div>
         </div>
     </div>
 
@@ -1369,6 +1499,27 @@
         bannerFontSize: 3.0,
         bannerHeight: 80,
         bannerPadding: 10,
+        // レイアウト設定
+        // 余白・間隔
+        iconToMainGap: 40,
+        mainToSubGap: 20,
+        subToQrGap: 20,
+        qrToUpdateGap: 20,
+        // フォントスタイル
+        mainMsgFontWeight: 700,
+        subMsgFontWeight: 400,
+        qrMsgFontWeight: 400,
+        updateTimeFontWeight: 400,
+        mainMsgLineHeight: 1.2,
+        mainMsgLetterSpacing: 0,
+        // テキスト効果
+        textShadowEnabled: false,
+        textShadowColor: '#000000',
+        textShadowBlur: 5,
+        textShadowDistance: 3,
+        textStrokeEnabled: false,
+        textStrokeColor: '#FFFFFF',
+        textStrokeWidth: 2,
         // アニメ1
         pulseEnabled: true,
         pulseSpeed: 2.0,
@@ -1828,6 +1979,170 @@
             banner.style.height = customizeState.bannerHeight + 'px';
             banner.style.padding = customizeState.bannerPadding + 'px 20px';
         });
+    }
+
+    /**
+     * レイアウト設定更新関数
+     */
+    // 余白・間隔
+    function updateIconToMainGap(value) {
+        customizeState.iconToMainGap = parseInt(value);
+        document.getElementById('iconToMainGapValue').textContent = value + 'px';
+        applyLayoutSettings();
+    }
+
+    function updateMainToSubGap(value) {
+        customizeState.mainToSubGap = parseInt(value);
+        document.getElementById('mainToSubGapValue').textContent = value + 'px';
+        applyLayoutSettings();
+    }
+
+    function updateSubToQrGap(value) {
+        customizeState.subToQrGap = parseInt(value);
+        document.getElementById('subToQrGapValue').textContent = value + 'px';
+        applyLayoutSettings();
+    }
+
+    function updateQrToUpdateGap(value) {
+        customizeState.qrToUpdateGap = parseInt(value);
+        document.getElementById('qrToUpdateGapValue').textContent = value + 'px';
+        applyLayoutSettings();
+    }
+
+    // フォントスタイル
+    function setMainMsgFontWeight(weight) {
+        customizeState.mainMsgFontWeight = weight;
+        const labels = { 400: '標準', 700: '太字', 900: '極太' };
+        document.getElementById('mainMsgFontWeightValue').textContent = labels[weight];
+        applyLayoutSettings();
+    }
+
+    function setSubMsgFontWeight(weight) {
+        customizeState.subMsgFontWeight = weight;
+        const labels = { 400: '標準', 700: '太字', 900: '極太' };
+        document.getElementById('subMsgFontWeightValue').textContent = labels[weight];
+        applyLayoutSettings();
+    }
+
+    function setQrMsgFontWeight(weight) {
+        customizeState.qrMsgFontWeight = weight;
+        const labels = { 400: '標準', 700: '太字', 900: '極太' };
+        document.getElementById('qrMsgFontWeightValue').textContent = labels[weight];
+        applyLayoutSettings();
+    }
+
+    function setUpdateTimeFontWeight(weight) {
+        customizeState.updateTimeFontWeight = weight;
+        const labels = { 400: '標準', 700: '太字', 900: '極太' };
+        document.getElementById('updateTimeFontWeightValue').textContent = labels[weight];
+        applyLayoutSettings();
+    }
+
+    function updateMainMsgLineHeight(value) {
+        customizeState.mainMsgLineHeight = parseFloat(value);
+        document.getElementById('mainMsgLineHeightValue').textContent = value;
+        applyLayoutSettings();
+    }
+
+    function updateMainMsgLetterSpacing(value) {
+        customizeState.mainMsgLetterSpacing = parseInt(value);
+        document.getElementById('mainMsgLetterSpacingValue').textContent = value + 'px';
+        applyLayoutSettings();
+    }
+
+    // テキスト効果
+    function toggleTextShadow(enabled) {
+        customizeState.textShadowEnabled = enabled;
+        updateActiveButton('btnTextShadowOn', 'btnTextShadowOff', enabled);
+        applyLayoutSettings();
+    }
+
+    function updateTextShadowBlur(value) {
+        customizeState.textShadowBlur = parseInt(value);
+        document.getElementById('textShadowBlurValue').textContent = value + 'px';
+        applyLayoutSettings();
+    }
+
+    function updateTextShadowDistance(value) {
+        customizeState.textShadowDistance = parseInt(value);
+        document.getElementById('textShadowDistanceValue').textContent = value + 'px';
+        applyLayoutSettings();
+    }
+
+    function toggleTextStroke(enabled) {
+        customizeState.textStrokeEnabled = enabled;
+        updateActiveButton('btnTextStrokeOn', 'btnTextStrokeOff', enabled);
+        applyLayoutSettings();
+    }
+
+    function updateTextStrokeWidth(value) {
+        customizeState.textStrokeWidth = parseInt(value);
+        document.getElementById('textStrokeWidthValue').textContent = value + 'px';
+        applyLayoutSettings();
+    }
+
+    /**
+     * レイアウト設定を適用
+     */
+    function applyLayoutSettings() {
+        // カラー値を取得
+        customizeState.textShadowColor = document.getElementById('textShadowColor').value;
+        customizeState.textStrokeColor = document.getElementById('textStrokeColor').value;
+
+        // 動的スタイルを作成
+        let styleId = 'dynamic-layout-style';
+        let existingStyle = document.getElementById(styleId);
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+
+        const style = document.createElement('style');
+        style.id = styleId;
+
+        // テキストシャドウ
+        let textShadow = 'none';
+        if (customizeState.textShadowEnabled) {
+            textShadow = `${customizeState.textShadowDistance}px ${customizeState.textShadowDistance}px ${customizeState.textShadowBlur}px ${customizeState.textShadowColor}`;
+        }
+
+        // テキストストローク
+        let textStroke = '';
+        if (customizeState.textStrokeEnabled) {
+            textStroke = `-webkit-text-stroke: ${customizeState.textStrokeWidth}px ${customizeState.textStrokeColor};`;
+        }
+
+        style.textContent = `
+            .icon {
+                margin-bottom: ${customizeState.iconToMainGap}px !important;
+            }
+            .main-message {
+                margin-bottom: ${customizeState.mainToSubGap}px !important;
+                font-weight: ${customizeState.mainMsgFontWeight} !important;
+                line-height: ${customizeState.mainMsgLineHeight} !important;
+                letter-spacing: ${customizeState.mainMsgLetterSpacing}px !important;
+                text-shadow: ${textShadow} !important;
+                ${textStroke}
+            }
+            .sub-message {
+                margin-bottom: ${customizeState.subToQrGap}px !important;
+                font-weight: ${customizeState.subMsgFontWeight} !important;
+                text-shadow: ${textShadow} !important;
+                ${textStroke}
+            }
+            .qr-message {
+                margin-bottom: ${customizeState.qrToUpdateGap}px !important;
+                font-weight: ${customizeState.qrMsgFontWeight} !important;
+                text-shadow: ${textShadow} !important;
+                ${textStroke}
+            }
+            .update-time {
+                font-weight: ${customizeState.updateTimeFontWeight} !important;
+                text-shadow: ${textShadow} !important;
+                ${textStroke}
+            }
+        `;
+
+        document.head.appendChild(style);
     }
 
     /**
@@ -2715,6 +3030,45 @@
         document.getElementById('pulseSpeedValue').textContent = customizeState.pulseSpeed + '秒';
         document.getElementById('pulseScale').value = customizeState.pulseScale;
         document.getElementById('pulseScaleValue').textContent = customizeState.pulseScale;
+
+        // レイアウト
+        if (document.getElementById('iconToMainGap')) {
+            document.getElementById('iconToMainGap').value = customizeState.iconToMainGap;
+            document.getElementById('iconToMainGapValue').textContent = customizeState.iconToMainGap + 'px';
+            document.getElementById('mainToSubGap').value = customizeState.mainToSubGap;
+            document.getElementById('mainToSubGapValue').textContent = customizeState.mainToSubGap + 'px';
+            document.getElementById('subToQrGap').value = customizeState.subToQrGap;
+            document.getElementById('subToQrGapValue').textContent = customizeState.subToQrGap + 'px';
+            document.getElementById('qrToUpdateGap').value = customizeState.qrToUpdateGap;
+            document.getElementById('qrToUpdateGapValue').textContent = customizeState.qrToUpdateGap + 'px';
+
+            // フォントスタイル
+            const weightLabels = { 400: '標準', 700: '太字', 900: '極太' };
+            document.getElementById('mainMsgFontWeightValue').textContent = weightLabels[customizeState.mainMsgFontWeight];
+            document.getElementById('subMsgFontWeightValue').textContent = weightLabels[customizeState.subMsgFontWeight];
+            document.getElementById('qrMsgFontWeightValue').textContent = weightLabels[customizeState.qrMsgFontWeight];
+            document.getElementById('updateTimeFontWeightValue').textContent = weightLabels[customizeState.updateTimeFontWeight];
+
+            document.getElementById('mainMsgLineHeight').value = customizeState.mainMsgLineHeight;
+            document.getElementById('mainMsgLineHeightValue').textContent = customizeState.mainMsgLineHeight;
+            document.getElementById('mainMsgLetterSpacing').value = customizeState.mainMsgLetterSpacing;
+            document.getElementById('mainMsgLetterSpacingValue').textContent = customizeState.mainMsgLetterSpacing + 'px';
+
+            // テキスト効果
+            document.getElementById('textShadowColor').value = customizeState.textShadowColor;
+            document.getElementById('textShadowBlur').value = customizeState.textShadowBlur;
+            document.getElementById('textShadowBlurValue').textContent = customizeState.textShadowBlur + 'px';
+            document.getElementById('textShadowDistance').value = customizeState.textShadowDistance;
+            document.getElementById('textShadowDistanceValue').textContent = customizeState.textShadowDistance + 'px';
+            document.getElementById('textStrokeColor').value = customizeState.textStrokeColor;
+            document.getElementById('textStrokeWidth').value = customizeState.textStrokeWidth;
+            document.getElementById('textStrokeWidthValue').textContent = customizeState.textStrokeWidth + 'px';
+
+            updateActiveButton('btnTextShadowOn', 'btnTextShadowOff', customizeState.textShadowEnabled);
+            updateActiveButton('btnTextStrokeOn', 'btnTextStrokeOff', customizeState.textStrokeEnabled);
+
+            applyLayoutSettings();
+        }
 
         // ファビコン
         document.getElementById('customFaviconAvailableIcon').value = customizeState.faviconAvailableIcon;
