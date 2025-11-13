@@ -210,6 +210,13 @@
             height: calc(100vh - 100px);
             width: 100vw;
             margin-top: 100px;
+            transition: all 0.3s ease;
+        }
+
+        /* フルスクリーンモード時はレイアウトコンテナを全画面に */
+        body.fullscreen-mode .layout-container {
+            height: 100vh;
+            margin-top: 0;
         }
 
         /* 左側エリア（50%） */
@@ -270,6 +277,12 @@
             overflow-y: auto;
             max-height: 300px;
             border-top: 2px solid #3498DB;
+            transition: all 0.3s ease;
+        }
+
+        /* フルスクリーンモード時はinfo-panelを非表示 */
+        body.fullscreen-mode .info-panel {
+            display: none;
         }
 
         /* デバッグパネル（右側50%） */
@@ -299,6 +312,12 @@
             padding: 10px 20px;
             z-index: 10001;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        /* フルスクリーンモード時はトップバーを非表示 */
+        body.fullscreen-mode .top-control-bar {
+            display: none;
         }
 
         .top-control-row {
@@ -388,7 +407,6 @@
 
         .debug-tab-content.active {
             display: block;
-            max-height: 70vh;
             overflow-y: auto;
             padding-right: 10px;
         }
@@ -647,6 +665,36 @@
 
         .status-indicator.off {
             background: #95A5A6;
+        }
+
+        /* フローティングボタン（右下固定） */
+        .floating-toggle-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background: #3498DB;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 32px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            z-index: 10002;
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .floating-toggle-btn:hover {
+            background: #2980B9;
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        /* フルスクリーンモード時のみフローティングボタンを表示 */
+        body.fullscreen-mode .floating-toggle-btn {
+            display: block;
         }
     </style>
 </head>
@@ -2458,19 +2506,26 @@
         const panel = document.getElementById('debugPanel');
         const btn = document.getElementById('btnTogglePanel');
         const layoutContainer = document.querySelector('.layout-container');
+        const body = document.body;
 
         if (panel.classList.contains('hidden')) {
-            // パネルを表示
+            // パネルを表示（通常モードに戻す）
             panel.classList.remove('hidden');
             layoutContainer.classList.remove('panel-hidden');
-            btn.classList.add('active');
-            btn.textContent = '👁️ パネル表示';
+            body.classList.remove('fullscreen-mode');
+            if (btn) {
+                btn.classList.add('active');
+                btn.textContent = '👁️ パネル表示';
+            }
         } else {
-            // パネルを非表示
+            // パネルを非表示（フルスクリーンモード）
             panel.classList.add('hidden');
             layoutContainer.classList.add('panel-hidden');
-            btn.classList.remove('active');
-            btn.textContent = '👁️ パネル非表示';
+            body.classList.add('fullscreen-mode');
+            if (btn) {
+                btn.classList.remove('active');
+                btn.textContent = '👁️ パネル非表示';
+            }
         }
     }
 
@@ -3137,6 +3192,9 @@
         setTimeout(updatePreviewScale, 300); // アニメーション後に再計算
     };
 </script>
+
+<!-- フローティングボタン（右下固定、フルスクリーンモード時のみ表示） -->
+<button id="floatingToggleBtn" class="floating-toggle-btn" onclick="toggleDebugPanel()">🛠️</button>
 
 </body>
 </html>
