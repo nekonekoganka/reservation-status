@@ -40,12 +40,12 @@
 
         /* 予約可能の時のスタイル（濃い黄緑色） */
         .display-container.available {
-            background: #27AE60;
+            background: #27ae60;
         }
 
         /* 予約不可の時のスタイル（赤色） */
         .display-container.unavailable {
-            background: #DC3545;
+            background: #dc3545;
         }
 
         /* 読み込み中のスタイル */
@@ -141,7 +141,7 @@
         .qr-message {
             font-size: clamp(46px, 4.6vw, 64px);
             font-weight: 400;
-            margin-top: 60px;
+            margin-top: 0;
             margin-bottom: 60px;
             opacity: 0.95;
         }
@@ -150,7 +150,7 @@
         .update-time {
             font-size: clamp(30px, 3vw, 40px);
             opacity: 0.85;
-            margin-top: 40px;
+            margin-top: 0;
         }
 
         /* エラー時のスタイル */
@@ -169,13 +169,13 @@
             top: 0;
             left: 0;
             width: 100%;
-            background: #FFC107;
+            background: #ffc107;
             color: #212529;
-            font-size: clamp(16px, 2.6vw, 32px);
+            font-size: clamp(16px, 2.8vw, 32px);
             font-weight: bold;
             text-align: center;
             padding: 0 20px;
-            height: 110px;
+            height: 115px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -818,18 +818,18 @@
             <label>背景色:</label>
             <div class="color-picker-group">
                 <span>空きあり:</span>
-                <input type="color" id="customAvailableBg" value="#27AE60" oninput="applyCustomizations()">
-                <span id="availableBgValue">#27AE60</span>
+                <input type="color" id="customAvailableBg" value="#27ae60" oninput="applyCustomizations()">
+                <span id="availableBgValue">#27ae60</span>
             </div>
             <div class="color-picker-group">
                 <span>満枠:</span>
-                <input type="color" id="customFullBg" value="#DC3545" oninput="applyCustomizations()">
-                <span id="fullBgValue">#DC3545</span>
+                <input type="color" id="customFullBg" value="#dc3545" oninput="applyCustomizations()">
+                <span id="fullBgValue">#dc3545</span>
             </div>
             <div class="color-picker-group">
                 <span>バナー背景:</span>
-                <input type="color" id="customBannerBg" value="#FFC107" oninput="applyCustomizations()">
-                <span id="bannerBgValue">#FFC107</span>
+                <input type="color" id="customBannerBg" value="#ffc107" oninput="applyCustomizations()">
+                <span id="bannerBgValue">#ffc107</span>
             </div>
             <div class="color-picker-group">
                 <span>バナー文字:</span>
@@ -1069,7 +1069,7 @@
 
             <div class="slider-group">
                 <label>縁取りの色:</label>
-                <input type="color" id="textStrokeColor" value="#FFFFFF" oninput="applyLayoutSettings()">
+                <input type="color" id="textStrokeColor" value="#ffffff" oninput="applyLayoutSettings()">
             </div>
 
             <div class="slider-group">
@@ -1102,14 +1102,14 @@
             <h4 style="color: #FFC107; margin-bottom: 15px;">📐 バナー共通設定</h4>
 
             <div class="slider-group">
-                <label>フォントサイズ: <span id="bannerFontSizeValue">2.6vw</span></label>
-                <input type="range" id="bannerFontSize" min="2.0" max="5.0" step="0.1" value="2.6"
+                <label>フォントサイズ: <span id="bannerFontSizeValue">2.8vw</span></label>
+                <input type="range" id="bannerFontSize" min="2.0" max="5.0" step="0.1" value="2.8"
                        oninput="updateBannerFontSize(this.value)">
             </div>
 
             <div class="slider-group">
-                <label>バナー高さ: <span id="bannerHeightValue">110px</span></label>
-                <input type="range" id="bannerHeight" min="50" max="150" step="5" value="110"
+                <label>バナー高さ: <span id="bannerHeightValue">115px</span></label>
+                <input type="range" id="bannerHeight" min="50" max="150" step="5" value="115"
                        oninput="updateBannerHeight(this.value)">
             </div>
 
@@ -1333,13 +1333,13 @@
             <label>グラデーション色:</label>
             <div class="color-picker-group">
                 <span>色1:</span>
-                <input type="color" id="customGradientColor1" value="#27AE60" oninput="applyGradient()">
-                <span id="gradientColor1Value">#27AE60</span>
+                <input type="color" id="customGradientColor1" value="#27ae60" oninput="applyGradient()">
+                <span id="gradientColor1Value">#27ae60</span>
             </div>
             <div class="color-picker-group">
                 <span>色2:</span>
-                <input type="color" id="customGradientColor2" value="#1E8449" oninput="applyGradient()">
-                <span id="gradientColor2Value">#1E8449</span>
+                <input type="color" id="customGradientColor2" value="#1e8449" oninput="applyGradient()">
+                <span id="gradientColor2Value">#1e8449</span>
             </div>
         </div>
 
@@ -1485,21 +1485,21 @@
         qrMsg: '受付窓口 もしくは QRコードから ご予約ください',
         availableIcon: '⭕',
         fullIcon: '😔',
-        availableBg: '#27AE60',
-        fullBg: '#DC3545',
-        bannerBg: '#FFC107',
+        availableBg: '#27ae60',
+        fullBg: '#dc3545',
+        bannerBg: '#ffc107',
         bannerText: '#212529',
         // サイズ
-        iconSize: 12.0,
-        mainMsgSize: 6.0,
+        iconSize: 12,
+        mainMsgSize: 6,
         subMsgSize: 4.1,
         qrMsgSize: 4.6,
-        updateTimeSize: 3.0,
+        updateTimeSize: 3,
         // バナー設定
         openingSoonText: '10時に窓口が開きます　お待ち下さい',
         lunchBreakText: '昼休み中　午後３時より窓口が開きます',
-        bannerFontSize: 2.6,
-        bannerHeight: 110,
+        bannerFontSize: 2.8,
+        bannerHeight: 115,
         bannerPadding: 0,
         // レイアウト設定
         // 余白・間隔
@@ -1520,19 +1520,19 @@
         textShadowBlur: 5,
         textShadowDistance: 3,
         textStrokeEnabled: false,
-        textStrokeColor: '#FFFFFF',
+        textStrokeColor: '#ffffff',
         textStrokeWidth: 2,
         // QRコード設定
         qrEnabled: true,
         qrSize: 175,
         qrPosition: 'bottom-left',
-        qrOpacity: 1.0,
+        qrOpacity: 1,
         qrBorderRadius: 10,
         qrShadowEnabled: true,
         qrImageUrl: 'Downloads/QR_fujiminohikari.png',
         // アニメ1
         pulseEnabled: true,
-        pulseSpeed: 3.0,
+        pulseSpeed: 3,
         pulseScale: 1.15,
         glowEnabled: true,
         glowIntensity: 'weak',
@@ -1550,8 +1550,8 @@
         // 背景
         gradientEnabled: false,
         gradientType: 'diagonal',
-        gradientColor1: '#27AE60',
-        gradientColor2: '#1E8449',
+        gradientColor1: '#27ae60',
+        gradientColor2: '#1e8449',
         gradientAnimEnabled: false,
         // ファビコン
         faviconEnabled: true,
@@ -3015,25 +3015,25 @@
         customizeState.qrMsg = '受付窓口 もしくは QRコードから ご予約ください';
         customizeState.availableIcon = '⭕';
         customizeState.fullIcon = '😔';
-        customizeState.availableBg = '#27AE60';
-        customizeState.fullBg = '#DC3545';
-        customizeState.bannerBg = '#FFC107';
+        customizeState.availableBg = '#27ae60';
+        customizeState.fullBg = '#dc3545';
+        customizeState.bannerBg = '#ffc107';
         customizeState.bannerText = '#212529';
         // サイズ
         customizeState.iconSize = 12;
-        customizeState.mainMsgSize = 6.0;
+        customizeState.mainMsgSize = 6;
         customizeState.subMsgSize = 4.1;
         customizeState.qrMsgSize = 4.6;
-        customizeState.updateTimeSize = 3.0;
+        customizeState.updateTimeSize = 3;
         // バナー設定
         customizeState.openingSoonText = '10時に窓口が開きます　お待ち下さい';
         customizeState.lunchBreakText = '昼休み中　午後３時より窓口が開きます';
-        customizeState.bannerFontSize = 2.6;
-        customizeState.bannerHeight = 110;
+        customizeState.bannerFontSize = 2.8;
+        customizeState.bannerHeight = 115;
         customizeState.bannerPadding = 0;
         // アニメ1
         customizeState.pulseEnabled = true;
-        customizeState.pulseSpeed = 3.0;
+        customizeState.pulseSpeed = 3;
         customizeState.pulseScale = 1.15;
         customizeState.glowEnabled = true;
         customizeState.glowIntensity = 'weak';
@@ -3051,8 +3051,8 @@
         // 背景
         customizeState.gradientEnabled = false;
         customizeState.gradientType = 'diagonal';
-        customizeState.gradientColor1 = '#27AE60';
-        customizeState.gradientColor2 = '#1E8449';
+        customizeState.gradientColor1 = '#27ae60';
+        customizeState.gradientColor2 = '#1e8449';
         customizeState.gradientAnimEnabled = false;
         // ファビコン
         customizeState.faviconEnabled = true;
@@ -3063,7 +3063,7 @@
         // QRコード
         customizeState.qrEnabled = true;
         customizeState.qrSize = 175;
-        customizeState.qrOpacity = 1.0;
+        customizeState.qrOpacity = 1;
         customizeState.qrBorderRadius = 10;
         customizeState.qrShadowEnabled = true;
         customizeState.qrPosition = 'bottom-left';
