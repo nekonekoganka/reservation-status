@@ -17,10 +17,12 @@
             height: 100vh;
             overflow: hidden;
             font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+        }
+
+        .display-area {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
         }
 
         /* ディスプレイ全体のスタイル */
@@ -35,16 +37,17 @@
             text-align: center;
             color: white;
             transition: background-color 0.5s ease;
+            position: relative;
         }
 
         /* 予約可能の時のスタイル（濃い黄緑色） */
         .display-container.available {
-            background: #27AE60;
+            background: #27ae60;
         }
 
         /* 予約不可の時のスタイル（赤色） */
         .display-container.unavailable {
-            background: #DC3545;
+            background: #dc3545;
         }
 
         /* 読み込み中のスタイル */
@@ -99,6 +102,7 @@
             font-weight: 900;
             margin-bottom: 60px;
             line-height: 1.2;
+            letter-spacing: 0;
             text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             animation: fadeIn 1s ease-in;
         }
@@ -119,6 +123,8 @@
         /* サブメッセージ */
         .sub-message {
             font-size: clamp(41px, 4.1vw, 56px);
+            font-weight: 400;
+            margin-top: 0;
             margin-bottom: 5px;
             line-height: 1.6;
             opacity: 0.95;
@@ -128,7 +134,7 @@
         .qr-message {
             font-size: clamp(46px, 4.6vw, 64px);
             font-weight: 400;
-            margin-top: 60px;
+            margin-top: 0;
             margin-bottom: 60px;
             opacity: 0.95;
         }
@@ -137,7 +143,8 @@
         .update-time {
             font-size: clamp(30px, 3vw, 40px);
             opacity: 0.85;
-            margin-top: 40px;
+            margin-top: 0;
+            font-weight: 400;
         }
 
         /* エラー時のスタイル */
@@ -152,17 +159,17 @@
 
         /* 昼休みバナー */
         .lunch-break-banner {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            background: #FFC107;
+            background: #ffc107;
             color: #212529;
-            font-size: clamp(24px, 2.6vw, 48px);
+            font-size: clamp(16px, 2.8vw, 32px);
             font-weight: bold;
             text-align: center;
             padding: 0 20px;
-            height: 110px;
+            height: 115px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -177,47 +184,45 @@
 
         /* QRコード（左下固定） */
         .qr-code-corner {
-            position: fixed;
-            bottom: 60px;
-            left: 40px;
-            width: clamp(140px, 9.1vw, 220px);
-            height: clamp(140px, 9.1vw, 220px);
-            background: white;
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
             z-index: 1200;
         }
 
         .qr-code-corner img {
-            width: 100%;
-            height: 100%;
+            width: 175px;
+            height: 175px;
             display: block;
+            opacity: 1;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
     </style>
 </head>
 <body>
+<div class="display-area">
+    <!-- 営業時間前バナー -->
+    <div id="openingSoonBanner" class="lunch-break-banner">
+        10時に窓口が開きます　お待ち下さい
+    </div>
 
-<!-- 営業時間前バナー -->
-<div id="openingSoonBanner" class="lunch-break-banner">
-    10時に窓口が開きます　お待ち下さい
-</div>
+    <!-- 昼休みバナー -->
+    <div id="lunchBreakBanner" class="lunch-break-banner">
+        昼休み中　午後３時より窓口が開きます
+    </div>
 
-<!-- 昼休みバナー -->
-<div id="lunchBreakBanner" class="lunch-break-banner">
-    昼休み中　午後３時より窓口が開きます
-</div>
+    <!-- QRコード（左下固定） -->
+    <div class="qr-code-corner">
+        <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード">
+    </div>
 
-<!-- QRコード（左下固定） -->
-<div class="qr-code-corner">
-    <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード">
-</div>
-
-<div id="displayContainer" class="display-container loading">
-    <div class="clinic-name">ふじみ野ひかり眼科</div>
-    <div class="icon">⏳</div>
-    <div class="main-message">読み込み中...</div>
-    <div class="sub-message">予約状況を確認しています</div>
+    <div id="displayContainer" class="display-container loading">
+        <div class="clinic-name">ふじみ野ひかり眼科</div>
+        <div class="icon">⏳</div>
+        <div class="main-message">読み込み中...</div>
+        <div class="sub-message">予約状況を確認しています</div>
+    </div>
 </div>
 
 <script>
@@ -229,6 +234,24 @@
 
     // Google Sheets APIのURL
     const API_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+    const DISPLAY_CONFIG = {
+        clinicName: 'ふじみ野ひかり眼科',
+        availableMsg: '{day}分の予約枠 「空き」あり',
+        fullMsg: '{day}の予約は 「満枠」です',
+        subMsg: '誠に恐れ入りますが、翌診療日以降で ご予約ください',
+        qrMsg: '受付窓口 もしくは QRコードから ご予約ください',
+        availableIcon: '⭕',
+        fullIcon: '😔'
+    };
+
+    const FAVICON_CONFIG = {
+        enabled: true,
+        availableIcon: 'OK',
+        availableColor: '#4CAF50',
+        fullIcon: '✕',
+        fullColor: '#F44336'
+    };
 
     /**
      * 予約状況を取得して表示する関数
@@ -286,6 +309,43 @@
             console.error('エラー:', error);
             displayError();
         }
+    }
+
+    /**
+     * SVGファビコンを生成
+     */
+    function generateFaviconSVG(isAvailable) {
+        const icon = isAvailable ? FAVICON_CONFIG.availableIcon : FAVICON_CONFIG.fullIcon;
+        const color = isAvailable ? FAVICON_CONFIG.availableColor : FAVICON_CONFIG.fullColor;
+
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+            <rect width="32" height="32" fill="${color}"/>
+            <text x="16" y="16" font-size="20" text-anchor="middle" dominant-baseline="central" fill="white"
+                font-family="Arial, sans-serif" font-weight="bold">${icon}</text>
+        </svg>`;
+    }
+
+    /**
+     * ファビコンを更新
+     */
+    function updateFavicon(isAvailable) {
+        if (!FAVICON_CONFIG.enabled) {
+            return;
+        }
+
+        const svg = generateFaviconSVG(isAvailable);
+        const base64 = btoa(unescape(encodeURIComponent(svg)));
+        const faviconUrl = `data:image/svg+xml;base64,${base64}`;
+
+        let link = document.querySelector('link[rel="icon"]');
+        if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            link.type = 'image/svg+xml';
+            document.head.appendChild(link);
+        }
+
+        link.href = faviconUrl;
     }
 
     /**
@@ -418,22 +478,26 @@
             // 予約可能（濃い黄緑色）
             container.className = 'display-container available';
             container.innerHTML = `
-                <div class="icon">⭕</div>
-                <div class="main-message">${dayText}分の予約枠 「空き」あり</div>
-                <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
+                <div class="clinic-name">${DISPLAY_CONFIG.clinicName}</div>
+                <div class="icon">${DISPLAY_CONFIG.availableIcon}</div>
+                <div class="main-message">${DISPLAY_CONFIG.availableMsg.replace('{day}', dayText)}</div>
+                <div class="qr-message">${DISPLAY_CONFIG.qrMsg}</div>
                 <div class="update-time">${formattedTime}</div>
             `;
         } else {
             // 予約不可（赤色）
             container.className = 'display-container unavailable';
             container.innerHTML = `
-                <div class="icon">😔</div>
-                <div class="main-message">${dayText}の予約は 「満枠」です</div>
-                <div class="sub-message">誠に恐れ入りますが、翌診療日以降で ご予約ください</div>
-                <div class="qr-message">受付窓口 もしくは QRコードから ご予約ください</div>
+                <div class="clinic-name">${DISPLAY_CONFIG.clinicName}</div>
+                <div class="icon">${DISPLAY_CONFIG.fullIcon}</div>
+                <div class="main-message">${DISPLAY_CONFIG.fullMsg.replace('{day}', dayText)}</div>
+                <div class="sub-message">${DISPLAY_CONFIG.subMsg}</div>
+                <div class="qr-message">${DISPLAY_CONFIG.qrMsg}</div>
                 <div class="update-time">${formattedTime}</div>
             `;
         }
+
+        updateFavicon(isAvailable);
     }
 
     /**
@@ -448,9 +512,12 @@
             <div class="main-message">情報を取得できません</div>
             <div class="error-message">しばらくしてから再度お試しください</div>
         `;
+
+        updateFavicon(false);
     }
 
     // ページ読み込み時に実行
+    updateFavicon(true);
     updateReservationStatus();
 
     // 1分ごとに自動更新（60000ミリ秒 = 1分）
