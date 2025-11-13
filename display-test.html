@@ -207,9 +207,9 @@
         /* レイアウトコンテナ */
         .layout-container {
             display: flex;
-            height: calc(100vh - 60px);
+            height: calc(100vh - 100px);
             width: 100vw;
-            margin-top: 60px;
+            margin-top: 100px;
         }
 
         /* 左側エリア（50%） */
@@ -218,13 +218,20 @@
             display: flex;
             flex-direction: column;
             background: #000;
+            transition: width 0.3s ease;
+        }
+
+        /* デバッグパネル非表示時は左パネルを100%に */
+        .debug-panel.hidden ~ .layout-container .left-panel,
+        .layout-container.panel-hidden .left-panel {
+            width: 100%;
         }
 
         /* メイン表示エリア（縦横比維持） */
         .preview-wrapper {
             flex: 1;
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: center;
             padding: 20px;
             overflow: hidden;
@@ -236,12 +243,17 @@
             aspect-ratio: 16 / 9;
             position: relative;
             background: #000;
+            overflow: hidden;
         }
 
+        /* 実際のディスプレイサイズで描画してscaleで縮小 */
         .preview-container .display-area {
-            width: 100%;
-            height: 100%;
-            position: relative;
+            width: 1920px;
+            height: 1080px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: center center;
         }
 
         .preview-container .display-container {
@@ -269,32 +281,48 @@
             overflow-y: auto;
             font-size: 16px;
             display: block;
+            transition: all 0.3s ease;
         }
 
-        /* トップコントロールバー */
+        /* デバッグパネル非表示状態 */
+        .debug-panel.hidden {
+            display: none;
+        }
+
+        /* トップコントロールバー（2段構成） */
         .top-control-bar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             background: #34495E;
-            padding: 15px 20px;
-            display: flex;
-            gap: 10px;
+            padding: 10px 20px;
             z-index: 10001;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
+        .top-control-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .top-control-row:last-child {
+            margin-bottom: 0;
+        }
+
         .top-control-bar button {
-            padding: 10px 20px;
+            padding: 8px 16px;
             background: #546E7A;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             transition: all 0.3s;
+            white-space: nowrap;
         }
 
         .top-control-bar button:hover {
@@ -310,6 +338,7 @@
             width: 2px;
             background: #546E7A;
             margin: 0 10px;
+            height: 30px;
         }
 
         /* デバッグトグルボタン（非表示） */
@@ -623,13 +652,33 @@
 </head>
 <body>
 
-<!-- トップコントロールバー -->
+<!-- トップコントロールバー（2段構成） -->
 <div class="top-control-bar">
-    <button id="btnDebugModeTop" class="active" onclick="switchMode('debug')">🟢 デバッグ</button>
-    <button id="btnProductionModeTop" onclick="switchMode('production')">🔵 本番</button>
-    <div class="separator"></div>
-    <button id="btnAvailableStatus" class="active" onclick="switchTestStatus(true)">✅ 空きあり</button>
-    <button id="btnFullStatus" onclick="switchTestStatus(false)">❌ 満枠</button>
+    <!-- 1段目：モード切替・ステータス切替・パネル表示 -->
+    <div class="top-control-row">
+        <button id="btnDebugModeTop" class="active" onclick="switchMode('debug')">🟢 デバッグ</button>
+        <button id="btnProductionModeTop" onclick="switchMode('production')">🔵 本番</button>
+        <div class="separator"></div>
+        <button id="btnAvailableStatus" class="active" onclick="switchTestStatus(true)">✅ 空きあり</button>
+        <button id="btnFullStatus" onclick="switchTestStatus(false)">❌ 満枠</button>
+        <div class="separator"></div>
+        <button id="btnTogglePanel" class="active" onclick="toggleDebugPanel()">👁️ パネル表示</button>
+    </div>
+
+    <!-- 2段目：設定タブ・データ操作 -->
+    <div class="top-control-row">
+        <button class="debug-tab active" onclick="switchTab('time')">⏰ 時間</button>
+        <button class="debug-tab" onclick="switchTab('text')">📝 テキスト</button>
+        <button class="debug-tab" onclick="switchTab('design')">🎨 デザイン</button>
+        <button class="debug-tab" onclick="switchTab('size')">📏 サイズ</button>
+        <button class="debug-tab" onclick="switchTab('animation')">⚡ アニメ1</button>
+        <button class="debug-tab" onclick="switchTab('animation2')">✨ アニメ2</button>
+        <button class="debug-tab" onclick="switchTab('background')">🌈 背景</button>
+        <button class="debug-tab" onclick="switchTab('presets')">💾 設定</button>
+        <div class="separator"></div>
+        <button onclick="exportCurrentSettings()">📤 書出</button>
+        <button onclick="triggerImport()">📥 取込</button>
+    </div>
 </div>
 
 <!-- レイアウトコンテナ -->
@@ -686,24 +735,7 @@
 
 <!-- デバッグパネル -->
 <div id="debugPanel" class="debug-panel">
-    <h3>
-        <span>🛠️ デバッグコントロール</span>
-        <button class="debug-export-btn" onclick="exportCurrentSettings()">📤 書出</button>
-        <button class="debug-import-btn" onclick="triggerImport()">📥 取込</button>
-    </h3>
     <input type="file" id="importFileInput" accept=".json" onchange="importSettings(event)">
-
-    <!-- タブナビゲーション -->
-    <div class="debug-tabs">
-        <button class="debug-tab active" onclick="switchTab('time')">⏰ 時間</button>
-        <button class="debug-tab" onclick="switchTab('text')">📝 テキスト</button>
-        <button class="debug-tab" onclick="switchTab('design')">🎨 デザイン</button>
-        <button class="debug-tab" onclick="switchTab('size')">📏 サイズ</button>
-        <button class="debug-tab" onclick="switchTab('animation')">⚡ アニメ1</button>
-        <button class="debug-tab" onclick="switchTab('animation2')">✨ アニメ2</button>
-        <button class="debug-tab" onclick="switchTab('background')">🌈 背景</button>
-        <button class="debug-tab" onclick="switchTab('presets')">💾 設定</button>
-    </div>
 
     <!-- 時間タブ -->
     <div id="tab-time" class="debug-tab-content active">
@@ -2424,16 +2456,21 @@
      */
     function toggleDebugPanel() {
         const panel = document.getElementById('debugPanel');
-        const btn = document.getElementById('debugToggleBtn');
+        const btn = document.getElementById('btnTogglePanel');
+        const layoutContainer = document.querySelector('.layout-container');
 
-        if (panel.classList.contains('show')) {
-            // パネルを閉じる（モードは維持）
-            panel.classList.remove('show');
-            btn.classList.remove('active');
-        } else {
-            // パネルを開く（モードは維持）
-            panel.classList.add('show');
+        if (panel.classList.contains('hidden')) {
+            // パネルを表示
+            panel.classList.remove('hidden');
+            layoutContainer.classList.remove('panel-hidden');
             btn.classList.add('active');
+            btn.textContent = '👁️ パネル表示';
+        } else {
+            // パネルを非表示
+            panel.classList.add('hidden');
+            layoutContainer.classList.add('panel-hidden');
+            btn.classList.remove('active');
+            btn.textContent = '👁️ パネル非表示';
         }
     }
 
@@ -3047,6 +3084,27 @@
         isDebugMode = true;
     }
 
+    /**
+     * プレビューのスケールを計算して適用
+     */
+    function updatePreviewScale() {
+        const previewContainer = document.querySelector('.preview-container');
+        const displayArea = document.querySelector('.preview-container .display-area');
+
+        if (!previewContainer || !displayArea) return;
+
+        const containerRect = previewContainer.getBoundingClientRect();
+        const containerWidth = containerRect.width;
+        const containerHeight = containerRect.height;
+
+        // 1920x1080のディスプレイをコンテナに収まるようにスケール
+        const scaleX = containerWidth / 1920;
+        const scaleY = containerHeight / 1080;
+        const scale = Math.min(scaleX, scaleY);
+
+        displayArea.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    }
+
     // 初期表示
     loadPresetNames();
     updateCurrentPresetInfo();
@@ -3065,6 +3123,19 @@
     // ファビコンとプレビューを初期化
     updateFaviconPreview();
     updateFavicon();
+
+    // プレビューのスケールを初期化
+    updatePreviewScale();
+
+    // ウィンドウリサイズ時にスケールを再計算
+    window.addEventListener('resize', updatePreviewScale);
+
+    // デバッグパネルの表示/非表示でもスケールを再計算
+    const originalToggleDebugPanel = toggleDebugPanel;
+    toggleDebugPanel = function() {
+        originalToggleDebugPanel();
+        setTimeout(updatePreviewScale, 300); // アニメーション後に再計算
+    };
 </script>
 
 </body>
