@@ -1266,11 +1266,11 @@
         </div>
 
         <div class="slider-group">
-            <label>パルス速度: <span id="pulseSpeedValue">2.0秒</span></label>
+            <label>パルス速度: <span id="pulseSpeedValue">普通 (2.0秒)</span></label>
             <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button onclick="setPulseSpeed('slow')">遅い</button>
-                <button onclick="setPulseSpeed('normal')">普通</button>
-                <button onclick="setPulseSpeed('fast')">速い</button>
+                <button id="btnPulseSpeedSlow" onclick="setPulseSpeed('slow')">遅い</button>
+                <button id="btnPulseSpeedNormal" onclick="setPulseSpeed('normal')">普通</button>
+                <button id="btnPulseSpeedFast" onclick="setPulseSpeed('fast')">速い</button>
             </div>
         </div>
 
@@ -1855,12 +1855,46 @@
         updateAnimationStyle();
     }
 
+    function getPulseSpeedLabel(speed) {
+        const labels = {
+            3: '遅い (3.0秒)',
+            2: '普通 (2.0秒)',
+            1: '速い (1.0秒)'
+        };
+        if (labels[speed]) {
+            return labels[speed];
+        }
+        const numeric = Number(speed);
+        if (!Number.isFinite(numeric)) {
+            return '--';
+        }
+        const formatted = Number.isInteger(numeric) ? numeric.toString() : numeric.toFixed(1).replace(/\.0$/, '');
+        return `${formatted}秒`;
+    }
+
+    function updatePulseSpeedUI() {
+        const value = customizeState.pulseSpeed;
+        const numeric = Number(value);
+        const label = document.getElementById('pulseSpeedValue');
+        if (label) {
+            label.textContent = getPulseSpeedLabel(value);
+        }
+        updateActiveButton3(
+            'btnPulseSpeedSlow',
+            'btnPulseSpeedNormal',
+            'btnPulseSpeedFast',
+            Math.abs(numeric - 3.0) < 0.001,
+            Math.abs(numeric - 2.0) < 0.001,
+            Math.abs(numeric - 1.0) < 0.001
+        );
+    }
+
     /**
      * パルス速度を更新
      */
     function updatePulseSpeed(value) {
         customizeState.pulseSpeed = parseFloat(value);
-        document.getElementById('pulseSpeedValue').textContent = value + '秒';
+        updatePulseSpeedUI();
         updateAnimationStyle();
     }
 
@@ -2329,8 +2363,7 @@
     function setPulseSpeed(speed) {
         const speeds = { slow: 3.0, normal: 2.0, fast: 1.0 };
         customizeState.pulseSpeed = speeds[speed];
-        const labels = { slow: '遅い (3.0秒)', normal: '普通 (2.0秒)', fast: '速い (1.0秒)' };
-        document.getElementById('pulseSpeedValue').textContent = labels[speed];
+        updatePulseSpeedUI();
         updateAnimationStyle();
     }
 
@@ -2947,13 +2980,14 @@
         }
 
         // アニメーション
-        document.getElementById('pulseSpeed').value = customizeState.pulseSpeed;
         document.getElementById('pulseScale').value = customizeState.pulseScale;
         document.getElementById('iconSize').value = customizeState.iconSize;
         document.getElementById('mainMsgSize').value = customizeState.mainMsgSize;
         document.getElementById('subMsgSize').value = customizeState.subMsgSize;
         document.getElementById('qrMsgSize').value = customizeState.qrMsgSize;
         document.getElementById('updateTimeSize').value = customizeState.updateTimeSize;
+
+        updatePulseSpeedUI();
 
         // グラデーション
         document.getElementById('customGradientColor1').value = customizeState.gradientColor1;
@@ -2981,12 +3015,12 @@
         // QRコード設定
         if (customizeState.qrEnabled !== undefined) {
             document.getElementById('qrImageUrl').value = customizeState.qrImageUrl || 'Downloads/QR_fujiminohikari.png';
-            document.getElementById('qrSize').value = customizeState.qrSize || 150;
-            document.getElementById('qrSizeValue').textContent = (customizeState.qrSize || 150) + 'px';
-            document.getElementById('qrOpacity').value = (customizeState.qrOpacity || 1.0) * 100;
-            document.getElementById('qrOpacityValue').textContent = ((customizeState.qrOpacity || 1.0) * 100) + '%';
-            document.getElementById('qrBorderRadius').value = customizeState.qrBorderRadius || 10;
-            document.getElementById('qrBorderRadiusValue').textContent = (customizeState.qrBorderRadius || 10) + 'px';
+            document.getElementById('qrSize').value = customizeState.qrSize ?? 150;
+            document.getElementById('qrSizeValue').textContent = (customizeState.qrSize ?? 150) + 'px';
+            document.getElementById('qrOpacity').value = ((customizeState.qrOpacity ?? 1.0) * 100);
+            document.getElementById('qrOpacityValue').textContent = ((customizeState.qrOpacity ?? 1.0) * 100) + '%';
+            document.getElementById('qrBorderRadius').value = customizeState.qrBorderRadius ?? 10;
+            document.getElementById('qrBorderRadiusValue').textContent = (customizeState.qrBorderRadius ?? 10) + 'px';
             document.getElementById('qrPosition').value = customizeState.qrPosition || 'bottom-left';
             updateActiveButton('btnQrOn', 'btnQrOff', customizeState.qrEnabled);
             updateActiveButton('btnQrShadowOn', 'btnQrShadowOff', customizeState.qrShadowEnabled);
@@ -3073,8 +3107,6 @@
         document.getElementById('customBannerBg').value = customizeState.bannerBg;
         document.getElementById('customBannerText').value = customizeState.bannerText;
 
-        document.getElementById('pulseSpeed').value = customizeState.pulseSpeed;
-        document.getElementById('pulseSpeedValue').textContent = customizeState.pulseSpeed + '秒';
         document.getElementById('pulseScale').value = customizeState.pulseScale;
         document.getElementById('pulseScaleValue').textContent = customizeState.pulseScale;
         document.getElementById('iconSize').value = customizeState.iconSize;
@@ -3114,6 +3146,8 @@
         updateActiveButton('btnGradientOn', 'btnGradientOff', false);
         updateActiveButton('btnGradientAnimOn', 'btnGradientAnimOff', false);
         updateActiveButton('btnFaviconOn', 'btnFaviconOff', true);
+
+        updatePulseSpeedUI();
 
         // アイコン選択をリセット
         document.querySelectorAll('.icon-selector button').forEach(btn => btn.classList.remove('selected'));
@@ -3238,10 +3272,10 @@
         }
 
         // アニメーション
-        document.getElementById('pulseSpeed').value = customizeState.pulseSpeed;
-        document.getElementById('pulseSpeedValue').textContent = customizeState.pulseSpeed + '秒';
         document.getElementById('pulseScale').value = customizeState.pulseScale;
         document.getElementById('pulseScaleValue').textContent = customizeState.pulseScale;
+
+        updatePulseSpeedUI();
 
         // レイアウト
         if (document.getElementById('iconToMainGap')) {
@@ -3993,6 +4027,7 @@
     // ファビコンとプレビューを初期化
     updateFaviconPreview();
     updateFavicon();
+    updatePulseSpeedUI();
 
     // 初期起動時はフルスクリーンモード（デバッグパネル非表示）
     const debugPanel = document.getElementById('debugPanel');
