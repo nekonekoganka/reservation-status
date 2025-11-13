@@ -671,13 +671,13 @@
 <div class="top-control-bar">
     <!-- 1段目：モード切替・ステータス切替・パネル表示 -->
     <div class="top-control-row">
-        <button id="btnDebugModeTop" class="active" onclick="switchMode('debug')">🟢 デバッグ</button>
-        <button id="btnProductionModeTop" onclick="switchMode('production')">🔵 本番</button>
+        <button id="btnDebugModeTop" onclick="switchMode('debug')">🟢 デバッグ</button>
+        <button id="btnProductionModeTop" class="active" onclick="switchMode('production')">🔵 本番</button>
         <div class="separator"></div>
-        <button id="btnAvailableStatus" class="active" onclick="switchTestStatus(true)">✅ 空きあり</button>
+        <button id="btnAvailableStatus" onclick="switchTestStatus(true)">✅ 空きあり</button>
         <button id="btnFullStatus" onclick="switchTestStatus(false)">❌ 満枠</button>
         <div class="separator"></div>
-        <button id="btnTogglePanel" class="active" onclick="toggleDebugPanel()">👁️ パネル表示</button>
+        <button id="btnTogglePanel" onclick="toggleDebugPanel()">👁️ パネル表示</button>
     </div>
 
     <!-- 2段目：設定タブ・データ操作 -->
@@ -1466,6 +1466,7 @@
     // モード管理
     let isDebugMode = false;
     let apiUpdateInterval = null;
+    let lastProductionResult = null;
     let currentPresetSlot = null;
 
     // スプレッドシートのID
@@ -1636,7 +1637,13 @@
         document.getElementById('bannerTextValue').textContent = customizeState.bannerText;
 
         // ディスプレイを更新
-        updateDisplay();
+        if (isDebugMode) {
+            updateDisplay();
+        } else if (lastProductionResult) {
+            displayStatusProduction(lastProductionResult.isAvailable, lastProductionResult.updateTime);
+        } else {
+            showLoadingState();
+        }
 
     }
 
@@ -3765,6 +3772,7 @@
      */
     function displayStatusProduction(isAvailable, updateTime) {
         const container = document.getElementById('displayContainer');
+        lastProductionResult = { isAvailable, updateTime };
 
         // バナーを更新
         updateBanners(updateTime);
@@ -3881,6 +3889,27 @@
     }
 
     /**
+     * 読み込み中の表示を行う
+     */
+    function showLoadingState() {
+        const container = document.getElementById('displayContainer');
+        if (!container) return;
+
+        container.className = 'display-container loading';
+        container.style.background = '';
+        container.style.backgroundSize = '';
+        container.style.animation = '';
+        container.innerHTML = `
+            <div class="clinic-name">${customizeState.clinicName}</div>
+            <div class="icon">⏳</div>
+            <div class="main-message">読み込み中...</div>
+            <div class="sub-message">データ取得中です</div>
+            <div class="qr-message">${customizeState.qrMsg}</div>
+            <div class="update-time">更新：--/-- --:--</div>
+        `;
+    }
+
+    /**
      * エラー表示する関数
      */
     function displayError() {
@@ -3901,6 +3930,9 @@
         if (apiUpdateInterval) {
             clearInterval(apiUpdateInterval);
         }
+
+        lastProductionResult = null;
+        showLoadingState();
 
         // 即座に1回実行
         updateReservationStatus();
@@ -3962,19 +3994,27 @@
         console.error('デフォルト設定の読み込みに失敗:', e);
     }
 
-    // デバッグモードで開始
-    isDebugMode = true;
+    // 本番モードで開始
+    isDebugMode = false;
 
     // トップバーのボタンを初期化
-    document.getElementById('btnDebugModeTop').classList.add('active');
-    document.getElementById('btnAvailableStatus').classList.add('active');
+    const debugBtnTop = document.getElementById('btnDebugModeTop');
+    const productionBtnTop = document.getElementById('btnProductionModeTop');
+    const availableBtnTop = document.getElementById('btnAvailableStatus');
+    const fullBtnTop = document.getElementById('btnFullStatus');
+    if (debugBtnTop) debugBtnTop.classList.remove('active');
+    if (productionBtnTop) productionBtnTop.classList.add('active');
+    if (availableBtnTop) availableBtnTop.classList.remove('active');
+    if (fullBtnTop) fullBtnTop.classList.remove('active');
 
     // カスタマイズUIの状態を反映
     applyCustomizationsFromState();
 
-    // 初期状態を設定
+    // テストモード用の初期状態を保持
     testState.isAvailable = true;
-    updateDisplay();
+
+    // 本番モードを起動
+    switchMode('production');
 
     // ファビコンとプレビューを初期化
     updateFaviconPreview();
