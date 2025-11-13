@@ -165,16 +165,16 @@
 
         /* 昼休みバナー */
         .lunch-break-banner {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             background: #FFC107;
             color: #212529;
-            font-size: clamp(24px, 2.5vw, 48px);
+            font-size: clamp(16px, 2.5vw, 32px);
             font-weight: bold;
             text-align: center;
-            padding: 20px;
+            padding: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             z-index: 1000;
             display: none;
@@ -186,15 +186,15 @@
 
         /* QRコード（左下固定） */
         .qr-code-corner {
-            position: fixed;
-            bottom: 60px;
-            left: 40px;
-            width: clamp(120px, 9vw, 180px);
-            height: clamp(120px, 9vw, 180px);
+            position: absolute;
+            bottom: 30px;
+            left: 20px;
+            width: clamp(60px, 9vw, 120px);
+            height: clamp(60px, 9vw, 120px);
             background: white;
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             z-index: 100;
         }
 
@@ -204,52 +204,117 @@
             display: block;
         }
 
-        /* デバッグパネル */
-        .debug-panel {
-            position: fixed;
-            bottom: 0;
-            left: 0;
+        /* レイアウトコンテナ */
+        .layout-container {
+            display: flex;
+            height: calc(100vh - 60px);
+            width: 100vw;
+            margin-top: 60px;
+        }
+
+        /* 左側エリア（50%） */
+        .left-panel {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        /* メイン表示エリア（縦横比維持） */
+        .preview-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .preview-container {
             width: 100%;
+            max-width: 100%;
+            aspect-ratio: 16 / 9;
+            position: relative;
+            background: #000;
+        }
+
+        .preview-container .display-area {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .preview-container .display-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        /* 設定・ステータス表示エリア */
+        .info-panel {
+            background: #1a1a1a;
+            color: white;
+            padding: 15px;
+            overflow-y: auto;
+            max-height: 300px;
+            border-top: 2px solid #3498DB;
+        }
+
+        /* デバッグパネル（右側50%） */
+        .debug-panel {
+            width: 50%;
             background: #2C3E50;
             color: white;
             padding: 20px;
-            z-index: 9999;
-            box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
             font-size: 16px;
-            display: none;
-        }
-
-        .debug-panel.show {
             display: block;
         }
 
-        /* デバッグトグルボタン（右下固定） */
-        .debug-toggle-btn {
+        /* トップコントロールバー */
+        .top-control-bar {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            background: #3498DB;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #34495E;
+            padding: 15px 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10001;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .top-control-bar button {
+            padding: 10px 20px;
+            background: #546E7A;
             color: white;
             border: none;
-            border-radius: 50%;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 28px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.3s;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
         }
 
-        .debug-toggle-btn:hover {
-            background: #2980B9;
+        .top-control-bar button:hover {
+            background: #607D8B;
         }
 
-        .debug-toggle-btn.active {
-            background: #E74C3C;
+        .top-control-bar button.active {
+            background: #2196F3;
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+        }
+
+        .top-control-bar .separator {
+            width: 2px;
+            background: #546E7A;
+            margin: 0 10px;
+        }
+
+        /* デバッグトグルボタン（非表示） */
+        .debug-toggle-btn {
+            display: none;
         }
 
         .debug-panel h3 {
@@ -558,32 +623,66 @@
 </head>
 <body>
 
-<div class="display-area">
-    <!-- 営業時間前バナー -->
-    <div id="openingSoonBanner" class="lunch-break-banner">
-        🕐 10時に窓口が開きます　お待ち下さい
-    </div>
-
-    <!-- 昼休みバナー -->
-    <div id="lunchBreakBanner" class="lunch-break-banner">
-        🕐 昼休み中　午後３時より診療再開
-    </div>
-
-    <!-- QRコード（左下固定） -->
-    <div class="qr-code-corner">
-        <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード">
-    </div>
-
-    <div id="displayContainer" class="display-container loading">
-        <div class="clinic-name">ふじみ野ひかり眼科</div>
-        <div class="icon">⏳</div>
-        <div class="main-message">読み込み中...</div>
-        <div class="sub-message">デバッグモード起動中</div>
-    </div>
+<!-- トップコントロールバー -->
+<div class="top-control-bar">
+    <button id="btnDebugModeTop" class="active" onclick="switchMode('debug')">🟢 デバッグ</button>
+    <button id="btnProductionModeTop" onclick="switchMode('production')">🔵 本番</button>
+    <div class="separator"></div>
+    <button id="btnAvailableStatus" class="active" onclick="switchTestStatus(true)">✅ 空きあり</button>
+    <button id="btnFullStatus" onclick="switchTestStatus(false)">❌ 満枠</button>
 </div>
 
-<!-- デバッグトグルボタン（右下固定） -->
-<button id="debugToggleBtn" class="debug-toggle-btn" onclick="toggleDebugPanel()">🛠️</button>
+<!-- レイアウトコンテナ -->
+<div class="layout-container">
+    <!-- 左側パネル -->
+    <div class="left-panel">
+        <!-- メイン表示エリア -->
+        <div class="preview-wrapper">
+            <div class="preview-container">
+                <div class="display-area">
+                    <!-- 営業時間前バナー -->
+                    <div id="openingSoonBanner" class="lunch-break-banner">
+                        🕐 10時に窓口が開きます　お待ち下さい
+                    </div>
+
+                    <!-- 昼休みバナー -->
+                    <div id="lunchBreakBanner" class="lunch-break-banner">
+                        🕐 昼休み中　午後３時より診療再開
+                    </div>
+
+                    <!-- QRコード（左下固定） -->
+                    <div class="qr-code-corner">
+                        <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード">
+                    </div>
+
+                    <div id="displayContainer" class="display-container loading">
+                        <div class="clinic-name">ふじみ野ひかり眼科</div>
+                        <div class="icon">⏳</div>
+                        <div class="main-message">読み込み中...</div>
+                        <div class="sub-message">デバッグモード起動中</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 設定・ステータス表示エリア -->
+        <div class="info-panel">
+            <div style="margin-bottom: 15px;">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #FFC107;">📊 現在のテスト条件</div>
+                <div style="margin-left: 10px;">
+                    <div>予約状況: <span id="statusDisplay" style="color: #2ECC71; font-weight: bold;">空きあり</span></div>
+                    <div>日時: <span id="dateTimeDisplay">2025/11/11 (火) 14:00</span></div>
+                    <div>営業時間前バナー: <span id="openingDisplay">非表示</span> <span id="openingIndicator" class="status-indicator off"></span></div>
+                    <div>昼休みバナー: <span id="lunchDisplay">表示中</span> <span id="lunchIndicator" class="status-indicator on"></span></div>
+                    <div>日付テキスト: <span id="dayTextDisplay">本日</span></div>
+                </div>
+            </div>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #34495E;">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #FFC107;">📌 現在の設定</div>
+                <div id="currentPresetInfo" style="opacity: 0.8; font-size: 14px; margin-left: 10px;">デフォルト設定</div>
+            </div>
+        </div>
+    </div>
 
 <!-- デバッグパネル -->
 <div id="debugPanel" class="debug-panel">
@@ -591,23 +690,8 @@
         <span>🛠️ デバッグコントロール</span>
         <button class="debug-export-btn" onclick="exportCurrentSettings()">📤 書出</button>
         <button class="debug-import-btn" onclick="triggerImport()">📥 取込</button>
-        <button class="debug-close-btn" onclick="toggleDebugPanel()">× 閉じる</button>
     </h3>
     <input type="file" id="importFileInput" accept=".json" onchange="importSettings(event)">
-
-    <!-- モードトグルスイッチ -->
-    <div class="mode-toggle-container">
-        <span class="mode-toggle-label">モード:</span>
-        <div class="mode-toggle-switch">
-            <button id="btnDebugMode" class="mode-toggle-btn debug active" onclick="switchMode('debug')">
-                🟢 デバッグモード
-            </button>
-            <button id="btnProductionMode" class="mode-toggle-btn production" onclick="switchMode('production')">
-                🔵 本番モード
-            </button>
-        </div>
-        <span id="modeStatus" class="mode-status debug">🟢 デバッグ中</span>
-    </div>
 
     <!-- タブナビゲーション -->
     <div class="debug-tabs">
@@ -623,12 +707,6 @@
 
     <!-- 時間タブ -->
     <div id="tab-time" class="debug-tab-content active">
-        <div class="debug-section">
-            <label>予約状況:</label>
-            <button id="btnAvailable" onclick="setAvailability(true)">✅ 空きあり</button>
-            <button id="btnUnavailable" onclick="setAvailability(false)">❌ 満枠</button>
-        </div>
-
         <div class="debug-section">
             <label>時間帯:</label>
             <button onclick="setTestTime(9, 0)">営業時間前 (9:00)</button>
@@ -654,15 +732,6 @@
             <input type="time" id="timeInput" value="14:00">
             <button onclick="applyCustomTime()">適用</button>
             <button onclick="resetToCurrentTime()">現在時刻にリセット</button>
-        </div>
-
-        <div class="debug-info">
-            <div><strong>📊 現在のテスト条件:</strong></div>
-            <div>予約状況: <span id="statusDisplay">空きあり</span></div>
-            <div>日時: <span id="dateTimeDisplay">2025/11/11 (火) 14:00</span></div>
-            <div>営業時間前バナー: <span id="openingDisplay">非表示</span> <span id="openingIndicator" class="status-indicator off"></span></div>
-            <div>昼休みバナー: <span id="lunchDisplay">表示中</span> <span id="lunchIndicator" class="status-indicator on"></span></div>
-            <div>日付テキスト: <span id="dayTextDisplay">本日</span></div>
         </div>
     </div>
 
@@ -980,31 +1049,6 @@
         <hr style="margin: 20px 0; border: 1px solid #555;">
 
         <div class="debug-section">
-            <h4 style="color: #FFC107; margin-bottom: 15px;">🎯 バウンス（弾む）</h4>
-            <div style="margin-bottom: 10px;">
-                <label>対象:</label>
-                <button id="btnBounceIcon" onclick="setBounceTarget('icon')">アイコンのみ</button>
-                <button id="btnBounceText" onclick="setBounceTarget('text')">文字のみ</button>
-                <button id="btnBounceOff" onclick="setBounceTarget('off')">OFF</button>
-            </div>
-        </div>
-
-        <hr style="margin: 20px 0; border: 1px solid #555;">
-
-        <div class="debug-section">
-            <h4 style="color: #FFC107; margin-bottom: 15px;">🌊 スウィング（揺れる）</h4>
-            <div style="margin-bottom: 10px;">
-                <label>対象:</label>
-                <button id="btnSwingIcon" onclick="setSwingTarget('icon')">アイコンのみ</button>
-                <button id="btnSwingText" onclick="setSwingTarget('text')">文字のみ</button>
-                <button id="btnSwingContainer" onclick="setSwingTarget('container')">全体</button>
-                <button id="btnSwingOff" onclick="setSwingTarget('off')">OFF</button>
-            </div>
-        </div>
-
-        <hr style="margin: 20px 0; border: 1px solid #555;">
-
-        <div class="debug-section">
             <h4 style="color: #FFC107; margin-bottom: 15px;">🌍 画面全体の動き</h4>
             <button id="btnScreenNone" onclick="setScreenEffect('none')">なし</button>
             <button id="btnScreenShakeV" onclick="setScreenEffect('shakeV')">上下揺れ</button>
@@ -1133,12 +1177,8 @@
                 </div>
             </div>
         </div>
-
-        <div style="margin-top: 20px; padding: 15px; background: #34495E; border-radius: 5px;">
-            <div style="font-weight: bold; margin-bottom: 10px;">📌 現在の設定:</div>
-            <div id="currentPresetInfo" style="opacity: 0.8; font-size: 14px;">デフォルト設定</div>
-        </div>
     </div>
+</div>
 </div>
 
 <script>
@@ -1198,8 +1238,6 @@
         sparkleEnabled: false,
         neonEnabled: false,
         neonSpeed: 'normal',
-        bounceTarget: 'off',
-        swingTarget: 'off',
         screenEffect: 'none',
         // 背景
         gradientEnabled: false,
@@ -1711,26 +1749,6 @@
     }
 
     /**
-     * バウンス設定
-     */
-    function setBounceTarget(target) {
-        customizeState.bounceTarget = target;
-        updateActiveButton3('btnBounceIcon', 'btnBounceText', 'btnBounceOff',
-            target === 'icon', target === 'text', target === 'off');
-        updateAnimation2Style();
-    }
-
-    /**
-     * スウィング設定
-     */
-    function setSwingTarget(target) {
-        customizeState.swingTarget = target;
-        updateActiveButton4('btnSwingIcon', 'btnSwingText', 'btnSwingContainer', 'btnSwingOff',
-            target === 'icon', target === 'text', target === 'container', target === 'off');
-        updateAnimation2Style();
-    }
-
-    /**
      * 画面全体の動き
      */
     function setScreenEffect(effect) {
@@ -1839,38 +1857,6 @@
                 @keyframes neonBlink {
                     0%, 100% { opacity: 1; text-shadow: 0 0 20px currentColor, 0 0 40px currentColor; }
                     50% { opacity: 0.7; text-shadow: 0 0 10px currentColor; }
-                }
-            `;
-        }
-
-        // バウンス
-        if (customizeState.bounceTarget !== 'off') {
-            const selector = customizeState.bounceTarget === 'icon' ? '.icon' : '.main-message';
-            css += `
-                ${selector} {
-                    animation: bounce 2s ease-in-out infinite !important;
-                }
-                @keyframes bounce {
-                    0%, 100% { transform: translateY(0); }
-                    25% { transform: translateY(-30px); }
-                    50% { transform: translateY(0); }
-                }
-            `;
-        }
-
-        // スウィング
-        if (customizeState.swingTarget !== 'off') {
-            const selector = customizeState.swingTarget === 'icon' ? '.icon' :
-                           customizeState.swingTarget === 'text' ? '.main-message' :
-                           '.display-container';
-            css += `
-                ${selector} {
-                    animation: swing 3s ease-in-out infinite !important;
-                }
-                @keyframes swing {
-                    0%, 100% { transform: rotate(0deg); }
-                    25% { transform: rotate(5deg); }
-                    75% { transform: rotate(-5deg); }
                 }
             `;
         }
@@ -2345,8 +2331,6 @@
         customizeState.sparkleEnabled = false;
         customizeState.neonEnabled = false;
         customizeState.neonSpeed = 'normal';
-        customizeState.bounceTarget = 'off';
-        customizeState.swingTarget = 'off';
         customizeState.screenEffect = 'none';
         // 背景
         customizeState.gradientEnabled = false;
@@ -2457,16 +2441,13 @@
      * モードを切り替える
      */
     function switchMode(mode) {
-        const debugBtn = document.getElementById('btnDebugMode');
-        const productionBtn = document.getElementById('btnProductionMode');
-        const modeStatus = document.getElementById('modeStatus');
+        const debugBtnTop = document.getElementById('btnDebugModeTop');
+        const productionBtnTop = document.getElementById('btnProductionModeTop');
 
         if (mode === 'debug') {
             // デバッグモードに切り替え
-            debugBtn.classList.add('active');
-            productionBtn.classList.remove('active');
-            modeStatus.className = 'mode-status debug';
-            modeStatus.textContent = '🟢 デバッグ中';
+            debugBtnTop.classList.add('active');
+            productionBtnTop.classList.remove('active');
 
             stopProductionMode();
 
@@ -2474,13 +2455,30 @@
             updateDisplay();
         } else if (mode === 'production') {
             // 本番モードに切り替え
-            debugBtn.classList.remove('active');
-            productionBtn.classList.add('active');
-            modeStatus.className = 'mode-status production';
-            modeStatus.textContent = '🔵 本番稼働中';
+            debugBtnTop.classList.remove('active');
+            productionBtnTop.classList.add('active');
 
             startProductionMode();
         }
+    }
+
+    /**
+     * テスト状態（空き/満）を切り替え（トップバー用）
+     */
+    function switchTestStatus(available) {
+        testState.isAvailable = available;
+        const availableBtn = document.getElementById('btnAvailableStatus');
+        const fullBtn = document.getElementById('btnFullStatus');
+
+        if (available) {
+            availableBtn.classList.add('active');
+            fullBtn.classList.remove('active');
+        } else {
+            availableBtn.classList.remove('active');
+            fullBtn.classList.add('active');
+        }
+
+        updateDisplay();
     }
 
     /**
@@ -3053,9 +3051,15 @@
     loadPresetNames();
     updateCurrentPresetInfo();
 
-    // デバッグモードで開始（デバッグパネルは閉じた状態）
+    // デバッグモードで開始
     isDebugMode = true;
-    setAvailability(true);
+
+    // トップバーのボタンを初期化
+    document.getElementById('btnDebugModeTop').classList.add('active');
+    document.getElementById('btnAvailableStatus').classList.add('active');
+
+    // 初期状態を設定
+    testState.isAvailable = true;
     updateDisplay();
 
     // ファビコンとプレビューを初期化
