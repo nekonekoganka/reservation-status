@@ -721,6 +721,7 @@
         <button class="debug-tab" onclick="switchTab('size')">📏 サイズ</button>
         <button class="debug-tab" onclick="switchTab('layout')">📐 レイアウト</button>
         <button class="debug-tab" onclick="switchTab('banner')">🏷️ バナー</button>
+        <button class="debug-tab" onclick="switchTab('qrcode')">📱 QRコード</button>
         <button class="debug-tab" onclick="switchTab('animation')">⚡ アニメ1</button>
         <button class="debug-tab" onclick="switchTab('animation2')">✨ アニメ2</button>
         <button class="debug-tab" onclick="switchTab('background')">🌈 背景</button>
@@ -1181,6 +1182,68 @@
         </div>
     </div>
 
+    <!-- QRコードタブ -->
+    <div id="tab-qrcode" class="debug-tab-content">
+        <div class="debug-section">
+            <h4 style="color: #FFC107; margin-bottom: 15px;">📱 QRコード表示設定</h4>
+
+            <label>QRコード表示:</label>
+            <button id="btnQrOn" onclick="toggleQr(true)" class="active">ON</button>
+            <button id="btnQrOff" onclick="toggleQr(false)">OFF</button>
+        </div>
+
+        <div id="qrSettings" style="margin-top: 20px;">
+            <div class="debug-section">
+                <h4 style="color: #FFC107; margin-bottom: 15px;">🖼️ 画像設定</h4>
+                <label>画像URL:</label>
+                <input type="text" id="qrImageUrl" value="Downloads/QR_fujiminohikari.png"
+                       style="width: 100%; padding: 8px; font-size: 14px; margin-top: 5px;"
+                       oninput="applyQRSettings()">
+                <p style="opacity: 0.6; font-size: 12px; margin-top: 5px;">相対パスまたは絶対URLを指定してください</p>
+            </div>
+
+            <div class="debug-section" style="margin-top: 20px;">
+                <h4 style="color: #FFC107; margin-bottom: 15px;">📐 サイズと位置</h4>
+
+                <div class="slider-group">
+                    <label>サイズ: <span id="qrSizeValue">150px</span></label>
+                    <input type="range" id="qrSize" min="50" max="200" step="5" value="150"
+                           oninput="updateQrSize(this.value)">
+                </div>
+
+                <label style="display: block; margin-top: 15px;">表示位置:</label>
+                <select id="qrPosition" onchange="applyQRSettings()"
+                        style="width: 100%; padding: 8px; font-size: 14px; margin-top: 5px;">
+                    <option value="bottom-left">左下</option>
+                    <option value="bottom-right">右下</option>
+                    <option value="top-left">左上</option>
+                    <option value="top-right">右上</option>
+                    <option value="hidden">非表示</option>
+                </select>
+            </div>
+
+            <div class="debug-section" style="margin-top: 20px;">
+                <h4 style="color: #FFC107; margin-bottom: 15px;">🎨 スタイル設定</h4>
+
+                <div class="slider-group">
+                    <label>不透明度: <span id="qrOpacityValue">100%</span></label>
+                    <input type="range" id="qrOpacity" min="0" max="100" step="5" value="100"
+                           oninput="updateQrOpacity(this.value)">
+                </div>
+
+                <div class="slider-group">
+                    <label>角丸: <span id="qrBorderRadiusValue">10px</span></label>
+                    <input type="range" id="qrBorderRadius" min="0" max="20" step="1" value="10"
+                           oninput="updateQrBorderRadius(this.value)">
+                </div>
+
+                <label style="display: block; margin-top: 15px;">影効果:</label>
+                <button id="btnQrShadowOn" onclick="toggleQrShadow(true)" class="active">ON</button>
+                <button id="btnQrShadowOff" onclick="toggleQrShadow(false)">OFF</button>
+            </div>
+        </div>
+    </div>
+
     <!-- アニメ1タブ -->
     <div id="tab-animation" class="debug-tab-content">
         <div class="debug-section">
@@ -1520,6 +1583,14 @@
         textStrokeEnabled: false,
         textStrokeColor: '#FFFFFF',
         textStrokeWidth: 2,
+        // QRコード設定
+        qrEnabled: true,
+        qrSize: 150,
+        qrPosition: 'bottom-left',
+        qrOpacity: 1.0,
+        qrBorderRadius: 10,
+        qrShadowEnabled: true,
+        qrImageUrl: 'Downloads/QR_fujiminohikari.png',
         // アニメ1
         pulseEnabled: true,
         pulseSpeed: 2.0,
@@ -2143,6 +2214,94 @@
         `;
 
         document.head.appendChild(style);
+    }
+
+    /**
+     * QRコード設定更新関数
+     */
+    function toggleQr(enabled) {
+        customizeState.qrEnabled = enabled;
+        updateActiveButton('btnQrOn', 'btnQrOff', enabled);
+        document.getElementById('qrSettings').style.display = enabled ? 'block' : 'none';
+        applyQRSettings();
+    }
+
+    function updateQrSize(value) {
+        customizeState.qrSize = parseInt(value);
+        document.getElementById('qrSizeValue').textContent = value + 'px';
+        applyQRSettings();
+    }
+
+    function updateQrOpacity(value) {
+        customizeState.qrOpacity = parseFloat(value) / 100;
+        document.getElementById('qrOpacityValue').textContent = value + '%';
+        applyQRSettings();
+    }
+
+    function updateQrBorderRadius(value) {
+        customizeState.qrBorderRadius = parseInt(value);
+        document.getElementById('qrBorderRadiusValue').textContent = value + 'px';
+        applyQRSettings();
+    }
+
+    function toggleQrShadow(enabled) {
+        customizeState.qrShadowEnabled = enabled;
+        updateActiveButton('btnQrShadowOn', 'btnQrShadowOff', enabled);
+        applyQRSettings();
+    }
+
+    function applyQRSettings() {
+        const qrCodeCorner = document.querySelector('.qr-code-corner');
+        const qrImg = qrCodeCorner.querySelector('img');
+
+        // URLを更新
+        customizeState.qrImageUrl = document.getElementById('qrImageUrl').value;
+        qrImg.src = customizeState.qrImageUrl;
+
+        // 位置を更新
+        customizeState.qrPosition = document.getElementById('qrPosition').value;
+
+        // スタイルをリセット
+        qrCodeCorner.style.top = 'auto';
+        qrCodeCorner.style.bottom = 'auto';
+        qrCodeCorner.style.left = 'auto';
+        qrCodeCorner.style.right = 'auto';
+
+        if (customizeState.qrEnabled && customizeState.qrPosition !== 'hidden') {
+            qrCodeCorner.style.display = 'block';
+
+            // 位置に応じて配置
+            const offset = '20px';
+            switch (customizeState.qrPosition) {
+                case 'bottom-left':
+                    qrCodeCorner.style.bottom = offset;
+                    qrCodeCorner.style.left = offset;
+                    break;
+                case 'bottom-right':
+                    qrCodeCorner.style.bottom = offset;
+                    qrCodeCorner.style.right = offset;
+                    break;
+                case 'top-left':
+                    qrCodeCorner.style.top = offset;
+                    qrCodeCorner.style.left = offset;
+                    break;
+                case 'top-right':
+                    qrCodeCorner.style.top = offset;
+                    qrCodeCorner.style.right = offset;
+                    break;
+            }
+
+            // サイズと見た目を更新
+            qrImg.style.width = customizeState.qrSize + 'px';
+            qrImg.style.height = customizeState.qrSize + 'px';
+            qrImg.style.opacity = customizeState.qrOpacity;
+            qrImg.style.borderRadius = customizeState.qrBorderRadius + 'px';
+            qrImg.style.boxShadow = customizeState.qrShadowEnabled
+                ? '0 4px 8px rgba(0, 0, 0, 0.3)'
+                : 'none';
+        } else {
+            qrCodeCorner.style.display = 'none';
+        }
     }
 
     /**
@@ -2788,12 +2947,34 @@
         updateActiveButton('btnGradientOn', 'btnGradientOff', customizeState.gradientEnabled);
         updateActiveButton('btnGradientAnimOn', 'btnGradientAnimOff', customizeState.gradientAnimEnabled);
 
+        // QRコード設定
+        if (customizeState.qrEnabled !== undefined) {
+            document.getElementById('qrImageUrl').value = customizeState.qrImageUrl || 'Downloads/QR_fujiminohikari.png';
+            document.getElementById('qrSize').value = customizeState.qrSize || 150;
+            document.getElementById('qrSizeValue').textContent = (customizeState.qrSize || 150) + 'px';
+            document.getElementById('qrOpacity').value = (customizeState.qrOpacity || 1.0) * 100;
+            document.getElementById('qrOpacityValue').textContent = ((customizeState.qrOpacity || 1.0) * 100) + '%';
+            document.getElementById('qrBorderRadius').value = customizeState.qrBorderRadius || 10;
+            document.getElementById('qrBorderRadiusValue').textContent = (customizeState.qrBorderRadius || 10) + 'px';
+            document.getElementById('qrPosition').value = customizeState.qrPosition || 'bottom-left';
+            updateActiveButton('btnQrOn', 'btnQrOff', customizeState.qrEnabled);
+            updateActiveButton('btnQrShadowOn', 'btnQrShadowOff', customizeState.qrShadowEnabled);
+
+            const qrSettings = document.getElementById('qrSettings');
+            if (qrSettings) {
+                qrSettings.style.display = customizeState.qrEnabled ? 'block' : 'none';
+            }
+        }
+
         // ディスプレイを更新
         applyCustomizations();
         updateAnimationStyle();
         updateAnimation2Style();
         updateEffectsStyle();
         applyFontSizes();
+        applyBannerSettings();
+        applyLayoutSettings();
+        applyQRSettings();
     }
 
     /**
@@ -3728,6 +3909,12 @@
 
         if (!previewContainer || !displayArea) return;
 
+        // フルスクリーンモード時はスケールを1.0に設定
+        if (document.body.classList.contains('fullscreen-mode')) {
+            displayArea.style.transform = 'translate(-50%, -50%) scale(1)';
+            return;
+        }
+
         const containerRect = previewContainer.getBoundingClientRect();
         const containerWidth = containerRect.width;
         const containerHeight = containerRect.height;
@@ -3773,12 +3960,6 @@
     updateFaviconPreview();
     updateFavicon();
 
-    // プレビューのスケールを初期化
-    updatePreviewScale();
-
-    // ウィンドウリサイズ時にスケールを再計算
-    window.addEventListener('resize', updatePreviewScale);
-
     // 初期起動時はフルスクリーンモード（デバッグパネル非表示）
     const debugPanel = document.getElementById('debugPanel');
     const layoutContainer = document.querySelector('.layout-container');
@@ -3790,6 +3971,12 @@
         toggleBtn.classList.remove('active');
         toggleBtn.textContent = '👁️ パネル非表示';
     }
+
+    // プレビューのスケールを初期化（フルスクリーンモード設定後）
+    updatePreviewScale();
+
+    // ウィンドウリサイズ時にスケールを再計算
+    window.addEventListener('resize', updatePreviewScale);
 
     // デバッグパネルの表示/非表示でもスケールを再計算
     const originalToggleDebugPanel = toggleDebugPanel;
