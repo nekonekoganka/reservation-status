@@ -210,6 +210,11 @@
             overflow: hidden;
         }
 
+        body.panel-hidden .layout-container {
+            height: 100vh;
+            margin-top: 0;
+        }
+
         /* メイン表示エリア（縦横比維持） */
         .preview-wrapper {
             height: 100%;
@@ -281,6 +286,10 @@
             z-index: 10001;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
+        }
+
+        body.panel-hidden .top-control-bar {
+            display: none;
         }
 
         .top-control-row {
