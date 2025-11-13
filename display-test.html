@@ -1286,30 +1286,30 @@
     // カスタマイズの状態管理
     const customizeState = {
         clinicName: 'ふじみ野ひかり眼科',
-        availableMsg: '{day}分の予約枠 空きあり',
-        fullMsg: '{day}の予約は 満枠です',
+        availableMsg: '{day}分の予約枠 「空き」あり',
+        fullMsg: '{day}の予約は 「満枠」です',
         subMsg: '誠に恐れ入りますが、翌診療日以降で ご予約ください',
         qrMsg: '受付窓口 もしくは QRコードから ご予約ください',
-        availableIcon: '😊',
+        availableIcon: '⭕',
         fullIcon: '😔',
         availableBg: '#27AE60',
         fullBg: '#DC3545',
         bannerBg: '#FFC107',
         bannerText: '#212529',
         // サイズ
-        iconSize: 10,
+        iconSize: 9.5,
         mainMsgSize: 6.0,
         subMsgSize: 3.0,
-        qrMsgSize: 3.5,
-        updateTimeSize: 2.0,
+        qrMsgSize: 4.6,
+        updateTimeSize: 3.0,
         // アニメ1
         pulseEnabled: true,
         pulseSpeed: 2.0,
         pulseScale: 1.15,
-        glowEnabled: false,
-        glowIntensity: 'medium',
-        glowColor: 'white',
-        glowPulse: false,
+        glowEnabled: true,
+        glowIntensity: 'weak',
+        glowColor: 'yellow',
+        glowPulse: true,
         // アニメ2
         floatTarget: 'off',
         floatSpeed: 'normal',
@@ -1327,9 +1327,9 @@
         gradientAnimEnabled: false,
         // ファビコン
         faviconEnabled: true,
-        faviconAvailableIcon: '●',
+        faviconAvailableIcon: 'OK',
         faviconAvailableColor: '#4CAF50',
-        faviconFullIcon: '✗',
+        faviconFullIcon: '✕',
         faviconFullColor: '#F44336'
     };
 
@@ -3184,6 +3184,18 @@
 
     // ウィンドウリサイズ時にスケールを再計算
     window.addEventListener('resize', updatePreviewScale);
+
+    // 初期起動時はフルスクリーンモード（デバッグパネル非表示）
+    const debugPanel = document.getElementById('debugPanel');
+    const layoutContainer = document.querySelector('.layout-container');
+    const toggleBtn = document.getElementById('btnTogglePanel');
+    debugPanel.classList.add('hidden');
+    layoutContainer.classList.add('panel-hidden');
+    document.body.classList.add('fullscreen-mode');
+    if (toggleBtn) {
+        toggleBtn.classList.remove('active');
+        toggleBtn.textContent = '👁️ パネル非表示';
+    }
 
     // デバッグパネルの表示/非表示でもスケールを再計算
     const originalToggleDebugPanel = toggleDebugPanel;
