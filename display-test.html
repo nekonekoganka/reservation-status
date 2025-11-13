@@ -60,8 +60,8 @@
 
         /* アイコン */
         .icon {
-            font-size: clamp(120px, 10vw, 200px);
-            margin-bottom: 40px;
+            font-size: clamp(144px, 12vw, 200px);
+            margin-bottom: 95px;
             margin-top: 80px;
             line-height: 1;
             animation: pulse 2s ease-in-out infinite;
@@ -110,9 +110,9 @@
         /* メインメッセージ（空きあり/満枠） */
         .main-message {
             font-size: clamp(60px, 6vw, 120px);
-            font-weight: bold;
-            margin-bottom: 80px;
-            line-height: 1.4;
+            font-weight: 900;
+            margin-bottom: 60px;
+            line-height: 1.2;
             text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             animation: fadeIn 1s ease-in;
         }
@@ -131,16 +131,16 @@
 
         /* サブメッセージ */
         .sub-message {
-            font-size: clamp(28px, 3vw, 56px);
-            margin-bottom: 20px;
+            font-size: clamp(41px, 4.1vw, 56px);
+            margin-bottom: 5px;
             line-height: 1.6;
             opacity: 0.95;
         }
 
         /* QRコードメッセージ */
         .qr-message {
-            font-size: clamp(32px, 3.5vw, 64px);
-            font-weight: bold;
+            font-size: clamp(46px, 4.6vw, 64px);
+            font-weight: 400;
             margin-top: 60px;
             margin-bottom: 60px;
             opacity: 0.95;
@@ -148,7 +148,7 @@
 
         /* 更新時刻 */
         .update-time {
-            font-size: clamp(20px, 2vw, 40px);
+            font-size: clamp(30px, 3vw, 40px);
             opacity: 0.85;
             margin-top: 40px;
         }
@@ -171,10 +171,14 @@
             width: 100%;
             background: #FFC107;
             color: #212529;
-            font-size: clamp(16px, 2.5vw, 32px);
+            font-size: clamp(16px, 2.6vw, 32px);
             font-weight: bold;
             text-align: center;
-            padding: 10px;
+            padding: 0 20px;
+            height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             z-index: 1000;
             display: none;
@@ -189,7 +193,7 @@
             position: absolute;
             bottom: 30px;
             left: 20px;
-            z-index: 100;
+            z-index: 1200;
         }
 
         .qr-code-corner img {
@@ -757,12 +761,12 @@
                 <div class="display-area">
                     <!-- 営業時間前バナー -->
                     <div id="openingSoonBanner" class="lunch-break-banner">
-                        🕐 10時に窓口が開きます　お待ち下さい
+                        10時に窓口が開きます　お待ち下さい
                     </div>
 
                     <!-- 昼休みバナー -->
                     <div id="lunchBreakBanner" class="lunch-break-banner">
-                        🕐 昼休み中　午後３時より診療再開
+                        昼休み中　午後３時より窓口が開きます
                     </div>
 
                     <!-- QRコード（左下固定） -->
@@ -842,13 +846,13 @@
 
         <div class="debug-section">
             <label>空きありメッセージ:</label>
-            <input type="text" class="customize-input" id="customAvailableMsg" value="{day}分の予約枠 空きあり" oninput="applyCustomizations()">
+            <input type="text" class="customize-input" id="customAvailableMsg" value="{day}分の予約枠 「空き」あり" oninput="applyCustomizations()">
             <small style="opacity: 0.7;">※ {day} は自動で本日/明日/木曜に置き換わります</small>
         </div>
 
         <div class="debug-section">
             <label>満枠メッセージ:</label>
-            <input type="text" class="customize-input" id="customFullMsg" value="{day}の予約は 満枠です" oninput="applyCustomizations()">
+            <input type="text" class="customize-input" id="customFullMsg" value="{day}の予約は 「満枠」です" oninput="applyCustomizations()">
         </div>
 
         <div class="debug-section">
@@ -873,7 +877,7 @@
                 <button onclick="selectIcon('available', '⭕')">⭕</button>
                 <button onclick="selectIcon('available', '🟢')">🟢</button>
                 <button onclick="selectIcon('available', '👍')">👍</button>
-                <input type="text" class="customize-input" id="customAvailableIcon" value="😊" placeholder="カスタム" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
+                <input type="text" class="customize-input" id="customAvailableIcon" value="⭕" placeholder="カスタム" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
             </div>
         </div>
 
@@ -1002,8 +1006,8 @@
     <!-- サイズタブ -->
     <div id="tab-size" class="debug-tab-content">
         <div class="slider-group">
-            <label>アイコンサイズ: <span id="iconSizeValue">10vw</span></label>
-            <input type="range" id="iconSize" min="6" max="15" step="0.5" value="10" oninput="updateIconSize(this.value)">
+            <label>アイコンサイズ: <span id="iconSizeValue">12vw</span></label>
+            <input type="range" id="iconSize" min="6" max="15" step="0.5" value="12" oninput="updateIconSize(this.value)">
         </div>
 
         <div class="slider-group">
@@ -1012,18 +1016,18 @@
         </div>
 
         <div class="slider-group">
-            <label>サブメッセージサイズ: <span id="subMsgSizeValue">3vw</span></label>
-            <input type="range" id="subMsgSize" min="2.0" max="6.0" step="0.1" value="3.0" oninput="updateSubMsgSize(this.value)">
+            <label>サブメッセージサイズ: <span id="subMsgSizeValue">4.1vw</span></label>
+            <input type="range" id="subMsgSize" min="2.0" max="6.0" step="0.1" value="4.1" oninput="updateSubMsgSize(this.value)">
         </div>
 
         <div class="slider-group">
-            <label>QRメッセージサイズ: <span id="qrMsgSizeValue">3.5vw</span></label>
-            <input type="range" id="qrMsgSize" min="2.0" max="6.0" step="0.1" value="3.5" oninput="updateQrMsgSize(this.value)">
+            <label>QRメッセージサイズ: <span id="qrMsgSizeValue">4.6vw</span></label>
+            <input type="range" id="qrMsgSize" min="2.0" max="6.0" step="0.1" value="4.6" oninput="updateQrMsgSize(this.value)">
         </div>
 
         <div class="slider-group">
-            <label>更新時刻サイズ: <span id="updateTimeSizeValue">2vw</span></label>
-            <input type="range" id="updateTimeSize" min="1.0" max="4.0" step="0.1" value="2.0" oninput="updateTimeSize(this.value)">
+            <label>更新時刻サイズ: <span id="updateTimeSizeValue">3vw</span></label>
+            <input type="range" id="updateTimeSize" min="1.0" max="4.0" step="0.1" value="3.0" oninput="updateTimeSize(this.value)">
         </div>
     </div>
 
@@ -1033,26 +1037,26 @@
             <h4 style="color: #FFC107; margin-bottom: 15px;">📏 要素間の間隔</h4>
 
             <div class="slider-group">
-                <label>アイコン → メインメッセージ: <span id="iconToMainGapValue">40px</span></label>
-                <input type="range" id="iconToMainGap" min="0" max="100" step="5" value="40"
+            <label>アイコン → メインメッセージ: <span id="iconToMainGapValue">95px</span></label>
+            <input type="range" id="iconToMainGap" min="0" max="120" step="5" value="95"
                        oninput="updateIconToMainGap(this.value)">
             </div>
 
             <div class="slider-group">
-                <label>メイン → サブメッセージ: <span id="mainToSubGapValue">20px</span></label>
-                <input type="range" id="mainToSubGap" min="0" max="80" step="5" value="20"
+            <label>メイン → サブメッセージ: <span id="mainToSubGapValue">60px</span></label>
+            <input type="range" id="mainToSubGap" min="0" max="100" step="5" value="60"
                        oninput="updateMainToSubGap(this.value)">
             </div>
 
             <div class="slider-group">
-                <label>サブ → QRメッセージ: <span id="subToQrGapValue">20px</span></label>
-                <input type="range" id="subToQrGap" min="0" max="80" step="5" value="20"
+            <label>サブ → QRメッセージ: <span id="subToQrGapValue">5px</span></label>
+            <input type="range" id="subToQrGap" min="0" max="80" step="5" value="5"
                        oninput="updateSubToQrGap(this.value)">
             </div>
 
             <div class="slider-group">
-                <label>QR → 更新時刻: <span id="qrToUpdateGapValue">20px</span></label>
-                <input type="range" id="qrToUpdateGap" min="0" max="60" step="5" value="20"
+            <label>QR → 更新時刻: <span id="qrToUpdateGapValue">60px</span></label>
+            <input type="range" id="qrToUpdateGap" min="0" max="80" step="5" value="60"
                        oninput="updateQrToUpdateGap(this.value)">
             </div>
         </div>
@@ -1061,7 +1065,7 @@
             <h4 style="color: #FFC107; margin-bottom: 15px;">✍️ フォントスタイル</h4>
 
             <div class="slider-group">
-                <label>メインメッセージの太さ: <span id="mainMsgFontWeightValue">太字</span></label>
+            <label>メインメッセージの太さ: <span id="mainMsgFontWeightValue">極太</span></label>
                 <div style="display: flex; gap: 10px; margin-top: 10px;">
                     <button onclick="setMainMsgFontWeight(400)">標準</button>
                     <button onclick="setMainMsgFontWeight(700)">太字</button>
@@ -1161,7 +1165,7 @@
         <div class="debug-section">
             <h4 style="color: #FFC107; margin-bottom: 15px;">📝 営業時間前バナー</h4>
             <label>テキスト:</label>
-            <input type="text" id="openingSoonText" value="🕐 10時に窓口が開きます　お待ち下さい"
+            <input type="text" id="openingSoonText" value="10時に窓口が開きます　お待ち下さい"
                    style="width: 100%; padding: 8px; font-size: 14px; margin-top: 5px;"
                    oninput="applyCustomizations()">
         </div>
@@ -1169,7 +1173,7 @@
         <div class="debug-section" style="margin-top: 20px;">
             <h4 style="color: #FFC107; margin-bottom: 15px;">📝 昼休みバナー</h4>
             <label>テキスト:</label>
-            <input type="text" id="lunchBreakText" value="🕐 昼休み中　午後３時より診療再開"
+            <input type="text" id="lunchBreakText" value="昼休み中　午後３時より窓口が開きます"
                    style="width: 100%; padding: 8px; font-size: 14px; margin-top: 5px;"
                    oninput="applyCustomizations()">
         </div>
@@ -1178,20 +1182,20 @@
             <h4 style="color: #FFC107; margin-bottom: 15px;">📐 バナー共通設定</h4>
 
             <div class="slider-group">
-                <label>フォントサイズ: <span id="bannerFontSizeValue">3.0vw</span></label>
-                <input type="range" id="bannerFontSize" min="2.0" max="5.0" step="0.1" value="3.0"
+                <label>フォントサイズ: <span id="bannerFontSizeValue">2.6vw</span></label>
+                <input type="range" id="bannerFontSize" min="2.0" max="5.0" step="0.1" value="2.6"
                        oninput="updateBannerFontSize(this.value)">
             </div>
 
             <div class="slider-group">
-                <label>バナー高さ: <span id="bannerHeightValue">80px</span></label>
-                <input type="range" id="bannerHeight" min="50" max="150" step="5" value="80"
+                <label>バナー高さ: <span id="bannerHeightValue">110px</span></label>
+                <input type="range" id="bannerHeight" min="50" max="150" step="5" value="110"
                        oninput="updateBannerHeight(this.value)">
             </div>
 
             <div class="slider-group">
-                <label>上下余白: <span id="bannerPaddingValue">10px</span></label>
-                <input type="range" id="bannerPadding" min="0" max="30" step="5" value="10"
+                <label>上下余白: <span id="bannerPaddingValue">0px</span></label>
+                <input type="range" id="bannerPadding" min="0" max="30" step="5" value="0"
                        oninput="updateBannerPadding(this.value)">
             </div>
         </div>
@@ -1221,8 +1225,8 @@
                 <h4 style="color: #FFC107; margin-bottom: 15px;">📐 サイズと位置</h4>
 
                 <div class="slider-group">
-                    <label>サイズ: <span id="qrSizeValue">150px</span></label>
-                    <input type="range" id="qrSize" min="50" max="200" step="5" value="150"
+                    <label>サイズ: <span id="qrSizeValue">175px</span></label>
+                    <input type="range" id="qrSize" min="50" max="250" step="5" value="175"
                            oninput="updateQrSize(this.value)">
                 </div>
 
@@ -1268,7 +1272,7 @@
         </div>
 
         <div class="slider-group">
-            <label>パルス速度: <span id="pulseSpeedValue">普通 (2.0秒)</span></label>
+            <label>パルス速度: <span id="pulseSpeedValue">遅い (3.0秒)</span></label>
             <div style="display: flex; gap: 10px; margin-top: 10px;">
                 <button id="btnPulseSpeedSlow" onclick="setPulseSpeed('slow')">遅い</button>
                 <button id="btnPulseSpeedNormal" onclick="setPulseSpeed('normal')">普通</button>
@@ -1290,7 +1294,7 @@
         </div>
 
         <div class="slider-group">
-            <label>光の強さ: <span id="glowIntensityValue">中</span></label>
+            <label>光の強さ: <span id="glowIntensityValue">弱</span></label>
             <div style="display: flex; gap: 10px; margin-top: 10px;">
                 <button onclick="setGlowIntensity('weak')">弱</button>
                 <button onclick="setGlowIntensity('medium')">中</button>
@@ -1566,25 +1570,25 @@
         bannerBg: '#FFC107',
         bannerText: '#212529',
         // サイズ
-        iconSize: 9.5,
+        iconSize: 12.0,
         mainMsgSize: 6.0,
-        subMsgSize: 3.0,
+        subMsgSize: 4.1,
         qrMsgSize: 4.6,
         updateTimeSize: 3.0,
         // バナー設定
-        openingSoonText: '🕐 10時に窓口が開きます　お待ち下さい',
-        lunchBreakText: '🕐 昼休み中　午後３時より診療再開',
-        bannerFontSize: 3.0,
-        bannerHeight: 80,
-        bannerPadding: 10,
+        openingSoonText: '10時に窓口が開きます　お待ち下さい',
+        lunchBreakText: '昼休み中　午後３時より窓口が開きます',
+        bannerFontSize: 2.6,
+        bannerHeight: 110,
+        bannerPadding: 0,
         // レイアウト設定
         // 余白・間隔
-        iconToMainGap: 40,
-        mainToSubGap: 20,
-        subToQrGap: 20,
-        qrToUpdateGap: 20,
+        iconToMainGap: 95,
+        mainToSubGap: 60,
+        subToQrGap: 5,
+        qrToUpdateGap: 60,
         // フォントスタイル
-        mainMsgFontWeight: 700,
+        mainMsgFontWeight: 900,
         subMsgFontWeight: 400,
         qrMsgFontWeight: 400,
         updateTimeFontWeight: 400,
@@ -1600,7 +1604,7 @@
         textStrokeWidth: 2,
         // QRコード設定
         qrEnabled: true,
-        qrSize: 150,
+        qrSize: 175,
         qrPosition: 'bottom-left',
         qrOpacity: 1.0,
         qrBorderRadius: 10,
@@ -1608,16 +1612,16 @@
         qrImageUrl: 'Downloads/QR_fujiminohikari.png',
         // アニメ1
         pulseEnabled: true,
-        pulseSpeed: 2.0,
+        pulseSpeed: 3.0,
         pulseScale: 1.15,
         glowEnabled: true,
         glowIntensity: 'weak',
         glowColor: 'yellow',
-        glowPulse: true,
+        glowPulse: false,
         // アニメ2
         floatTarget: 'off',
-        floatSpeed: 'normal',
-        zoomTarget: 'off',
+        floatSpeed: 'slow',
+        zoomTarget: 'icon',
         zoomSpeed: 'normal',
         sparkleEnabled: false,
         neonEnabled: false,
@@ -1897,6 +1901,26 @@
     function updatePulseSpeed(value) {
         customizeState.pulseSpeed = parseFloat(value);
         updatePulseSpeedUI();
+        updateActiveButton('btnPulseOn', 'btnPulseOff', customizeState.pulseEnabled);
+        updateActiveButton('btnGlowOn', 'btnGlowOff', customizeState.glowEnabled);
+        updateActiveButton('btnGlowPulseOn', 'btnGlowPulseOff', customizeState.glowPulse);
+        updateActiveButton('btnGradientOn', 'btnGradientOff', customizeState.gradientEnabled);
+        updateActiveButton('btnGradientAnimOn', 'btnGradientAnimOff', customizeState.gradientAnimEnabled);
+        updateActiveButton4('btnFloatIcon', 'btnFloatText', 'btnFloatBoth', 'btnFloatOff',
+            customizeState.floatTarget === 'icon',
+            customizeState.floatTarget === 'text',
+            customizeState.floatTarget === 'both',
+            customizeState.floatTarget === 'off');
+        updateActiveButton4('btnZoomIcon', 'btnZoomText', 'btnZoomBoth', 'btnZoomOff',
+            customizeState.zoomTarget === 'icon',
+            customizeState.zoomTarget === 'text',
+            customizeState.zoomTarget === 'both',
+            customizeState.zoomTarget === 'off');
+        updateActiveButton4('btnScreenNone', 'btnScreenShakeV', 'btnScreenShakeH', 'btnScreenZoom',
+            customizeState.screenEffect === 'none',
+            customizeState.screenEffect === 'shakeV',
+            customizeState.screenEffect === 'shakeH',
+            customizeState.screenEffect === 'zoom');
         updateAnimationStyle();
     }
 
@@ -2965,8 +2989,8 @@
 
         // ファビコン
         if (customizeState.faviconEnabled !== undefined) {
-            document.getElementById('customFaviconAvailableIcon').value = customizeState.faviconAvailableIcon || '●';
-            document.getElementById('customFaviconFullIcon').value = customizeState.faviconFullIcon || '✗';
+            document.getElementById('customFaviconAvailableIcon').value = customizeState.faviconAvailableIcon || 'OK';
+            document.getElementById('customFaviconFullIcon').value = customizeState.faviconFullIcon || '✕';
             document.getElementById('customFaviconAvailableColor').value = customizeState.faviconAvailableColor || '#4CAF50';
             document.getElementById('customFaviconFullColor').value = customizeState.faviconFullColor || '#F44336';
             document.getElementById('faviconAvailableColorValue').textContent = customizeState.faviconAvailableColor || '#4CAF50';
@@ -3001,6 +3025,21 @@
         updateActiveButton('btnGlowPulseOn', 'btnGlowPulseOff', customizeState.glowPulse);
         updateActiveButton('btnGradientOn', 'btnGradientOff', customizeState.gradientEnabled);
         updateActiveButton('btnGradientAnimOn', 'btnGradientAnimOff', customizeState.gradientAnimEnabled);
+        updateActiveButton4('btnFloatIcon', 'btnFloatText', 'btnFloatBoth', 'btnFloatOff',
+            customizeState.floatTarget === 'icon',
+            customizeState.floatTarget === 'text',
+            customizeState.floatTarget === 'both',
+            customizeState.floatTarget === 'off');
+        updateActiveButton4('btnZoomIcon', 'btnZoomText', 'btnZoomBoth', 'btnZoomOff',
+            customizeState.zoomTarget === 'icon',
+            customizeState.zoomTarget === 'text',
+            customizeState.zoomTarget === 'both',
+            customizeState.zoomTarget === 'off');
+        updateActiveButton4('btnScreenNone', 'btnScreenShakeV', 'btnScreenShakeH', 'btnScreenZoom',
+            customizeState.screenEffect === 'none',
+            customizeState.screenEffect === 'shakeV',
+            customizeState.screenEffect === 'shakeH',
+            customizeState.screenEffect === 'zoom');
 
         // バナーテキスト
         if (document.getElementById('openingSoonText') && customizeState.openingSoonText !== undefined) {
@@ -3017,8 +3056,8 @@
         // QRコード設定
         if (customizeState.qrEnabled !== undefined) {
             document.getElementById('qrImageUrl').value = customizeState.qrImageUrl || 'Downloads/QR_fujiminohikari.png';
-            document.getElementById('qrSize').value = customizeState.qrSize ?? 150;
-            document.getElementById('qrSizeValue').textContent = (customizeState.qrSize ?? 150) + 'px';
+            document.getElementById('qrSize').value = customizeState.qrSize ?? 175;
+            document.getElementById('qrSizeValue').textContent = (customizeState.qrSize ?? 175) + 'px';
             document.getElementById('qrOpacity').value = ((customizeState.qrOpacity ?? 1.0) * 100);
             document.getElementById('qrOpacityValue').textContent = ((customizeState.qrOpacity ?? 1.0) * 100) + '%';
             document.getElementById('qrBorderRadius').value = customizeState.qrBorderRadius ?? 10;
@@ -3050,34 +3089,40 @@
     function resetAllCustomizations() {
         // カスタマイズ状態をデフォルトに戻す
         customizeState.clinicName = 'ふじみ野ひかり眼科';
-        customizeState.availableMsg = '{day}分の予約枠 空きあり';
-        customizeState.fullMsg = '{day}の予約は 満枠です';
+        customizeState.availableMsg = '{day}分の予約枠 「空き」あり';
+        customizeState.fullMsg = '{day}の予約は 「満枠」です';
         customizeState.subMsg = '誠に恐れ入りますが、翌診療日以降で ご予約ください';
         customizeState.qrMsg = '受付窓口 もしくは QRコードから ご予約ください';
-        customizeState.availableIcon = '😊';
+        customizeState.availableIcon = '⭕';
         customizeState.fullIcon = '😔';
         customizeState.availableBg = '#27AE60';
         customizeState.fullBg = '#DC3545';
         customizeState.bannerBg = '#FFC107';
         customizeState.bannerText = '#212529';
         // サイズ
-        customizeState.iconSize = 10;
+        customizeState.iconSize = 12;
         customizeState.mainMsgSize = 6.0;
-        customizeState.subMsgSize = 3.0;
-        customizeState.qrMsgSize = 3.5;
-        customizeState.updateTimeSize = 2.0;
+        customizeState.subMsgSize = 4.1;
+        customizeState.qrMsgSize = 4.6;
+        customizeState.updateTimeSize = 3.0;
+        // バナー設定
+        customizeState.openingSoonText = '10時に窓口が開きます　お待ち下さい';
+        customizeState.lunchBreakText = '昼休み中　午後３時より窓口が開きます';
+        customizeState.bannerFontSize = 2.6;
+        customizeState.bannerHeight = 110;
+        customizeState.bannerPadding = 0;
         // アニメ1
         customizeState.pulseEnabled = true;
-        customizeState.pulseSpeed = 2.0;
+        customizeState.pulseSpeed = 3.0;
         customizeState.pulseScale = 1.15;
-        customizeState.glowEnabled = false;
-        customizeState.glowIntensity = 'medium';
-        customizeState.glowColor = 'white';
+        customizeState.glowEnabled = true;
+        customizeState.glowIntensity = 'weak';
+        customizeState.glowColor = 'yellow';
         customizeState.glowPulse = false;
         // アニメ2
         customizeState.floatTarget = 'off';
-        customizeState.floatSpeed = 'normal';
-        customizeState.zoomTarget = 'off';
+        customizeState.floatSpeed = 'slow';
+        customizeState.zoomTarget = 'icon';
         customizeState.zoomSpeed = 'normal';
         customizeState.sparkleEnabled = false;
         customizeState.neonEnabled = false;
@@ -3091,10 +3136,17 @@
         customizeState.gradientAnimEnabled = false;
         // ファビコン
         customizeState.faviconEnabled = true;
-        customizeState.faviconAvailableIcon = '●';
+        customizeState.faviconAvailableIcon = 'OK';
         customizeState.faviconAvailableColor = '#4CAF50';
-        customizeState.faviconFullIcon = '✗';
+        customizeState.faviconFullIcon = '✕';
         customizeState.faviconFullColor = '#F44336';
+        // QRコード
+        customizeState.qrEnabled = true;
+        customizeState.qrSize = 175;
+        customizeState.qrOpacity = 1.0;
+        customizeState.qrBorderRadius = 10;
+        customizeState.qrShadowEnabled = true;
+        customizeState.qrPosition = 'bottom-left';
 
         // 入力フィールドを更新
         document.getElementById('customClinicName').value = customizeState.clinicName;
@@ -3123,7 +3175,7 @@
         document.getElementById('updateTimeSizeValue').textContent = customizeState.updateTimeSize + 'vw';
 
         // エフェクトタブの値をリセット
-        document.getElementById('glowIntensityValue').textContent = '中';
+        document.getElementById('glowIntensityValue').textContent = '弱';
 
         // 背景タブの値をリセット
         document.getElementById('gradientTypeValue').textContent = '斜め';
@@ -3143,11 +3195,19 @@
 
         // ボタンの状態を更新
         updateActiveButton('btnPulseOn', 'btnPulseOff', true);
-        updateActiveButton('btnGlowOn', 'btnGlowOff', false);
+        updateActiveButton('btnGlowOn', 'btnGlowOff', true);
         updateActiveButton('btnGlowPulseOn', 'btnGlowPulseOff', false);
         updateActiveButton('btnGradientOn', 'btnGradientOff', false);
         updateActiveButton('btnGradientAnimOn', 'btnGradientAnimOff', false);
         updateActiveButton('btnFaviconOn', 'btnFaviconOff', true);
+        updateActiveButton4('btnFloatIcon', 'btnFloatText', 'btnFloatBoth', 'btnFloatOff',
+            false, false, false, true);
+        updateActiveButton4('btnZoomIcon', 'btnZoomText', 'btnZoomBoth', 'btnZoomOff',
+            true, false, false, false);
+        updateActiveButton4('btnScreenNone', 'btnScreenShakeV', 'btnScreenShakeH', 'btnScreenZoom',
+            true, false, false, false);
+
+        updatePulseSpeedUI();
 
         updatePulseSpeedUI();
 
@@ -3982,6 +4042,7 @@
 
         // フルスクリーンモード時はCSSで制御するのでスケール処理をスキップ
         if (document.body.classList.contains('fullscreen-mode')) {
+            displayArea.style.transform = '';
             return;
         }
 
