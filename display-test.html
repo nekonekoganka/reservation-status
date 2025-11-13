@@ -202,11 +202,12 @@
 
         /* レイアウトコンテナ */
         .layout-container {
-            display: flex;
+            position: relative;
             height: calc(100vh - 100px);
             width: 100vw;
             margin-top: 100px;
             transition: all 0.3s ease;
+            overflow: hidden;
         }
 
         /* フルスクリーンモード時はレイアウトコンテナを全画面に */
@@ -215,24 +216,10 @@
             margin-top: 0;
         }
 
-        /* 左側エリア（50%） */
-        .left-panel {
-            width: 50%;
-            display: flex;
-            flex-direction: column;
-            background: #000;
-            transition: width 0.3s ease;
-        }
-
-        /* デバッグパネル非表示時は左パネルを100%に */
-        .debug-panel.hidden ~ .layout-container .left-panel,
-        .layout-container.panel-hidden .left-panel {
-            width: 100%;
-        }
-
         /* メイン表示エリア（縦横比維持） */
         .preview-wrapper {
-            flex: 1;
+            height: 100%;
+            width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -265,22 +252,6 @@
             position: relative;
         }
 
-        /* 設定・ステータス表示エリア */
-        .info-panel {
-            background: #1a1a1a;
-            color: white;
-            padding: 15px;
-            overflow-y: auto;
-            max-height: 300px;
-            border-top: 2px solid #3498DB;
-            transition: all 0.3s ease;
-        }
-
-        /* フルスクリーンモード時はinfo-panelを非表示 */
-        body.fullscreen-mode .info-panel {
-            display: none;
-        }
-
         /* フルスクリーンモード時はpreview-wrapperのパディングを削除 */
         body.fullscreen-mode .preview-wrapper {
             padding: 0;
@@ -302,21 +273,28 @@
             position: static;
         }
 
-        /* デバッグパネル（右側50%） */
+        /* デバッグパネル（右側にオーバーレイ） */
         .debug-panel {
-            width: 50%;
-            background: #2C3E50;
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: min(50%, 640px);
+            height: 100%;
+            background: rgba(44, 62, 80, 0.97);
             color: white;
             padding: 20px;
             overflow-y: auto;
             font-size: 16px;
             display: block;
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            z-index: 10000;
         }
 
         /* デバッグパネル非表示状態 */
         .debug-panel.hidden {
-            display: none;
+            transform: translateX(100%);
+            opacity: 0;
+            pointer-events: none;
         }
 
         /* トップコントロールバー（2段構成） */
@@ -670,20 +648,14 @@
             margin: 5px 0;
         }
 
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-left: 10px;
-        }
-
-        .status-indicator.on {
-            background: #2ECC71;
-        }
-
-        .status-indicator.off {
-            background: #95A5A6;
+        .preset-indicator {
+            margin-bottom: 15px;
+            padding: 10px 12px;
+            background: rgba(52, 152, 219, 0.15);
+            border: 1px solid rgba(52, 152, 219, 0.35);
+            border-radius: 6px;
+            font-size: 14px;
+            color: #AED6F1;
         }
 
         /* フローティングボタン（右下固定） */
@@ -753,118 +725,98 @@
 
 <!-- レイアウトコンテナ -->
 <div class="layout-container">
-    <!-- 左側パネル -->
-    <div class="left-panel">
-        <!-- メイン表示エリア -->
-        <div class="preview-wrapper">
-            <div class="preview-container">
-                <div class="display-area">
-                    <!-- 営業時間前バナー -->
-                    <div id="openingSoonBanner" class="lunch-break-banner">
-                        10時に窓口が開きます　お待ち下さい
-                    </div>
+    <!-- メイン表示エリア -->
+    <div class="preview-wrapper">
+        <div class="preview-container">
+            <div class="display-area">
+                <!-- 営業時間前バナー -->
+                <div id="openingSoonBanner" class="lunch-break-banner">
+                    10時に窓口が開きます　お待ち下さい
+                </div>
 
-                    <!-- 昼休みバナー -->
-                    <div id="lunchBreakBanner" class="lunch-break-banner">
-                        昼休み中　午後３時より窓口が開きます
-                    </div>
+                <!-- 昼休みバナー -->
+                <div id="lunchBreakBanner" class="lunch-break-banner">
+                    昼休み中　午後３時より窓口が開きます
+                </div>
 
-                    <!-- QRコード（左下固定） -->
-                    <div class="qr-code-corner">
-                        <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード">
-                    </div>
+                <!-- QRコード（左下固定） -->
+                <div class="qr-code-corner">
+                    <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード">
+                </div>
 
-                    <div id="displayContainer" class="display-container loading">
-                        <div class="clinic-name">ふじみ野ひかり眼科</div>
-                        <div class="icon">⏳</div>
-                        <div class="main-message">読み込み中...</div>
-                        <div class="sub-message">デバッグモード起動中</div>
-                    </div>
+                <div id="displayContainer" class="display-container loading">
+                    <div class="clinic-name">ふじみ野ひかり眼科</div>
+                    <div class="icon">⏳</div>
+                    <div class="main-message">読み込み中...</div>
+                    <div class="sub-message">デバッグモード起動中</div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- 設定・ステータス表示エリア -->
-        <div class="info-panel">
-            <div style="margin-bottom: 15px;">
-                <div style="font-weight: bold; margin-bottom: 10px; color: #FFC107;">📊 現在のテスト条件</div>
-                <div style="margin-left: 10px;">
-                    <div>予約状況: <span id="statusDisplay" style="color: #2ECC71; font-weight: bold;">空きあり</span></div>
-                    <div>日時: <span id="dateTimeDisplay">2025/11/11 (火) 14:00</span></div>
-                    <div>営業時間前バナー: <span id="openingDisplay">非表示</span> <span id="openingIndicator" class="status-indicator off"></span></div>
-                    <div>昼休みバナー: <span id="lunchDisplay">表示中</span> <span id="lunchIndicator" class="status-indicator on"></span></div>
-                    <div>日付テキスト: <span id="dayTextDisplay">本日</span></div>
-                </div>
+    <!-- デバッグパネル -->
+    <div id="debugPanel" class="debug-panel">
+        <div id="currentPresetInfo" class="preset-indicator">デフォルト設定</div>
+        <input type="file" id="importFileInput" accept=".json" onchange="importSettings(event)">
+
+        <!-- 時間タブ -->
+        <div id="tab-time" class="debug-tab-content active">
+            <div class="debug-section">
+                <label>時間帯:</label>
+                <button onclick="setTestTime(9, 0)">営業時間前 (9:00)</button>
+                <button onclick="setTestTime(10, 0)">営業時間中 (10:00)</button>
+                <button onclick="setTestTime(14, 0)">昼休み (14:00)</button>
+                <button onclick="setTestTime(19, 0)">営業時間外 (19:00)</button>
+                <button onclick="setTestTime(18, 45)">18:30以降 (18:45)</button>
             </div>
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #34495E;">
-                <div style="font-weight: bold; margin-bottom: 10px; color: #FFC107;">📌 現在の設定</div>
-                <div id="currentPresetInfo" style="opacity: 0.8; font-size: 14px; margin-left: 10px;">デフォルト設定</div>
+
+            <div class="debug-section">
+                <label>曜日:</label>
+                <button onclick="setDayOfWeek(0)">日</button>
+                <button onclick="setDayOfWeek(1)">月</button>
+                <button onclick="setDayOfWeek(2)">火</button>
+                <button onclick="setDayOfWeek(3)">水</button>
+                <button onclick="setDayOfWeek(4)">木</button>
+                <button onclick="setDayOfWeek(5)">金</button>
+                <button onclick="setDayOfWeek(6)">土</button>
+            </div>
+
+            <div class="debug-section">
+                <label>時刻設定:</label>
+                <input type="time" id="timeInput" value="14:00">
+                <button onclick="applyCustomTime()">適用</button>
+                <button onclick="resetToCurrentTime()">現在時刻にリセット</button>
             </div>
         </div>
-    </div>
 
-<!-- デバッグパネル -->
-<div id="debugPanel" class="debug-panel">
-    <input type="file" id="importFileInput" accept=".json" onchange="importSettings(event)">
+        <!-- テキストタブ -->
+        <div id="tab-text" class="debug-tab-content">
+            <div class="debug-section">
+                <label>クリニック名:</label>
+                <input type="text" class="customize-input" id="customClinicName" value="ふじみ野ひかり眼科" oninput="applyCustomizations()">
+            </div>
 
-    <!-- 時間タブ -->
-    <div id="tab-time" class="debug-tab-content active">
-        <div class="debug-section">
-            <label>時間帯:</label>
-            <button onclick="setTestTime(9, 0)">営業時間前 (9:00)</button>
-            <button onclick="setTestTime(10, 0)">営業時間中 (10:00)</button>
-            <button onclick="setTestTime(14, 0)">昼休み (14:00)</button>
-            <button onclick="setTestTime(19, 0)">営業時間外 (19:00)</button>
-            <button onclick="setTestTime(18, 45)">18:30以降 (18:45)</button>
+            <div class="debug-section">
+                <label>空きありメッセージ:</label>
+                <input type="text" class="customize-input" id="customAvailableMsg" value="{day}分の予約枠 「空き」あり" oninput="applyCustomizations()">
+                <small style="opacity: 0.7;">※ {day} は自動で本日/明日/木曜に置き換わります</small>
+            </div>
+
+            <div class="debug-section">
+                <label>満枠メッセージ:</label>
+                <input type="text" class="customize-input" id="customFullMsg" value="{day}の予約は 「満枠」です" oninput="applyCustomizations()">
+            </div>
+
+            <div class="debug-section">
+                <label>サブメッセージ:</label>
+                <input type="text" class="customize-input" id="customSubMsg" value="誠に恐れ入りますが、翌診療日以降で ご予約ください" oninput="applyCustomizations()">
+            </div>
+
+            <div class="debug-section">
+                <label>QRメッセージ:</label>
+                <input type="text" class="customize-input" id="customQrMsg" value="受付窓口 もしくは QRコードから ご予約ください" oninput="applyCustomizations()">
+            </div>
         </div>
-
-        <div class="debug-section">
-            <label>曜日:</label>
-            <button onclick="setDayOfWeek(0)">日</button>
-            <button onclick="setDayOfWeek(1)">月</button>
-            <button onclick="setDayOfWeek(2)">火</button>
-            <button onclick="setDayOfWeek(3)">水</button>
-            <button onclick="setDayOfWeek(4)">木</button>
-            <button onclick="setDayOfWeek(5)">金</button>
-            <button onclick="setDayOfWeek(6)">土</button>
-        </div>
-
-        <div class="debug-section">
-            <label>時刻設定:</label>
-            <input type="time" id="timeInput" value="14:00">
-            <button onclick="applyCustomTime()">適用</button>
-            <button onclick="resetToCurrentTime()">現在時刻にリセット</button>
-        </div>
-    </div>
-
-    <!-- テキストタブ -->
-    <div id="tab-text" class="debug-tab-content">
-        <div class="debug-section">
-            <label>クリニック名:</label>
-            <input type="text" class="customize-input" id="customClinicName" value="ふじみ野ひかり眼科" oninput="applyCustomizations()">
-        </div>
-
-        <div class="debug-section">
-            <label>空きありメッセージ:</label>
-            <input type="text" class="customize-input" id="customAvailableMsg" value="{day}分の予約枠 「空き」あり" oninput="applyCustomizations()">
-            <small style="opacity: 0.7;">※ {day} は自動で本日/明日/木曜に置き換わります</small>
-        </div>
-
-        <div class="debug-section">
-            <label>満枠メッセージ:</label>
-            <input type="text" class="customize-input" id="customFullMsg" value="{day}の予約は 「満枠」です" oninput="applyCustomizations()">
-        </div>
-
-        <div class="debug-section">
-            <label>サブメッセージ:</label>
-            <input type="text" class="customize-input" id="customSubMsg" value="誠に恐れ入りますが、翌診療日以降で ご予約ください" oninput="applyCustomizations()">
-        </div>
-
-        <div class="debug-section">
-            <label>QRメッセージ:</label>
-            <input type="text" class="customize-input" id="customQrMsg" value="受付窓口 もしくは QRコードから ご予約ください" oninput="applyCustomizations()">
-        </div>
-    </div>
 
     <!-- デザインタブ -->
     <div id="tab-design" class="debug-tab-content">
@@ -3209,8 +3161,6 @@
 
         updatePulseSpeedUI();
 
-        updatePulseSpeedUI();
-
         // アイコン選択をリセット
         document.querySelectorAll('.icon-selector button').forEach(btn => btn.classList.remove('selected'));
 
@@ -3393,26 +3343,23 @@
     function toggleDebugPanel() {
         const panel = document.getElementById('debugPanel');
         const btn = document.getElementById('btnTogglePanel');
-        const layoutContainer = document.querySelector('.layout-container');
         const body = document.body;
 
         if (panel.classList.contains('hidden')) {
             // パネルを表示（通常モードに戻す）
             panel.classList.remove('hidden');
-            layoutContainer.classList.remove('panel-hidden');
             body.classList.remove('fullscreen-mode');
             if (btn) {
                 btn.classList.add('active');
-                btn.textContent = '👁️ パネル表示';
+                btn.textContent = '👁️ パネル非表示';
             }
         } else {
             // パネルを非表示（フルスクリーンモード）
             panel.classList.add('hidden');
-            layoutContainer.classList.add('panel-hidden');
             body.classList.add('fullscreen-mode');
             if (btn) {
                 btn.classList.remove('active');
-                btn.textContent = '👁️ パネル非表示';
+                btn.textContent = '👁️ パネル表示';
             }
         }
     }
@@ -3758,40 +3705,8 @@
         lunchBreakBanner.style.background = customizeState.bannerBg;
         lunchBreakBanner.style.color = customizeState.bannerText;
 
-        // デバッグ情報を更新
-        updateDebugInfo(timestampStr, dayText);
-
         // ファビコンを更新
         updateFavicon();
-    }
-
-    /**
-     * デバッグ情報表示を更新
-     */
-    function updateDebugInfo(timestampStr, dayText) {
-        const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
-
-        document.getElementById('statusDisplay').textContent =
-            testState.isAvailable ? '空きあり' : '満枠';
-
-        document.getElementById('dateTimeDisplay').textContent =
-            `${timestampStr} (${dayNames[testState.dayOfWeek]})`;
-
-        // 営業時間前バナー
-        const isOpening = isOpeningSoon(timestampStr);
-        document.getElementById('openingDisplay').textContent =
-            isOpening ? '表示中' : '非表示';
-        const openingIndicator = document.getElementById('openingIndicator');
-        openingIndicator.className = 'status-indicator ' + (isOpening ? 'on' : 'off');
-
-        // 昼休みバナー
-        const isLunch = isLunchBreak(timestampStr);
-        document.getElementById('lunchDisplay').textContent =
-            isLunch ? '表示中' : '非表示';
-        const lunchIndicator = document.getElementById('lunchIndicator');
-        lunchIndicator.className = 'status-indicator ' + (isLunch ? 'on' : 'off');
-
-        document.getElementById('dayTextDisplay').textContent = dayText;
     }
 
     /**
@@ -4097,14 +4012,12 @@
 
     // 初期起動時はフルスクリーンモード（デバッグパネル非表示）
     const debugPanel = document.getElementById('debugPanel');
-    const layoutContainer = document.querySelector('.layout-container');
     const toggleBtn = document.getElementById('btnTogglePanel');
     debugPanel.classList.add('hidden');
-    layoutContainer.classList.add('panel-hidden');
     document.body.classList.add('fullscreen-mode');
     if (toggleBtn) {
         toggleBtn.classList.remove('active');
-        toggleBtn.textContent = '👁️ パネル非表示';
+        toggleBtn.textContent = '👁️ パネル表示';
     }
 
     // プレビューのスケールを初期化（フルスクリーンモード設定後）
