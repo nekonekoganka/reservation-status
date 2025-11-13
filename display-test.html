@@ -719,6 +719,7 @@
         <button class="debug-tab" onclick="switchTab('text')">📝 テキスト</button>
         <button class="debug-tab" onclick="switchTab('design')">🎨 デザイン</button>
         <button class="debug-tab" onclick="switchTab('size')">📏 サイズ</button>
+        <button class="debug-tab" onclick="switchTab('banner')">🏷️ バナー</button>
         <button class="debug-tab" onclick="switchTab('animation')">⚡ アニメ1</button>
         <button class="debug-tab" onclick="switchTab('animation2')">✨ アニメ2</button>
         <button class="debug-tab" onclick="switchTab('background')">🌈 背景</button>
@@ -1009,6 +1010,47 @@
         </div>
     </div>
 
+    <!-- バナータブ -->
+    <div id="tab-banner" class="debug-tab-content">
+        <div class="debug-section">
+            <h4 style="color: #FFC107; margin-bottom: 15px;">📝 営業時間前バナー</h4>
+            <label>テキスト:</label>
+            <input type="text" id="openingSoonText" value="🕐 10時に窓口が開きます　お待ち下さい"
+                   style="width: 100%; padding: 8px; font-size: 14px; margin-top: 5px;"
+                   oninput="applyCustomizations()">
+        </div>
+
+        <div class="debug-section" style="margin-top: 20px;">
+            <h4 style="color: #FFC107; margin-bottom: 15px;">📝 昼休みバナー</h4>
+            <label>テキスト:</label>
+            <input type="text" id="lunchBreakText" value="🕐 昼休み中　午後３時より診療再開"
+                   style="width: 100%; padding: 8px; font-size: 14px; margin-top: 5px;"
+                   oninput="applyCustomizations()">
+        </div>
+
+        <div class="debug-section" style="margin-top: 20px;">
+            <h4 style="color: #FFC107; margin-bottom: 15px;">📐 バナー共通設定</h4>
+
+            <div class="slider-group">
+                <label>フォントサイズ: <span id="bannerFontSizeValue">3.0vw</span></label>
+                <input type="range" id="bannerFontSize" min="2.0" max="5.0" step="0.1" value="3.0"
+                       oninput="updateBannerFontSize(this.value)">
+            </div>
+
+            <div class="slider-group">
+                <label>バナー高さ: <span id="bannerHeightValue">80px</span></label>
+                <input type="range" id="bannerHeight" min="50" max="150" step="5" value="80"
+                       oninput="updateBannerHeight(this.value)">
+            </div>
+
+            <div class="slider-group">
+                <label>上下余白: <span id="bannerPaddingValue">10px</span></label>
+                <input type="range" id="bannerPadding" min="0" max="30" step="5" value="10"
+                       oninput="updateBannerPadding(this.value)">
+            </div>
+        </div>
+    </div>
+
     <!-- アニメ1タブ -->
     <div id="tab-animation" class="debug-tab-content">
         <div class="debug-section">
@@ -1257,6 +1299,25 @@
                 </div>
             </div>
         </div>
+
+        <!-- デフォルト設定管理 -->
+        <div class="debug-section" style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #555;">
+            <h4 style="color: #FFC107; margin-bottom: 15px;">⭐ デフォルト設定管理</h4>
+            <p style="opacity: 0.8; margin-bottom: 20px; font-size: 14px;">
+                現在の設定を起動時のデフォルトとして保存できます。次回起動時に自動的に読み込まれます。
+            </p>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="saveAsDefault()" style="flex: 1; background: #FF9800; padding: 15px; font-size: 16px;">
+                    💾 この設定をデフォルトにする
+                </button>
+                <button onclick="loadDefaultSettings()" style="flex: 1; background: #9C27B0; padding: 15px; font-size: 16px;">
+                    🔄 デフォルト設定を読み込む
+                </button>
+                <button onclick="clearDefaultSettings()" style="background: #E74C3C; padding: 15px;">
+                    🗑️ クリア
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 </div>
@@ -1302,6 +1363,12 @@
         subMsgSize: 3.0,
         qrMsgSize: 4.6,
         updateTimeSize: 3.0,
+        // バナー設定
+        openingSoonText: '🕐 10時に窓口が開きます　お待ち下さい',
+        lunchBreakText: '🕐 昼休み中　午後３時より診療再開',
+        bannerFontSize: 3.0,
+        bannerHeight: 80,
+        bannerPadding: 10,
         // アニメ1
         pulseEnabled: true,
         pulseSpeed: 2.0,
@@ -1720,6 +1787,47 @@
         customizeState.updateTimeSize = parseFloat(value);
         document.getElementById('updateTimeSizeValue').textContent = value + 'vw';
         applyFontSizes();
+    }
+
+    /**
+     * バナー設定更新関数
+     */
+    function updateBannerFontSize(value) {
+        customizeState.bannerFontSize = parseFloat(value);
+        document.getElementById('bannerFontSizeValue').textContent = value + 'vw';
+        applyBannerSettings();
+    }
+
+    function updateBannerHeight(value) {
+        customizeState.bannerHeight = parseInt(value);
+        document.getElementById('bannerHeightValue').textContent = value + 'px';
+        applyBannerSettings();
+    }
+
+    function updateBannerPadding(value) {
+        customizeState.bannerPadding = parseInt(value);
+        document.getElementById('bannerPaddingValue').textContent = value + 'px';
+        applyBannerSettings();
+    }
+
+    function applyBannerSettings() {
+        const openingSoonBanner = document.getElementById('openingSoonBanner');
+        const lunchBreakBanner = document.getElementById('lunchBreakBanner');
+
+        // テキストを更新
+        customizeState.openingSoonText = document.getElementById('openingSoonText').value;
+        customizeState.lunchBreakText = document.getElementById('lunchBreakText').value;
+
+        openingSoonBanner.textContent = customizeState.openingSoonText;
+        lunchBreakBanner.textContent = customizeState.lunchBreakText;
+
+        // スタイルを更新
+        const banners = [openingSoonBanner, lunchBreakBanner];
+        banners.forEach(banner => {
+            banner.style.fontSize = customizeState.bannerFontSize + 'vw';
+            banner.style.height = customizeState.bannerHeight + 'px';
+            banner.style.padding = customizeState.bannerPadding + 'px 20px';
+        });
     }
 
     /**
@@ -2500,6 +2608,124 @@
     }
 
     /**
+     * 現在の設定をデフォルトとして保存
+     */
+    function saveAsDefault() {
+        if (!confirm('現在の設定を起動時のデフォルトとして保存しますか？\n次回起動時に自動的に読み込まれます。')) {
+            return;
+        }
+
+        try {
+            localStorage.setItem('defaultSettings', JSON.stringify(customizeState));
+            alert('✅ デフォルト設定を保存しました！\n次回起動時に自動的に読み込まれます。');
+        } catch (e) {
+            alert('❌ 設定の保存に失敗しました: ' + e.message);
+        }
+    }
+
+    /**
+     * デフォルト設定を読み込む
+     */
+    function loadDefaultSettings() {
+        try {
+            const saved = localStorage.getItem('defaultSettings');
+            if (!saved) {
+                alert('ℹ️ デフォルト設定が保存されていません。');
+                return;
+            }
+
+            if (!confirm('保存されたデフォルト設定を読み込みますか？\n現在の設定は上書きされます。')) {
+                return;
+            }
+
+            const settings = JSON.parse(saved);
+            Object.assign(customizeState, settings);
+
+            // UI要素を更新
+            syncUIFromState();
+            applyCustomizations();
+
+            alert('✅ デフォルト設定を読み込みました！');
+        } catch (e) {
+            alert('❌ 設定の読み込みに失敗しました: ' + e.message);
+        }
+    }
+
+    /**
+     * デフォルト設定をクリア
+     */
+    function clearDefaultSettings() {
+        if (!confirm('保存されたデフォルト設定を削除しますか？\n次回起動時は初期設定で起動します。')) {
+            return;
+        }
+
+        try {
+            localStorage.removeItem('defaultSettings');
+            alert('✅ デフォルト設定を削除しました。');
+        } catch (e) {
+            alert('❌ 設定の削除に失敗しました: ' + e.message);
+        }
+    }
+
+    /**
+     * UIをcustomizeStateから同期
+     */
+    function syncUIFromState() {
+        // テキスト
+        document.getElementById('customClinicName').value = customizeState.clinicName;
+        document.getElementById('customAvailableMsg').value = customizeState.availableMsg;
+        document.getElementById('customFullMsg').value = customizeState.fullMsg;
+        document.getElementById('customSubMsg').value = customizeState.subMsg;
+        document.getElementById('customQrMsg').value = customizeState.qrMsg;
+        document.getElementById('customAvailableIcon').value = customizeState.availableIcon;
+        document.getElementById('customFullIcon').value = customizeState.fullIcon;
+
+        // 色
+        document.getElementById('customAvailableBg').value = customizeState.availableBg;
+        document.getElementById('customFullBg').value = customizeState.fullBg;
+        document.getElementById('customBannerBg').value = customizeState.bannerBg;
+        document.getElementById('customBannerText').value = customizeState.bannerText;
+
+        // サイズ
+        document.getElementById('iconSize').value = customizeState.iconSize;
+        document.getElementById('iconSizeValue').textContent = customizeState.iconSize + 'vw';
+        document.getElementById('mainMsgSize').value = customizeState.mainMsgSize;
+        document.getElementById('mainMsgSizeValue').textContent = customizeState.mainMsgSize + 'vw';
+        document.getElementById('subMsgSize').value = customizeState.subMsgSize;
+        document.getElementById('subMsgSizeValue').textContent = customizeState.subMsgSize + 'vw';
+        document.getElementById('qrMsgSize').value = customizeState.qrMsgSize;
+        document.getElementById('qrMsgSizeValue').textContent = customizeState.qrMsgSize + 'vw';
+        document.getElementById('updateTimeSize').value = customizeState.updateTimeSize;
+        document.getElementById('updateTimeSizeValue').textContent = customizeState.updateTimeSize + 'vw';
+
+        // バナー
+        if (document.getElementById('openingSoonText')) {
+            document.getElementById('openingSoonText').value = customizeState.openingSoonText;
+            document.getElementById('lunchBreakText').value = customizeState.lunchBreakText;
+            document.getElementById('bannerFontSize').value = customizeState.bannerFontSize;
+            document.getElementById('bannerFontSizeValue').textContent = customizeState.bannerFontSize + 'vw';
+            document.getElementById('bannerHeight').value = customizeState.bannerHeight;
+            document.getElementById('bannerHeightValue').textContent = customizeState.bannerHeight + 'px';
+            document.getElementById('bannerPadding').value = customizeState.bannerPadding;
+            document.getElementById('bannerPaddingValue').textContent = customizeState.bannerPadding + 'px';
+        }
+
+        // アニメーション
+        document.getElementById('pulseSpeed').value = customizeState.pulseSpeed;
+        document.getElementById('pulseSpeedValue').textContent = customizeState.pulseSpeed + '秒';
+        document.getElementById('pulseScale').value = customizeState.pulseScale;
+        document.getElementById('pulseScaleValue').textContent = customizeState.pulseScale;
+
+        // ファビコン
+        document.getElementById('customFaviconAvailableIcon').value = customizeState.faviconAvailableIcon;
+        document.getElementById('customFaviconFullIcon').value = customizeState.faviconFullIcon;
+        document.getElementById('customFaviconAvailableColor').value = customizeState.faviconAvailableColor;
+        document.getElementById('customFaviconFullColor').value = customizeState.faviconFullColor;
+
+        updateFaviconPreview();
+    }
+
+    /**
      * デバッグパネルの表示/非表示を切り替え（モード変更はしない）
      */
     function toggleDebugPanel() {
@@ -3163,6 +3389,20 @@
     // 初期表示
     loadPresetNames();
     updateCurrentPresetInfo();
+
+    // デフォルト設定があれば読み込む
+    try {
+        const saved = localStorage.getItem('defaultSettings');
+        if (saved) {
+            const settings = JSON.parse(saved);
+            Object.assign(customizeState, settings);
+            console.log('✅ デフォルト設定を読み込みました');
+            // UI要素を初期化
+            syncUIFromState();
+        }
+    } catch (e) {
+        console.error('デフォルト設定の読み込みに失敗:', e);
+    }
 
     // デバッグモードで開始
     isDebugMode = true;
