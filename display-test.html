@@ -60,8 +60,8 @@
 
         /* アイコン */
         .icon {
-            font-size: clamp(120px, 10vw, 200px);
-            margin-bottom: 40px;
+            font-size: clamp(144px, 12vw, 200px);
+            margin-bottom: 95px;
             margin-top: 80px;
             line-height: 1;
             animation: pulse 2s ease-in-out infinite;
@@ -110,9 +110,9 @@
         /* メインメッセージ（空きあり/満枠） */
         .main-message {
             font-size: clamp(60px, 6vw, 120px);
-            font-weight: bold;
-            margin-bottom: 80px;
-            line-height: 1.4;
+            font-weight: 900;
+            margin-bottom: 60px;
+            line-height: 1.2;
             text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             animation: fadeIn 1s ease-in;
         }
@@ -131,16 +131,16 @@
 
         /* サブメッセージ */
         .sub-message {
-            font-size: clamp(28px, 3vw, 56px);
-            margin-bottom: 20px;
+            font-size: clamp(41px, 4.1vw, 56px);
+            margin-bottom: 5px;
             line-height: 1.6;
             opacity: 0.95;
         }
 
         /* QRコードメッセージ */
         .qr-message {
-            font-size: clamp(32px, 3.5vw, 64px);
-            font-weight: bold;
+            font-size: clamp(46px, 4.6vw, 64px);
+            font-weight: 400;
             margin-top: 60px;
             margin-bottom: 60px;
             opacity: 0.95;
@@ -148,7 +148,7 @@
 
         /* 更新時刻 */
         .update-time {
-            font-size: clamp(20px, 2vw, 40px);
+            font-size: clamp(30px, 3vw, 40px);
             opacity: 0.85;
             margin-top: 40px;
         }
@@ -171,10 +171,14 @@
             width: 100%;
             background: #FFC107;
             color: #212529;
-            font-size: clamp(16px, 2.5vw, 32px);
+            font-size: clamp(16px, 2.6vw, 32px);
             font-weight: bold;
             text-align: center;
-            padding: 10px;
+            padding: 0 20px;
+            height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             z-index: 1000;
             display: none;
@@ -189,7 +193,7 @@
             position: absolute;
             bottom: 30px;
             left: 20px;
-            z-index: 100;
+            z-index: 1200;
         }
 
         .qr-code-corner img {
@@ -198,11 +202,12 @@
 
         /* レイアウトコンテナ */
         .layout-container {
-            display: flex;
+            position: relative;
             height: calc(100vh - 100px);
             width: 100vw;
             margin-top: 100px;
             transition: all 0.3s ease;
+            overflow: hidden;
         }
 
         /* フルスクリーンモード時はレイアウトコンテナを全画面に */
@@ -211,24 +216,10 @@
             margin-top: 0;
         }
 
-        /* 左側エリア（50%） */
-        .left-panel {
-            width: 50%;
-            display: flex;
-            flex-direction: column;
-            background: #000;
-            transition: width 0.3s ease;
-        }
-
-        /* デバッグパネル非表示時は左パネルを100%に */
-        .debug-panel.hidden ~ .layout-container .left-panel,
-        .layout-container.panel-hidden .left-panel {
-            width: 100%;
-        }
-
         /* メイン表示エリア（縦横比維持） */
         .preview-wrapper {
-            flex: 1;
+            height: 100%;
+            width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -261,22 +252,6 @@
             position: relative;
         }
 
-        /* 設定・ステータス表示エリア */
-        .info-panel {
-            background: #1a1a1a;
-            color: white;
-            padding: 15px;
-            overflow-y: auto;
-            max-height: 300px;
-            border-top: 2px solid #3498DB;
-            transition: all 0.3s ease;
-        }
-
-        /* フルスクリーンモード時はinfo-panelを非表示 */
-        body.fullscreen-mode .info-panel {
-            display: none;
-        }
-
         /* フルスクリーンモード時はpreview-wrapperのパディングを削除 */
         body.fullscreen-mode .preview-wrapper {
             padding: 0;
@@ -298,21 +273,28 @@
             position: static;
         }
 
-        /* デバッグパネル（右側50%） */
+        /* デバッグパネル（右側にオーバーレイ） */
         .debug-panel {
-            width: 50%;
-            background: #2C3E50;
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: min(50%, 640px);
+            height: 100%;
+            background: rgba(44, 62, 80, 0.97);
             color: white;
             padding: 20px;
             overflow-y: auto;
             font-size: 16px;
             display: block;
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            z-index: 10000;
         }
 
         /* デバッグパネル非表示状態 */
         .debug-panel.hidden {
-            display: none;
+            transform: translateX(100%);
+            opacity: 0;
+            pointer-events: none;
         }
 
         /* トップコントロールバー（2段構成） */
@@ -560,8 +542,8 @@
         }
 
         .debug-panel button {
-            background: #3498DB;
-            color: white;
+            background: #7F8C8D;
+            color: #FFFFFF;
             border: none;
             padding: 10px 20px;
             margin: 5px;
@@ -569,14 +551,16 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: bold;
+            transition: background 0.2s ease, color 0.2s ease;
         }
 
         .debug-panel button:hover {
-            background: #2980B9;
+            background: #95A5A6;
         }
 
         .debug-panel button.active {
-            background: #E74C3C;
+            background: #3498DB;
+            color: #FFFFFF;
         }
 
         /* モードトグルスイッチ */
@@ -664,20 +648,14 @@
             margin: 5px 0;
         }
 
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-left: 10px;
-        }
-
-        .status-indicator.on {
-            background: #2ECC71;
-        }
-
-        .status-indicator.off {
-            background: #95A5A6;
+        .preset-indicator {
+            margin-bottom: 15px;
+            padding: 10px 12px;
+            background: rgba(52, 152, 219, 0.15);
+            border: 1px solid rgba(52, 152, 219, 0.35);
+            border-radius: 6px;
+            font-size: 14px;
+            color: #AED6F1;
         }
 
         /* フローティングボタン（右下固定） */
@@ -747,118 +725,98 @@
 
 <!-- レイアウトコンテナ -->
 <div class="layout-container">
-    <!-- 左側パネル -->
-    <div class="left-panel">
-        <!-- メイン表示エリア -->
-        <div class="preview-wrapper">
-            <div class="preview-container">
-                <div class="display-area">
-                    <!-- 営業時間前バナー -->
-                    <div id="openingSoonBanner" class="lunch-break-banner">
-                        🕐 10時に窓口が開きます　お待ち下さい
-                    </div>
+    <!-- メイン表示エリア -->
+    <div class="preview-wrapper">
+        <div class="preview-container">
+            <div class="display-area">
+                <!-- 営業時間前バナー -->
+                <div id="openingSoonBanner" class="lunch-break-banner">
+                    10時に窓口が開きます　お待ち下さい
+                </div>
 
-                    <!-- 昼休みバナー -->
-                    <div id="lunchBreakBanner" class="lunch-break-banner">
-                        🕐 昼休み中　午後３時より診療再開
-                    </div>
+                <!-- 昼休みバナー -->
+                <div id="lunchBreakBanner" class="lunch-break-banner">
+                    昼休み中　午後３時より窓口が開きます
+                </div>
 
-                    <!-- QRコード（左下固定） -->
-                    <div class="qr-code-corner">
-                        <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード">
-                    </div>
+                <!-- QRコード（左下固定） -->
+                <div class="qr-code-corner">
+                    <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード">
+                </div>
 
-                    <div id="displayContainer" class="display-container loading">
-                        <div class="clinic-name">ふじみ野ひかり眼科</div>
-                        <div class="icon">⏳</div>
-                        <div class="main-message">読み込み中...</div>
-                        <div class="sub-message">デバッグモード起動中</div>
-                    </div>
+                <div id="displayContainer" class="display-container loading">
+                    <div class="clinic-name">ふじみ野ひかり眼科</div>
+                    <div class="icon">⏳</div>
+                    <div class="main-message">読み込み中...</div>
+                    <div class="sub-message">デバッグモード起動中</div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- 設定・ステータス表示エリア -->
-        <div class="info-panel">
-            <div style="margin-bottom: 15px;">
-                <div style="font-weight: bold; margin-bottom: 10px; color: #FFC107;">📊 現在のテスト条件</div>
-                <div style="margin-left: 10px;">
-                    <div>予約状況: <span id="statusDisplay" style="color: #2ECC71; font-weight: bold;">空きあり</span></div>
-                    <div>日時: <span id="dateTimeDisplay">2025/11/11 (火) 14:00</span></div>
-                    <div>営業時間前バナー: <span id="openingDisplay">非表示</span> <span id="openingIndicator" class="status-indicator off"></span></div>
-                    <div>昼休みバナー: <span id="lunchDisplay">表示中</span> <span id="lunchIndicator" class="status-indicator on"></span></div>
-                    <div>日付テキスト: <span id="dayTextDisplay">本日</span></div>
-                </div>
+    <!-- デバッグパネル -->
+    <div id="debugPanel" class="debug-panel">
+        <div id="currentPresetInfo" class="preset-indicator">デフォルト設定</div>
+        <input type="file" id="importFileInput" accept=".json" onchange="importSettings(event)">
+
+        <!-- 時間タブ -->
+        <div id="tab-time" class="debug-tab-content active">
+            <div class="debug-section">
+                <label>時間帯:</label>
+                <button onclick="setTestTime(9, 0)">営業時間前 (9:00)</button>
+                <button onclick="setTestTime(10, 0)">営業時間中 (10:00)</button>
+                <button onclick="setTestTime(14, 0)">昼休み (14:00)</button>
+                <button onclick="setTestTime(19, 0)">営業時間外 (19:00)</button>
+                <button onclick="setTestTime(18, 45)">18:30以降 (18:45)</button>
             </div>
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #34495E;">
-                <div style="font-weight: bold; margin-bottom: 10px; color: #FFC107;">📌 現在の設定</div>
-                <div id="currentPresetInfo" style="opacity: 0.8; font-size: 14px; margin-left: 10px;">デフォルト設定</div>
+
+            <div class="debug-section">
+                <label>曜日:</label>
+                <button onclick="setDayOfWeek(0)">日</button>
+                <button onclick="setDayOfWeek(1)">月</button>
+                <button onclick="setDayOfWeek(2)">火</button>
+                <button onclick="setDayOfWeek(3)">水</button>
+                <button onclick="setDayOfWeek(4)">木</button>
+                <button onclick="setDayOfWeek(5)">金</button>
+                <button onclick="setDayOfWeek(6)">土</button>
+            </div>
+
+            <div class="debug-section">
+                <label>時刻設定:</label>
+                <input type="time" id="timeInput" value="14:00">
+                <button onclick="applyCustomTime()">適用</button>
+                <button onclick="resetToCurrentTime()">現在時刻にリセット</button>
             </div>
         </div>
-    </div>
 
-<!-- デバッグパネル -->
-<div id="debugPanel" class="debug-panel">
-    <input type="file" id="importFileInput" accept=".json" onchange="importSettings(event)">
+        <!-- テキストタブ -->
+        <div id="tab-text" class="debug-tab-content">
+            <div class="debug-section">
+                <label>クリニック名:</label>
+                <input type="text" class="customize-input" id="customClinicName" value="ふじみ野ひかり眼科" oninput="applyCustomizations()">
+            </div>
 
-    <!-- 時間タブ -->
-    <div id="tab-time" class="debug-tab-content active">
-        <div class="debug-section">
-            <label>時間帯:</label>
-            <button onclick="setTestTime(9, 0)">営業時間前 (9:00)</button>
-            <button onclick="setTestTime(10, 0)">営業時間中 (10:00)</button>
-            <button onclick="setTestTime(14, 0)">昼休み (14:00)</button>
-            <button onclick="setTestTime(19, 0)">営業時間外 (19:00)</button>
-            <button onclick="setTestTime(18, 45)">18:30以降 (18:45)</button>
+            <div class="debug-section">
+                <label>空きありメッセージ:</label>
+                <input type="text" class="customize-input" id="customAvailableMsg" value="{day}分の予約枠 「空き」あり" oninput="applyCustomizations()">
+                <small style="opacity: 0.7;">※ {day} は自動で本日/明日/木曜に置き換わります</small>
+            </div>
+
+            <div class="debug-section">
+                <label>満枠メッセージ:</label>
+                <input type="text" class="customize-input" id="customFullMsg" value="{day}の予約は 「満枠」です" oninput="applyCustomizations()">
+            </div>
+
+            <div class="debug-section">
+                <label>サブメッセージ:</label>
+                <input type="text" class="customize-input" id="customSubMsg" value="誠に恐れ入りますが、翌診療日以降で ご予約ください" oninput="applyCustomizations()">
+            </div>
+
+            <div class="debug-section">
+                <label>QRメッセージ:</label>
+                <input type="text" class="customize-input" id="customQrMsg" value="受付窓口 もしくは QRコードから ご予約ください" oninput="applyCustomizations()">
+            </div>
         </div>
-
-        <div class="debug-section">
-            <label>曜日:</label>
-            <button onclick="setDayOfWeek(0)">日</button>
-            <button onclick="setDayOfWeek(1)">月</button>
-            <button onclick="setDayOfWeek(2)">火</button>
-            <button onclick="setDayOfWeek(3)">水</button>
-            <button onclick="setDayOfWeek(4)">木</button>
-            <button onclick="setDayOfWeek(5)">金</button>
-            <button onclick="setDayOfWeek(6)">土</button>
-        </div>
-
-        <div class="debug-section">
-            <label>時刻設定:</label>
-            <input type="time" id="timeInput" value="14:00">
-            <button onclick="applyCustomTime()">適用</button>
-            <button onclick="resetToCurrentTime()">現在時刻にリセット</button>
-        </div>
-    </div>
-
-    <!-- テキストタブ -->
-    <div id="tab-text" class="debug-tab-content">
-        <div class="debug-section">
-            <label>クリニック名:</label>
-            <input type="text" class="customize-input" id="customClinicName" value="ふじみ野ひかり眼科" oninput="applyCustomizations()">
-        </div>
-
-        <div class="debug-section">
-            <label>空きありメッセージ:</label>
-            <input type="text" class="customize-input" id="customAvailableMsg" value="{day}分の予約枠 空きあり" oninput="applyCustomizations()">
-            <small style="opacity: 0.7;">※ {day} は自動で本日/明日/木曜に置き換わります</small>
-        </div>
-
-        <div class="debug-section">
-            <label>満枠メッセージ:</label>
-            <input type="text" class="customize-input" id="customFullMsg" value="{day}の予約は 満枠です" oninput="applyCustomizations()">
-        </div>
-
-        <div class="debug-section">
-            <label>サブメッセージ:</label>
-            <input type="text" class="customize-input" id="customSubMsg" value="誠に恐れ入りますが、翌診療日以降で ご予約ください" oninput="applyCustomizations()">
-        </div>
-
-        <div class="debug-section">
-            <label>QRメッセージ:</label>
-            <input type="text" class="customize-input" id="customQrMsg" value="受付窓口 もしくは QRコードから ご予約ください" oninput="applyCustomizations()">
-        </div>
-    </div>
 
     <!-- デザインタブ -->
     <div id="tab-design" class="debug-tab-content">
@@ -871,7 +829,7 @@
                 <button onclick="selectIcon('available', '⭕')">⭕</button>
                 <button onclick="selectIcon('available', '🟢')">🟢</button>
                 <button onclick="selectIcon('available', '👍')">👍</button>
-                <input type="text" class="customize-input" id="customAvailableIcon" value="😊" placeholder="カスタム" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
+                <input type="text" class="customize-input" id="customAvailableIcon" value="⭕" placeholder="カスタム" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
             </div>
         </div>
 
@@ -1000,8 +958,8 @@
     <!-- サイズタブ -->
     <div id="tab-size" class="debug-tab-content">
         <div class="slider-group">
-            <label>アイコンサイズ: <span id="iconSizeValue">10vw</span></label>
-            <input type="range" id="iconSize" min="6" max="15" step="0.5" value="10" oninput="updateIconSize(this.value)">
+            <label>アイコンサイズ: <span id="iconSizeValue">12vw</span></label>
+            <input type="range" id="iconSize" min="6" max="15" step="0.5" value="12" oninput="updateIconSize(this.value)">
         </div>
 
         <div class="slider-group">
@@ -1010,18 +968,18 @@
         </div>
 
         <div class="slider-group">
-            <label>サブメッセージサイズ: <span id="subMsgSizeValue">3vw</span></label>
-            <input type="range" id="subMsgSize" min="2.0" max="6.0" step="0.1" value="3.0" oninput="updateSubMsgSize(this.value)">
+            <label>サブメッセージサイズ: <span id="subMsgSizeValue">4.1vw</span></label>
+            <input type="range" id="subMsgSize" min="2.0" max="6.0" step="0.1" value="4.1" oninput="updateSubMsgSize(this.value)">
         </div>
 
         <div class="slider-group">
-            <label>QRメッセージサイズ: <span id="qrMsgSizeValue">3.5vw</span></label>
-            <input type="range" id="qrMsgSize" min="2.0" max="6.0" step="0.1" value="3.5" oninput="updateQrMsgSize(this.value)">
+            <label>QRメッセージサイズ: <span id="qrMsgSizeValue">4.6vw</span></label>
+            <input type="range" id="qrMsgSize" min="2.0" max="6.0" step="0.1" value="4.6" oninput="updateQrMsgSize(this.value)">
         </div>
 
         <div class="slider-group">
-            <label>更新時刻サイズ: <span id="updateTimeSizeValue">2vw</span></label>
-            <input type="range" id="updateTimeSize" min="1.0" max="4.0" step="0.1" value="2.0" oninput="updateTimeSize(this.value)">
+            <label>更新時刻サイズ: <span id="updateTimeSizeValue">3vw</span></label>
+            <input type="range" id="updateTimeSize" min="1.0" max="4.0" step="0.1" value="3.0" oninput="updateTimeSize(this.value)">
         </div>
     </div>
 
@@ -1031,26 +989,26 @@
             <h4 style="color: #FFC107; margin-bottom: 15px;">📏 要素間の間隔</h4>
 
             <div class="slider-group">
-                <label>アイコン → メインメッセージ: <span id="iconToMainGapValue">40px</span></label>
-                <input type="range" id="iconToMainGap" min="0" max="100" step="5" value="40"
+            <label>アイコン → メインメッセージ: <span id="iconToMainGapValue">95px</span></label>
+            <input type="range" id="iconToMainGap" min="0" max="120" step="5" value="95"
                        oninput="updateIconToMainGap(this.value)">
             </div>
 
             <div class="slider-group">
-                <label>メイン → サブメッセージ: <span id="mainToSubGapValue">20px</span></label>
-                <input type="range" id="mainToSubGap" min="0" max="80" step="5" value="20"
+            <label>メイン → サブメッセージ: <span id="mainToSubGapValue">60px</span></label>
+            <input type="range" id="mainToSubGap" min="0" max="100" step="5" value="60"
                        oninput="updateMainToSubGap(this.value)">
             </div>
 
             <div class="slider-group">
-                <label>サブ → QRメッセージ: <span id="subToQrGapValue">20px</span></label>
-                <input type="range" id="subToQrGap" min="0" max="80" step="5" value="20"
+            <label>サブ → QRメッセージ: <span id="subToQrGapValue">5px</span></label>
+            <input type="range" id="subToQrGap" min="0" max="80" step="5" value="5"
                        oninput="updateSubToQrGap(this.value)">
             </div>
 
             <div class="slider-group">
-                <label>QR → 更新時刻: <span id="qrToUpdateGapValue">20px</span></label>
-                <input type="range" id="qrToUpdateGap" min="0" max="60" step="5" value="20"
+            <label>QR → 更新時刻: <span id="qrToUpdateGapValue">60px</span></label>
+            <input type="range" id="qrToUpdateGap" min="0" max="80" step="5" value="60"
                        oninput="updateQrToUpdateGap(this.value)">
             </div>
         </div>
@@ -1059,7 +1017,7 @@
             <h4 style="color: #FFC107; margin-bottom: 15px;">✍️ フォントスタイル</h4>
 
             <div class="slider-group">
-                <label>メインメッセージの太さ: <span id="mainMsgFontWeightValue">太字</span></label>
+            <label>メインメッセージの太さ: <span id="mainMsgFontWeightValue">極太</span></label>
                 <div style="display: flex; gap: 10px; margin-top: 10px;">
                     <button onclick="setMainMsgFontWeight(400)">標準</button>
                     <button onclick="setMainMsgFontWeight(700)">太字</button>
@@ -1159,7 +1117,7 @@
         <div class="debug-section">
             <h4 style="color: #FFC107; margin-bottom: 15px;">📝 営業時間前バナー</h4>
             <label>テキスト:</label>
-            <input type="text" id="openingSoonText" value="🕐 10時に窓口が開きます　お待ち下さい"
+            <input type="text" id="openingSoonText" value="10時に窓口が開きます　お待ち下さい"
                    style="width: 100%; padding: 8px; font-size: 14px; margin-top: 5px;"
                    oninput="applyCustomizations()">
         </div>
@@ -1167,7 +1125,7 @@
         <div class="debug-section" style="margin-top: 20px;">
             <h4 style="color: #FFC107; margin-bottom: 15px;">📝 昼休みバナー</h4>
             <label>テキスト:</label>
-            <input type="text" id="lunchBreakText" value="🕐 昼休み中　午後３時より診療再開"
+            <input type="text" id="lunchBreakText" value="昼休み中　午後３時より窓口が開きます"
                    style="width: 100%; padding: 8px; font-size: 14px; margin-top: 5px;"
                    oninput="applyCustomizations()">
         </div>
@@ -1176,20 +1134,20 @@
             <h4 style="color: #FFC107; margin-bottom: 15px;">📐 バナー共通設定</h4>
 
             <div class="slider-group">
-                <label>フォントサイズ: <span id="bannerFontSizeValue">3.0vw</span></label>
-                <input type="range" id="bannerFontSize" min="2.0" max="5.0" step="0.1" value="3.0"
+                <label>フォントサイズ: <span id="bannerFontSizeValue">2.6vw</span></label>
+                <input type="range" id="bannerFontSize" min="2.0" max="5.0" step="0.1" value="2.6"
                        oninput="updateBannerFontSize(this.value)">
             </div>
 
             <div class="slider-group">
-                <label>バナー高さ: <span id="bannerHeightValue">80px</span></label>
-                <input type="range" id="bannerHeight" min="50" max="150" step="5" value="80"
+                <label>バナー高さ: <span id="bannerHeightValue">110px</span></label>
+                <input type="range" id="bannerHeight" min="50" max="150" step="5" value="110"
                        oninput="updateBannerHeight(this.value)">
             </div>
 
             <div class="slider-group">
-                <label>上下余白: <span id="bannerPaddingValue">10px</span></label>
-                <input type="range" id="bannerPadding" min="0" max="30" step="5" value="10"
+                <label>上下余白: <span id="bannerPaddingValue">0px</span></label>
+                <input type="range" id="bannerPadding" min="0" max="30" step="5" value="0"
                        oninput="updateBannerPadding(this.value)">
             </div>
         </div>
@@ -1219,8 +1177,8 @@
                 <h4 style="color: #FFC107; margin-bottom: 15px;">📐 サイズと位置</h4>
 
                 <div class="slider-group">
-                    <label>サイズ: <span id="qrSizeValue">150px</span></label>
-                    <input type="range" id="qrSize" min="50" max="200" step="5" value="150"
+                    <label>サイズ: <span id="qrSizeValue">175px</span></label>
+                    <input type="range" id="qrSize" min="50" max="250" step="5" value="175"
                            oninput="updateQrSize(this.value)">
                 </div>
 
@@ -1266,11 +1224,11 @@
         </div>
 
         <div class="slider-group">
-            <label>パルス速度: <span id="pulseSpeedValue">2.0秒</span></label>
+            <label>パルス速度: <span id="pulseSpeedValue">遅い (3.0秒)</span></label>
             <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button onclick="setPulseSpeed('slow')">遅い</button>
-                <button onclick="setPulseSpeed('normal')">普通</button>
-                <button onclick="setPulseSpeed('fast')">速い</button>
+                <button id="btnPulseSpeedSlow" onclick="setPulseSpeed('slow')">遅い</button>
+                <button id="btnPulseSpeedNormal" onclick="setPulseSpeed('normal')">普通</button>
+                <button id="btnPulseSpeedFast" onclick="setPulseSpeed('fast')">速い</button>
             </div>
         </div>
 
@@ -1288,7 +1246,7 @@
         </div>
 
         <div class="slider-group">
-            <label>光の強さ: <span id="glowIntensityValue">中</span></label>
+            <label>光の強さ: <span id="glowIntensityValue">弱</span></label>
             <div style="display: flex; gap: 10px; margin-top: 10px;">
                 <button onclick="setGlowIntensity('weak')">弱</button>
                 <button onclick="setGlowIntensity('medium')">中</button>
@@ -1564,25 +1522,25 @@
         bannerBg: '#FFC107',
         bannerText: '#212529',
         // サイズ
-        iconSize: 9.5,
+        iconSize: 12.0,
         mainMsgSize: 6.0,
-        subMsgSize: 3.0,
+        subMsgSize: 4.1,
         qrMsgSize: 4.6,
         updateTimeSize: 3.0,
         // バナー設定
-        openingSoonText: '🕐 10時に窓口が開きます　お待ち下さい',
-        lunchBreakText: '🕐 昼休み中　午後３時より診療再開',
-        bannerFontSize: 3.0,
-        bannerHeight: 80,
-        bannerPadding: 10,
+        openingSoonText: '10時に窓口が開きます　お待ち下さい',
+        lunchBreakText: '昼休み中　午後３時より窓口が開きます',
+        bannerFontSize: 2.6,
+        bannerHeight: 110,
+        bannerPadding: 0,
         // レイアウト設定
         // 余白・間隔
-        iconToMainGap: 40,
-        mainToSubGap: 20,
-        subToQrGap: 20,
-        qrToUpdateGap: 20,
+        iconToMainGap: 95,
+        mainToSubGap: 60,
+        subToQrGap: 5,
+        qrToUpdateGap: 60,
         // フォントスタイル
-        mainMsgFontWeight: 700,
+        mainMsgFontWeight: 900,
         subMsgFontWeight: 400,
         qrMsgFontWeight: 400,
         updateTimeFontWeight: 400,
@@ -1598,7 +1556,7 @@
         textStrokeWidth: 2,
         // QRコード設定
         qrEnabled: true,
-        qrSize: 150,
+        qrSize: 175,
         qrPosition: 'bottom-left',
         qrOpacity: 1.0,
         qrBorderRadius: 10,
@@ -1606,16 +1564,16 @@
         qrImageUrl: 'Downloads/QR_fujiminohikari.png',
         // アニメ1
         pulseEnabled: true,
-        pulseSpeed: 2.0,
+        pulseSpeed: 3.0,
         pulseScale: 1.15,
         glowEnabled: true,
         glowIntensity: 'weak',
         glowColor: 'yellow',
-        glowPulse: true,
+        glowPulse: false,
         // アニメ2
         floatTarget: 'off',
-        floatSpeed: 'normal',
-        zoomTarget: 'off',
+        floatSpeed: 'slow',
+        zoomTarget: 'icon',
         zoomSpeed: 'normal',
         sparkleEnabled: false,
         neonEnabled: false,
@@ -1855,12 +1813,66 @@
         updateAnimationStyle();
     }
 
+    function getPulseSpeedLabel(speed) {
+        const labels = {
+            3: '遅い (3.0秒)',
+            2: '普通 (2.0秒)',
+            1: '速い (1.0秒)'
+        };
+        if (labels[speed]) {
+            return labels[speed];
+        }
+        const numeric = Number(speed);
+        if (!Number.isFinite(numeric)) {
+            return '--';
+        }
+        const formatted = Number.isInteger(numeric) ? numeric.toString() : numeric.toFixed(1).replace(/\.0$/, '');
+        return `${formatted}秒`;
+    }
+
+    function updatePulseSpeedUI() {
+        const value = customizeState.pulseSpeed;
+        const numeric = Number(value);
+        const label = document.getElementById('pulseSpeedValue');
+        if (label) {
+            label.textContent = getPulseSpeedLabel(value);
+        }
+        updateActiveButton3(
+            'btnPulseSpeedSlow',
+            'btnPulseSpeedNormal',
+            'btnPulseSpeedFast',
+            Math.abs(numeric - 3.0) < 0.001,
+            Math.abs(numeric - 2.0) < 0.001,
+            Math.abs(numeric - 1.0) < 0.001
+        );
+    }
+
     /**
      * パルス速度を更新
      */
     function updatePulseSpeed(value) {
         customizeState.pulseSpeed = parseFloat(value);
-        document.getElementById('pulseSpeedValue').textContent = value + '秒';
+        updatePulseSpeedUI();
+        updateActiveButton('btnPulseOn', 'btnPulseOff', customizeState.pulseEnabled);
+        updateActiveButton('btnGlowOn', 'btnGlowOff', customizeState.glowEnabled);
+        updateActiveButton('btnGlowPulseOn', 'btnGlowPulseOff', customizeState.glowPulse);
+        updateActiveButton('btnGradientOn', 'btnGradientOff', customizeState.gradientEnabled);
+        updateActiveButton('btnGradientAnimOn', 'btnGradientAnimOff', customizeState.gradientAnimEnabled);
+        updateActiveButton4('btnFloatIcon', 'btnFloatText', 'btnFloatBoth', 'btnFloatOff',
+            customizeState.floatTarget === 'icon',
+            customizeState.floatTarget === 'text',
+            customizeState.floatTarget === 'both',
+            customizeState.floatTarget === 'off');
+        updateActiveButton4('btnZoomIcon', 'btnZoomText', 'btnZoomBoth', 'btnZoomOff',
+            customizeState.zoomTarget === 'icon',
+            customizeState.zoomTarget === 'text',
+            customizeState.zoomTarget === 'both',
+            customizeState.zoomTarget === 'off');
+        updateActiveButton4('btnScreenNone', 'btnScreenShakeV', 'btnScreenShakeH', 'btnScreenZoom',
+            customizeState.screenEffect === 'none',
+            customizeState.screenEffect === 'shakeV',
+            customizeState.screenEffect === 'shakeH',
+            customizeState.screenEffect === 'zoom');
         updateAnimationStyle();
     }
 
@@ -2329,8 +2341,7 @@
     function setPulseSpeed(speed) {
         const speeds = { slow: 3.0, normal: 2.0, fast: 1.0 };
         customizeState.pulseSpeed = speeds[speed];
-        const labels = { slow: '遅い (3.0秒)', normal: '普通 (2.0秒)', fast: '速い (1.0秒)' };
-        document.getElementById('pulseSpeedValue').textContent = labels[speed];
+        updatePulseSpeedUI();
         updateAnimationStyle();
     }
 
@@ -2930,8 +2941,8 @@
 
         // ファビコン
         if (customizeState.faviconEnabled !== undefined) {
-            document.getElementById('customFaviconAvailableIcon').value = customizeState.faviconAvailableIcon || '●';
-            document.getElementById('customFaviconFullIcon').value = customizeState.faviconFullIcon || '✗';
+            document.getElementById('customFaviconAvailableIcon').value = customizeState.faviconAvailableIcon || 'OK';
+            document.getElementById('customFaviconFullIcon').value = customizeState.faviconFullIcon || '✕';
             document.getElementById('customFaviconAvailableColor').value = customizeState.faviconAvailableColor || '#4CAF50';
             document.getElementById('customFaviconFullColor').value = customizeState.faviconFullColor || '#F44336';
             document.getElementById('faviconAvailableColorValue').textContent = customizeState.faviconAvailableColor || '#4CAF50';
@@ -2947,13 +2958,14 @@
         }
 
         // アニメーション
-        document.getElementById('pulseSpeed').value = customizeState.pulseSpeed;
         document.getElementById('pulseScale').value = customizeState.pulseScale;
         document.getElementById('iconSize').value = customizeState.iconSize;
         document.getElementById('mainMsgSize').value = customizeState.mainMsgSize;
         document.getElementById('subMsgSize').value = customizeState.subMsgSize;
         document.getElementById('qrMsgSize').value = customizeState.qrMsgSize;
         document.getElementById('updateTimeSize').value = customizeState.updateTimeSize;
+
+        updatePulseSpeedUI();
 
         // グラデーション
         document.getElementById('customGradientColor1').value = customizeState.gradientColor1;
@@ -2965,6 +2977,21 @@
         updateActiveButton('btnGlowPulseOn', 'btnGlowPulseOff', customizeState.glowPulse);
         updateActiveButton('btnGradientOn', 'btnGradientOff', customizeState.gradientEnabled);
         updateActiveButton('btnGradientAnimOn', 'btnGradientAnimOff', customizeState.gradientAnimEnabled);
+        updateActiveButton4('btnFloatIcon', 'btnFloatText', 'btnFloatBoth', 'btnFloatOff',
+            customizeState.floatTarget === 'icon',
+            customizeState.floatTarget === 'text',
+            customizeState.floatTarget === 'both',
+            customizeState.floatTarget === 'off');
+        updateActiveButton4('btnZoomIcon', 'btnZoomText', 'btnZoomBoth', 'btnZoomOff',
+            customizeState.zoomTarget === 'icon',
+            customizeState.zoomTarget === 'text',
+            customizeState.zoomTarget === 'both',
+            customizeState.zoomTarget === 'off');
+        updateActiveButton4('btnScreenNone', 'btnScreenShakeV', 'btnScreenShakeH', 'btnScreenZoom',
+            customizeState.screenEffect === 'none',
+            customizeState.screenEffect === 'shakeV',
+            customizeState.screenEffect === 'shakeH',
+            customizeState.screenEffect === 'zoom');
 
         // バナーテキスト
         if (document.getElementById('openingSoonText') && customizeState.openingSoonText !== undefined) {
@@ -2981,12 +3008,12 @@
         // QRコード設定
         if (customizeState.qrEnabled !== undefined) {
             document.getElementById('qrImageUrl').value = customizeState.qrImageUrl || 'Downloads/QR_fujiminohikari.png';
-            document.getElementById('qrSize').value = customizeState.qrSize || 150;
-            document.getElementById('qrSizeValue').textContent = (customizeState.qrSize || 150) + 'px';
-            document.getElementById('qrOpacity').value = (customizeState.qrOpacity || 1.0) * 100;
-            document.getElementById('qrOpacityValue').textContent = ((customizeState.qrOpacity || 1.0) * 100) + '%';
-            document.getElementById('qrBorderRadius').value = customizeState.qrBorderRadius || 10;
-            document.getElementById('qrBorderRadiusValue').textContent = (customizeState.qrBorderRadius || 10) + 'px';
+            document.getElementById('qrSize').value = customizeState.qrSize ?? 175;
+            document.getElementById('qrSizeValue').textContent = (customizeState.qrSize ?? 175) + 'px';
+            document.getElementById('qrOpacity').value = ((customizeState.qrOpacity ?? 1.0) * 100);
+            document.getElementById('qrOpacityValue').textContent = ((customizeState.qrOpacity ?? 1.0) * 100) + '%';
+            document.getElementById('qrBorderRadius').value = customizeState.qrBorderRadius ?? 10;
+            document.getElementById('qrBorderRadiusValue').textContent = (customizeState.qrBorderRadius ?? 10) + 'px';
             document.getElementById('qrPosition').value = customizeState.qrPosition || 'bottom-left';
             updateActiveButton('btnQrOn', 'btnQrOff', customizeState.qrEnabled);
             updateActiveButton('btnQrShadowOn', 'btnQrShadowOff', customizeState.qrShadowEnabled);
@@ -3014,34 +3041,40 @@
     function resetAllCustomizations() {
         // カスタマイズ状態をデフォルトに戻す
         customizeState.clinicName = 'ふじみ野ひかり眼科';
-        customizeState.availableMsg = '{day}分の予約枠 空きあり';
-        customizeState.fullMsg = '{day}の予約は 満枠です';
+        customizeState.availableMsg = '{day}分の予約枠 「空き」あり';
+        customizeState.fullMsg = '{day}の予約は 「満枠」です';
         customizeState.subMsg = '誠に恐れ入りますが、翌診療日以降で ご予約ください';
         customizeState.qrMsg = '受付窓口 もしくは QRコードから ご予約ください';
-        customizeState.availableIcon = '😊';
+        customizeState.availableIcon = '⭕';
         customizeState.fullIcon = '😔';
         customizeState.availableBg = '#27AE60';
         customizeState.fullBg = '#DC3545';
         customizeState.bannerBg = '#FFC107';
         customizeState.bannerText = '#212529';
         // サイズ
-        customizeState.iconSize = 10;
+        customizeState.iconSize = 12;
         customizeState.mainMsgSize = 6.0;
-        customizeState.subMsgSize = 3.0;
-        customizeState.qrMsgSize = 3.5;
-        customizeState.updateTimeSize = 2.0;
+        customizeState.subMsgSize = 4.1;
+        customizeState.qrMsgSize = 4.6;
+        customizeState.updateTimeSize = 3.0;
+        // バナー設定
+        customizeState.openingSoonText = '10時に窓口が開きます　お待ち下さい';
+        customizeState.lunchBreakText = '昼休み中　午後３時より窓口が開きます';
+        customizeState.bannerFontSize = 2.6;
+        customizeState.bannerHeight = 110;
+        customizeState.bannerPadding = 0;
         // アニメ1
         customizeState.pulseEnabled = true;
-        customizeState.pulseSpeed = 2.0;
+        customizeState.pulseSpeed = 3.0;
         customizeState.pulseScale = 1.15;
-        customizeState.glowEnabled = false;
-        customizeState.glowIntensity = 'medium';
-        customizeState.glowColor = 'white';
+        customizeState.glowEnabled = true;
+        customizeState.glowIntensity = 'weak';
+        customizeState.glowColor = 'yellow';
         customizeState.glowPulse = false;
         // アニメ2
         customizeState.floatTarget = 'off';
-        customizeState.floatSpeed = 'normal';
-        customizeState.zoomTarget = 'off';
+        customizeState.floatSpeed = 'slow';
+        customizeState.zoomTarget = 'icon';
         customizeState.zoomSpeed = 'normal';
         customizeState.sparkleEnabled = false;
         customizeState.neonEnabled = false;
@@ -3055,10 +3088,17 @@
         customizeState.gradientAnimEnabled = false;
         // ファビコン
         customizeState.faviconEnabled = true;
-        customizeState.faviconAvailableIcon = '●';
+        customizeState.faviconAvailableIcon = 'OK';
         customizeState.faviconAvailableColor = '#4CAF50';
-        customizeState.faviconFullIcon = '✗';
+        customizeState.faviconFullIcon = '✕';
         customizeState.faviconFullColor = '#F44336';
+        // QRコード
+        customizeState.qrEnabled = true;
+        customizeState.qrSize = 175;
+        customizeState.qrOpacity = 1.0;
+        customizeState.qrBorderRadius = 10;
+        customizeState.qrShadowEnabled = true;
+        customizeState.qrPosition = 'bottom-left';
 
         // 入力フィールドを更新
         document.getElementById('customClinicName').value = customizeState.clinicName;
@@ -3073,8 +3113,6 @@
         document.getElementById('customBannerBg').value = customizeState.bannerBg;
         document.getElementById('customBannerText').value = customizeState.bannerText;
 
-        document.getElementById('pulseSpeed').value = customizeState.pulseSpeed;
-        document.getElementById('pulseSpeedValue').textContent = customizeState.pulseSpeed + '秒';
         document.getElementById('pulseScale').value = customizeState.pulseScale;
         document.getElementById('pulseScaleValue').textContent = customizeState.pulseScale;
         document.getElementById('iconSize').value = customizeState.iconSize;
@@ -3089,7 +3127,7 @@
         document.getElementById('updateTimeSizeValue').textContent = customizeState.updateTimeSize + 'vw';
 
         // エフェクトタブの値をリセット
-        document.getElementById('glowIntensityValue').textContent = '中';
+        document.getElementById('glowIntensityValue').textContent = '弱';
 
         // 背景タブの値をリセット
         document.getElementById('gradientTypeValue').textContent = '斜め';
@@ -3109,11 +3147,19 @@
 
         // ボタンの状態を更新
         updateActiveButton('btnPulseOn', 'btnPulseOff', true);
-        updateActiveButton('btnGlowOn', 'btnGlowOff', false);
+        updateActiveButton('btnGlowOn', 'btnGlowOff', true);
         updateActiveButton('btnGlowPulseOn', 'btnGlowPulseOff', false);
         updateActiveButton('btnGradientOn', 'btnGradientOff', false);
         updateActiveButton('btnGradientAnimOn', 'btnGradientAnimOff', false);
         updateActiveButton('btnFaviconOn', 'btnFaviconOff', true);
+        updateActiveButton4('btnFloatIcon', 'btnFloatText', 'btnFloatBoth', 'btnFloatOff',
+            false, false, false, true);
+        updateActiveButton4('btnZoomIcon', 'btnZoomText', 'btnZoomBoth', 'btnZoomOff',
+            true, false, false, false);
+        updateActiveButton4('btnScreenNone', 'btnScreenShakeV', 'btnScreenShakeH', 'btnScreenZoom',
+            true, false, false, false);
+
+        updatePulseSpeedUI();
 
         // アイコン選択をリセット
         document.querySelectorAll('.icon-selector button').forEach(btn => btn.classList.remove('selected'));
@@ -3238,10 +3284,10 @@
         }
 
         // アニメーション
-        document.getElementById('pulseSpeed').value = customizeState.pulseSpeed;
-        document.getElementById('pulseSpeedValue').textContent = customizeState.pulseSpeed + '秒';
         document.getElementById('pulseScale').value = customizeState.pulseScale;
         document.getElementById('pulseScaleValue').textContent = customizeState.pulseScale;
+
+        updatePulseSpeedUI();
 
         // レイアウト
         if (document.getElementById('iconToMainGap')) {
@@ -3297,26 +3343,23 @@
     function toggleDebugPanel() {
         const panel = document.getElementById('debugPanel');
         const btn = document.getElementById('btnTogglePanel');
-        const layoutContainer = document.querySelector('.layout-container');
         const body = document.body;
 
         if (panel.classList.contains('hidden')) {
             // パネルを表示（通常モードに戻す）
             panel.classList.remove('hidden');
-            layoutContainer.classList.remove('panel-hidden');
             body.classList.remove('fullscreen-mode');
             if (btn) {
                 btn.classList.add('active');
-                btn.textContent = '👁️ パネル表示';
+                btn.textContent = '👁️ パネル非表示';
             }
         } else {
             // パネルを非表示（フルスクリーンモード）
             panel.classList.add('hidden');
-            layoutContainer.classList.add('panel-hidden');
             body.classList.add('fullscreen-mode');
             if (btn) {
                 btn.classList.remove('active');
-                btn.textContent = '👁️ パネル非表示';
+                btn.textContent = '👁️ パネル表示';
             }
         }
     }
@@ -3662,40 +3705,8 @@
         lunchBreakBanner.style.background = customizeState.bannerBg;
         lunchBreakBanner.style.color = customizeState.bannerText;
 
-        // デバッグ情報を更新
-        updateDebugInfo(timestampStr, dayText);
-
         // ファビコンを更新
         updateFavicon();
-    }
-
-    /**
-     * デバッグ情報表示を更新
-     */
-    function updateDebugInfo(timestampStr, dayText) {
-        const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
-
-        document.getElementById('statusDisplay').textContent =
-            testState.isAvailable ? '空きあり' : '満枠';
-
-        document.getElementById('dateTimeDisplay').textContent =
-            `${timestampStr} (${dayNames[testState.dayOfWeek]})`;
-
-        // 営業時間前バナー
-        const isOpening = isOpeningSoon(timestampStr);
-        document.getElementById('openingDisplay').textContent =
-            isOpening ? '表示中' : '非表示';
-        const openingIndicator = document.getElementById('openingIndicator');
-        openingIndicator.className = 'status-indicator ' + (isOpening ? 'on' : 'off');
-
-        // 昼休みバナー
-        const isLunch = isLunchBreak(timestampStr);
-        document.getElementById('lunchDisplay').textContent =
-            isLunch ? '表示中' : '非表示';
-        const lunchIndicator = document.getElementById('lunchIndicator');
-        lunchIndicator.className = 'status-indicator ' + (isLunch ? 'on' : 'off');
-
-        document.getElementById('dayTextDisplay').textContent = dayText;
     }
 
     /**
@@ -3946,6 +3957,7 @@
 
         // フルスクリーンモード時はCSSで制御するのでスケール処理をスキップ
         if (document.body.classList.contains('fullscreen-mode')) {
+            displayArea.style.transform = '';
             return;
         }
 
@@ -3986,6 +3998,9 @@
     document.getElementById('btnDebugModeTop').classList.add('active');
     document.getElementById('btnAvailableStatus').classList.add('active');
 
+    // カスタマイズUIの状態を反映
+    applyCustomizationsFromState();
+
     // 初期状態を設定
     testState.isAvailable = true;
     updateDisplay();
@@ -3993,17 +4008,16 @@
     // ファビコンとプレビューを初期化
     updateFaviconPreview();
     updateFavicon();
+    updatePulseSpeedUI();
 
     // 初期起動時はフルスクリーンモード（デバッグパネル非表示）
     const debugPanel = document.getElementById('debugPanel');
-    const layoutContainer = document.querySelector('.layout-container');
     const toggleBtn = document.getElementById('btnTogglePanel');
     debugPanel.classList.add('hidden');
-    layoutContainer.classList.add('panel-hidden');
     document.body.classList.add('fullscreen-mode');
     if (toggleBtn) {
         toggleBtn.classList.remove('active');
-        toggleBtn.textContent = '👁️ パネル非表示';
+        toggleBtn.textContent = '👁️ パネル表示';
     }
 
     // プレビューのスケールを初期化（フルスクリーンモード設定後）
