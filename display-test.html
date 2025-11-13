@@ -295,6 +295,28 @@
 
         .debug-tab-content.active {
             display: block;
+            max-height: 70vh;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        /* カスタムスクロールバー */
+        .debug-tab-content::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .debug-tab-content::-webkit-scrollbar-track {
+            background: #2C3E50;
+            border-radius: 5px;
+        }
+
+        .debug-tab-content::-webkit-scrollbar-thumb {
+            background: #7F8C8D;
+            border-radius: 5px;
+        }
+
+        .debug-tab-content::-webkit-scrollbar-thumb:hover {
+            background: #95A5A6;
         }
 
         /* カスタマイズ入力 */
