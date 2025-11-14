@@ -1,7 +1,7 @@
 /**
  * Display Auto Reloader - Background Service Worker
  *
- * display.htmlとdisplay-shiya.htmlを1分ごとに自動更新するChrome拡張機能
+ * display.html、display-shiya.html、display-combined.htmlを1分ごとに自動更新するChrome拡張機能
  *
  * 動作:
  * - 60秒ごとにアラームを発火
@@ -12,7 +12,8 @@
 // 対象URL（複数）
 const TARGET_URLS = [
   'https://nekonekoganka.github.io/reservation-status/display.html',
-  'https://nekonekoganka.github.io/reservation-status/display-shiya.html'
+  'https://nekonekoganka.github.io/reservation-status/display-shiya.html',
+  'https://nekonekoganka.github.io/reservation-status/display-combined.html'
 ];
 
 // アラーム名
