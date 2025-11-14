@@ -70,7 +70,8 @@ reservation-status/
 ├── docs/                       # ドキュメント
 │   ├── handover-to-claude-code.md      # システム全体の引き継ぎ資料
 │   ├── implementation-guide-v5.md      # 実装手順
-│   └── delete-old-rows-guide.md        # データ管理設定
+│   ├── delete-old-rows-guide.md        # データ管理設定（一般予約）
+│   └── delete-old-rows-shiya-guide.md  # データ管理設定（視野予約）🆕
 ├── chrome-extension/           # Chrome拡張機能（予約状況チェック）
 │   ├── content.js
 │   ├── manifest.json
@@ -99,7 +100,8 @@ reservation-status/
 │   └── README.md               # 詳細なデプロイ手順
 ├── gas/                        # Google Apps Script
 │   ├── google-apps-script-shiya.js  # 視野予約用GAS 🆕
-│   └── delete-old-rows-fixed.gs
+│   ├── delete-old-rows-fixed.gs     # 一般予約：古い行削除GAS
+│   └── delete-old-rows-shiya.gs     # 視野予約：古い行削除GAS 🆕
 └── bookmarklet/                # ブックマークレット（スマホ用）
     └── bookmarklet-v7.md
 ```
