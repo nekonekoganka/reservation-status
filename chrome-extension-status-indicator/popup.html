@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>予約状況</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 320px;
+            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .container {
+            padding: 16px;
+        }
+
+        .header {
+            text-align: center;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 16px;
+        }
+
+        .header h1 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .status-item {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .status-item:last-of-type {
+            margin-bottom: 16px;
+        }
+
+        .status-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .status-value {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .status-icon {
+            font-size: 24px;
+        }
+
+        .status-text {
+            font-weight: bold;
+        }
+
+        .status-text.available {
+            color: #27ae60;
+        }
+
+        .status-text.full {
+            color: #dc3545;
+        }
+
+        .footer {
+            text-align: center;
+            padding-top: 12px;
+            border-top: 1px solid #ddd;
+        }
+
+        .update-time {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .error {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .error-text {
+            font-size: 12px;
+            color: #856404;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 32px 16px;
+        }
+
+        .loading-text {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .links {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .link-button {
+            flex: 1;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            text-align: center;
+            transition: background 0.2s;
+        }
+
+        .link-button:hover {
+            background: #0056b3;
+        }
+
+        .link-button.secondary {
+            background: #6c757d;
+        }
+
+        .link-button.secondary:hover {
+            background: #545b62;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ふじみ野ひかり眼科</h1>
+            <p>予約状況</p>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="loading-text">読み込み中...</div>
+        </div>
+
+        <div id="content" style="display: none;">
+            <div id="error" class="error" style="display: none;">
+                <div class="error-text">データの取得に失敗しました</div>
+            </div>
+
+            <div class="status-item">
+                <div class="status-label">一般予約</div>
+                <div class="status-value">
+                    <span class="status-icon" id="generalIcon">⭕</span>
+                    <span class="status-text available" id="generalText">空き</span>
+                </div>
+            </div>
+
+            <div class="status-item">
+                <div class="status-label">視野予約</div>
+                <div class="status-value">
+                    <span class="status-icon" id="shiyaIcon">😔</span>
+                    <span class="status-text full" id="shiyaText">満枠</span>
+                </div>
+            </div>
+
+            <div class="links">
+                <a href="https://nekonekoganka.github.io/reservation-status/display.html" target="_blank" class="link-button">一般</a>
+                <a href="https://nekonekoganka.github.io/reservation-status/display-shiya.html" target="_blank" class="link-button">視野</a>
+                <a href="https://nekonekoganka.github.io/reservation-status/display-combined.html" target="_blank" class="link-button secondary">統合</a>
+            </div>
+
+            <div class="footer">
+                <div class="update-time" id="updateTime">更新: --:--</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
