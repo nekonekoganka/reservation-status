@@ -178,7 +178,15 @@ function createIcon(isAvailable) {
     ctx.fill();
 
     // 左下
-    ctx.fillRect(0, cellSize, cellSize, cellSize);
+    ctx.beginPath();
+    ctx.moveTo(0, cellSize);
+    ctx.lineTo(cellSize, cellSize);
+    ctx.lineTo(cellSize, size);
+    ctx.lineTo(borderRadius, size);
+    ctx.arcTo(0, size, 0, size - borderRadius, borderRadius);
+    ctx.lineTo(0, cellSize);
+    ctx.closePath();
+    ctx.fill();
 
     // 右下1マス（テーマカラー+文字）
     ctx.fillStyle = themeColor;
@@ -187,9 +195,7 @@ function createIcon(isAvailable) {
     ctx.lineTo(size, cellSize);
     ctx.lineTo(size, size - borderRadius);
     ctx.arcTo(size, size, size - borderRadius, size, borderRadius);
-    ctx.lineTo(borderRadius, size);
-    ctx.arcTo(0, size, 0, size - borderRadius, borderRadius);
-    ctx.lineTo(0, cellSize);
+    ctx.lineTo(cellSize, size);
     ctx.lineTo(cellSize, cellSize);
     ctx.closePath();
     ctx.fill();
