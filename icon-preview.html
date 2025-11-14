@@ -101,6 +101,12 @@
         .grid-cell {
             width: 100%;
             height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
         }
 
         .grid-cell.top-left {
@@ -187,6 +193,12 @@
         .taskbar-cell {
             width: 100%;
             height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
         }
 
         .taskbar-cell.tl { border-radius: 8px 0 0 0; }
@@ -311,9 +323,9 @@
                     <div class="diagram-cell" style="background: #27ae60; color: white;">緑</div>
                     <div class="diagram-cell" style="background: #27ae60; color: white;">緑</div>
                     <div class="diagram-cell" style="background: #27ae60; color: white;">緑</div>
-                    <div class="diagram-cell" style="background: #F57C00; color: white;">オレンジ</div>
+                    <div class="diagram-cell" style="background: #F57C00; color: white; font-size: 48px; font-weight: bold;">一</div>
                 </div>
-                <p style="color: #666; font-size: 0.9em;">左上3マス: 緑（予約可）<br>右下1マス: オレンジ（一般予約）</p>
+                <p style="color: #666; font-size: 0.9em;">左上3マス: 緑（予約可）<br>右下1マス: オレンジ「一」（一般予約）</p>
             </div>
 
             <div style="display: inline-block;">
@@ -322,10 +334,10 @@
                     <div class="diagram-cell" style="background: #dc3545; color: white;">赤</div>
                     <div class="diagram-cell" style="background: #dc3545; color: white;">赤</div>
                     <div class="diagram-cell" style="background: #dc3545; color: white;">赤</div>
-                    <div class="diagram-cell" style="background: #F57C00; color: white;">オレンジ</div>
+                    <div class="diagram-cell" style="background: #F57C00; color: white; font-size: 48px; font-weight: bold;">一</div>
                     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 60px; color: white; font-weight: bold;">✕</div>
                 </div>
-                <p style="color: #666; font-size: 0.9em;">左上3マス: 赤（満枠）+ 白バツ<br>右下1マス: オレンジ（一般予約）</p>
+                <p style="color: #666; font-size: 0.9em;">左上3マス: 赤（満枠）+ 白バツ<br>右下1マス: オレンジ「一」（一般予約）</p>
             </div>
 
             <div style="display: inline-block;">
@@ -334,9 +346,9 @@
                     <div class="diagram-cell" style="background: #27ae60; color: white;">緑</div>
                     <div class="diagram-cell" style="background: #27ae60; color: white;">緑</div>
                     <div class="diagram-cell" style="background: #27ae60; color: white;">緑</div>
-                    <div class="diagram-cell" style="background: #4CAF50; color: white;">緑</div>
+                    <div class="diagram-cell" style="background: #4CAF50; color: white; font-size: 48px; font-weight: bold;">野</div>
                 </div>
-                <p style="color: #666; font-size: 0.9em;">左上3マス: 緑（予約可）<br>右下1マス: 濃い緑（視野予約）</p>
+                <p style="color: #666; font-size: 0.9em;">左上3マス: 緑（予約可）<br>右下1マス: 濃い緑「野」（視野予約）</p>
             </div>
 
             <div style="display: inline-block;">
@@ -345,10 +357,10 @@
                     <div class="diagram-cell" style="background: #dc3545; color: white;">赤</div>
                     <div class="diagram-cell" style="background: #dc3545; color: white;">赤</div>
                     <div class="diagram-cell" style="background: #dc3545; color: white;">赤</div>
-                    <div class="diagram-cell" style="background: #4CAF50; color: white;">緑</div>
+                    <div class="diagram-cell" style="background: #4CAF50; color: white; font-size: 48px; font-weight: bold;">野</div>
                     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 60px; color: white; font-weight: bold;">✕</div>
                 </div>
-                <p style="color: #666; font-size: 0.9em;">左上3マス: 赤（満枠）+ 白バツ<br>右下1マス: 濃い緑（視野予約）</p>
+                <p style="color: #666; font-size: 0.9em;">左上3マス: 赤（満枠）+ 白バツ<br>右下1マス: 濃い緑「野」（視野予約）</p>
             </div>
         </div>
 
@@ -365,10 +377,10 @@
                             <div class="grid-cell top-left" style="background: #27ae60;"></div>
                             <div class="grid-cell top-right" style="background: #27ae60;"></div>
                             <div class="grid-cell bottom-left" style="background: #27ae60;"></div>
-                            <div class="grid-cell bottom-right" style="background: #F57C00;"></div>
+                            <div class="grid-cell bottom-right" style="background: #F57C00;">一</div>
                         </div>
                     </div>
-                    <div class="icon-label">🟢 緑（空き）+ 🟠 オレンジ</div>
+                    <div class="icon-label">🟢 緑（空き）+ 🟠「一」</div>
                     <span class="color-label">#F57C00</span>
                 </div>
 
@@ -380,11 +392,11 @@
                             <div class="grid-cell top-left" style="background: #dc3545;"></div>
                             <div class="grid-cell top-right" style="background: #dc3545;"></div>
                             <div class="grid-cell bottom-left" style="background: #dc3545;"></div>
-                            <div class="grid-cell bottom-right" style="background: #F57C00;"></div>
+                            <div class="grid-cell bottom-right" style="background: #F57C00;">一</div>
                             <div class="x-mark">✕</div>
                         </div>
                     </div>
-                    <div class="icon-label">🔴 赤（満枠）+ 白バツ + 🟠</div>
+                    <div class="icon-label">🔴 赤（満枠）+ 白バツ + 🟠「一」</div>
                     <span class="color-label">#F57C00</span>
                 </div>
 
@@ -396,10 +408,10 @@
                             <div class="grid-cell top-left" style="background: #27ae60;"></div>
                             <div class="grid-cell top-right" style="background: #27ae60;"></div>
                             <div class="grid-cell bottom-left" style="background: #27ae60;"></div>
-                            <div class="grid-cell bottom-right" style="background: #4CAF50;"></div>
+                            <div class="grid-cell bottom-right" style="background: #4CAF50;">野</div>
                         </div>
                     </div>
-                    <div class="icon-label">🟢 緑（空き）+ 🟢 濃い緑</div>
+                    <div class="icon-label">🟢 緑（空き）+ 🟢「野」</div>
                     <span class="color-label">#4CAF50</span>
                 </div>
 
@@ -411,11 +423,11 @@
                             <div class="grid-cell top-left" style="background: #dc3545;"></div>
                             <div class="grid-cell top-right" style="background: #dc3545;"></div>
                             <div class="grid-cell bottom-left" style="background: #dc3545;"></div>
-                            <div class="grid-cell bottom-right" style="background: #4CAF50;"></div>
+                            <div class="grid-cell bottom-right" style="background: #4CAF50;">野</div>
                             <div class="x-mark">✕</div>
                         </div>
                     </div>
-                    <div class="icon-label">🔴 赤（満枠）+ 白バツ + 🟢</div>
+                    <div class="icon-label">🔴 赤（満枠）+ 白バツ + 🟢「野」</div>
                     <span class="color-label">#4CAF50</span>
                 </div>
             </div>
@@ -433,7 +445,7 @@
                         <div style="background: #27ae60; border-radius: 20px 0 0 0;"></div>
                         <div style="background: #27ae60; border-radius: 0 20px 0 0;"></div>
                         <div style="background: #27ae60; border-radius: 0 0 0 20px;"></div>
-                        <div style="background: #F57C00; border-radius: 0 0 20px 0;"></div>
+                        <div style="background: #F57C00; border-radius: 0 0 20px 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: bold;">一</div>
                     </div>
                     <div style="font-size: 0.9em; color: #666;">128px<br>Chrome Store</div>
                 </div>
@@ -444,7 +456,7 @@
                         <div style="background: #dc3545; border-radius: 8px 0 0 0;"></div>
                         <div style="background: #dc3545; border-radius: 0 8px 0 0;"></div>
                         <div style="background: #dc3545; border-radius: 0 0 0 8px;"></div>
-                        <div style="background: #F57C00; border-radius: 0 0 8px 0;"></div>
+                        <div style="background: #F57C00; border-radius: 0 0 8px 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;">一</div>
                         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 30px; color: white; font-weight: bold;">✕</div>
                     </div>
                     <div style="font-size: 0.9em; color: #666;">48px<br>拡張機能バー</div>
@@ -456,7 +468,7 @@
                         <div style="background: #27ae60; border-radius: 6px 0 0 0;"></div>
                         <div style="background: #27ae60; border-radius: 0 6px 0 0;"></div>
                         <div style="background: #27ae60; border-radius: 0 0 0 6px;"></div>
-                        <div style="background: #4CAF50; border-radius: 0 0 6px 0;"></div>
+                        <div style="background: #4CAF50; border-radius: 0 0 6px 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;">野</div>
                     </div>
                     <div style="font-size: 0.9em; color: #666;">32px<br>タスクバー</div>
                 </div>
@@ -467,7 +479,7 @@
                         <div style="background: #dc3545; border-radius: 3px 0 0 0;"></div>
                         <div style="background: #dc3545; border-radius: 0 3px 0 0;"></div>
                         <div style="background: #dc3545; border-radius: 0 0 0 3px;"></div>
-                        <div style="background: #4CAF50; border-radius: 0 0 3px 0;"></div>
+                        <div style="background: #4CAF50; border-radius: 0 0 3px 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 6px; font-weight: bold;">野</div>
                     </div>
                     <div style="font-size: 0.9em; color: #666;">16px<br>favicon</div>
                 </div>
@@ -485,13 +497,13 @@
                         <div class="taskbar-cell tl" style="background: #27ae60;"></div>
                         <div class="taskbar-cell tr" style="background: #27ae60;"></div>
                         <div class="taskbar-cell bl" style="background: #27ae60;"></div>
-                        <div class="taskbar-cell br" style="background: #F57C00;"></div>
+                        <div class="taskbar-cell br" style="background: #F57C00;">一</div>
                     </div>
                     <div class="taskbar-icon">
                         <div class="taskbar-cell tl" style="background: #27ae60;"></div>
                         <div class="taskbar-cell tr" style="background: #27ae60;"></div>
                         <div class="taskbar-cell bl" style="background: #27ae60;"></div>
-                        <div class="taskbar-cell br" style="background: #4CAF50;"></div>
+                        <div class="taskbar-cell br" style="background: #4CAF50;">野</div>
                     </div>
                     <div style="color: #666; margin-left: 20px; font-size: 14px;">
                         両方とも緑 → 予約できます！
@@ -506,17 +518,17 @@
                         <div class="taskbar-cell tl" style="background: #27ae60;"></div>
                         <div class="taskbar-cell tr" style="background: #27ae60;"></div>
                         <div class="taskbar-cell bl" style="background: #27ae60;"></div>
-                        <div class="taskbar-cell br" style="background: #F57C00;"></div>
+                        <div class="taskbar-cell br" style="background: #F57C00;">一</div>
                     </div>
                     <div class="taskbar-icon" style="position: relative;">
                         <div class="taskbar-cell tl" style="background: #dc3545;"></div>
                         <div class="taskbar-cell tr" style="background: #dc3545;"></div>
                         <div class="taskbar-cell bl" style="background: #dc3545;"></div>
-                        <div class="taskbar-cell br" style="background: #4CAF50;"></div>
+                        <div class="taskbar-cell br" style="background: #4CAF50;">野</div>
                         <div class="taskbar-x">✕</div>
                     </div>
                     <div style="color: #666; margin-left: 20px; font-size: 14px;">
-                        一般は空き（緑+オレンジ）、視野は満枠（赤+バツ+緑）
+                        一般は空き（緑+「一」）、視野は満枠（赤+バツ+「野」）
                     </div>
                 </div>
             </div>
@@ -528,14 +540,14 @@
                         <div class="taskbar-cell tl" style="background: #dc3545;"></div>
                         <div class="taskbar-cell tr" style="background: #dc3545;"></div>
                         <div class="taskbar-cell bl" style="background: #dc3545;"></div>
-                        <div class="taskbar-cell br" style="background: #F57C00;"></div>
+                        <div class="taskbar-cell br" style="background: #F57C00;">一</div>
                         <div class="taskbar-x">✕</div>
                     </div>
                     <div class="taskbar-icon" style="position: relative;">
                         <div class="taskbar-cell tl" style="background: #dc3545;"></div>
                         <div class="taskbar-cell tr" style="background: #dc3545;"></div>
                         <div class="taskbar-cell bl" style="background: #dc3545;"></div>
-                        <div class="taskbar-cell br" style="background: #4CAF50;"></div>
+                        <div class="taskbar-cell br" style="background: #4CAF50;">野</div>
                         <div class="taskbar-x">✕</div>
                     </div>
                     <div style="color: #666; margin-left: 20px; font-size: 14px;">
@@ -551,17 +563,17 @@
                         <div class="taskbar-cell tl" style="background: #dc3545;"></div>
                         <div class="taskbar-cell tr" style="background: #dc3545;"></div>
                         <div class="taskbar-cell bl" style="background: #dc3545;"></div>
-                        <div class="taskbar-cell br" style="background: #F57C00;"></div>
+                        <div class="taskbar-cell br" style="background: #F57C00;">一</div>
                         <div class="taskbar-x">✕</div>
                     </div>
                     <div class="taskbar-icon">
                         <div class="taskbar-cell tl" style="background: #27ae60;"></div>
                         <div class="taskbar-cell tr" style="background: #27ae60;"></div>
                         <div class="taskbar-cell bl" style="background: #27ae60;"></div>
-                        <div class="taskbar-cell br" style="background: #4CAF50;"></div>
+                        <div class="taskbar-cell br" style="background: #4CAF50;">野</div>
                     </div>
                     <div style="color: #666; margin-left: 20px; font-size: 14px;">
-                        一般は満枠（赤+バツ+オレンジ）、視野は空き（緑+緑）
+                        一般は満枠（赤+バツ+「一」）、視野は空き（緑+「野」）
                     </div>
                 </div>
             </div>
@@ -614,16 +626,17 @@
             <strong>💡 デザインのポイント:</strong><br>
             • <strong>2×2グリッド:</strong> 視覚的に分かりやすい4分割<br>
             • <strong>左上3マス:</strong> 予約状況（緑=空き、赤+白バツ=満枠）<br>
-            • <strong>右下1マス:</strong> テーマカラーで一般/視野を区別<br>
-            • <strong>文字なし:</strong> 小さいサイズでも視認性を確保<br>
+            • <strong>右下1マス:</strong> テーマカラー+文字（オレンジ「一」=一般予約、緑「野」=視野予約）<br>
+            • <strong>文字表示:</strong> 小さいサイズでも判別しやすい<br>
             • <strong>Material Design色:</strong> 標準的で見慣れた色使い
         </div>
 
         <div class="note" style="margin-top: 15px; background: #d1ecf1; border-left-color: #0c5460;">
             <strong>🎯 視認性:</strong><br>
-            • 16pxの小さいサイズでもテーマカラーが識別可能<br>
+            • 16pxの小さいサイズでもテーマカラーと文字「一」「野」が識別可能<br>
             • 緑/赤のコントラストで予約状況が一目で分かる<br>
             • 白バツで満枠をさらに強調<br>
+            • 白文字「一」「野」で一般/視野を明確に区別<br>
             • グリッド線なしでシンプル&クリーン
         </div>
 
@@ -632,6 +645,7 @@
             • CSS Grid Layoutで2×2グリッド実装<br>
             • 各マスに個別の背景色を設定<br>
             • 白バツは絶対配置で中央に表示<br>
+            • 白文字「一」「野」はflexboxで中央配置<br>
             • border-radiusで角を個別に丸める<br>
             • アイコンクリック機能なし（シンプル設計）
         </div>
