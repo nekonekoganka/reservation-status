@@ -83,6 +83,12 @@ reservation-status/
 │   ├── background.js           # Service Worker（60秒タイマー）
 │   ├── content.js              # ページリロード処理
 │   └── README.md               # インストール・設定手順
+├── chrome-extension-status-indicator/  # Chrome拡張機能（予約状況インジケーター）🆕
+│   ├── manifest.json           # Manifest V3設定
+│   ├── background.js           # バックグラウンド処理（1分ごと更新）
+│   ├── popup.html              # ポップアップUI
+│   ├── popup.js                # ポップアップロジック
+│   └── README.md               # インストール・使い方
 ├── chrome-web-store/           # Chrome Web Store公開用ファイル 🆕
 │   ├── publishing-guide.md     # 公開手順ガイド
 │   ├── store-listing.md        # ストア掲載情報
@@ -297,6 +303,114 @@ https://ckreserve.com/clinic/fujiminohikari-ganka
 ---
 
 ## 🆕 最近のアップデート（技術的な改善履歴）
+
+### 2025年11月14日 - 予約状況インジケーター Chrome拡張機能（v1.0.0）
+
+#### 🎯 Windowsタスクバー常駐型の予約状況確認システム
+
+**概要:**
+Chrome拡張機能のバッジ表示を活用し、Windowsタスクバー上で一般予約と視野予約の状況を常時確認できるシステムを実装しました。
+
+**新規作成ファイル:**
+- `chrome-extension-status-indicator/manifest.json` - 拡張機能設定（v1.0.0）
+- `chrome-extension-status-indicator/background.js` - バックグラウンド処理
+- `chrome-extension-status-indicator/popup.html` - ポップアップUI
+- `chrome-extension-status-indicator/popup.js` - ポップアップロジック
+- `chrome-extension-status-indicator/README.md` - インストール・使用手順
+
+**バッジ表示の仕様:**
+
+| 状態 | バッジ | 色 | 意味 |
+|------|--------|-----|------|
+| 両方空き | `2` | 🟢 緑 (#27ae60) | 一般予約・視野予約ともに空きあり |
+| 一般のみ空き | `G` | 🟡 黄 (#ffc107) | 一般予約のみ空きあり |
+| 視野のみ空き | `S` | 🟡 黄 (#ffc107) | 視野予約のみ空きあり |
+| 両方満枠 | `0` | 🔴 赤 (#dc3545) | 両方とも満枠 |
+
+**主な機能:**
+
+1. **自動更新**: 1分ごとに2つのスプレッドシートから最新データを取得
+2. **バッジ表示**: Chrome拡張機能アイコンに状況を色とテキストで表示
+3. **ポップアップ**: アイコンクリックで詳細な予約状況を表示
+   - 一般予約の状態（⭕空き / 😔満枠）
+   - 視野予約の状態（⭕空き / 😔満枠）
+   - 最終更新時刻
+   - 各ディスプレイページへのリンク（一般・視野・統合）
+4. **常駐表示**: Chromeをタスクバーにピン留めすることで常時確認可能
+
+**技術実装:**
+
+**1. データ取得ロジック** (background.js)
+```javascript
+// 2つのスプレッドシートから並列でデータ取得
+async function updateStatus() {
+  const [generalData, shiyaData] = await Promise.all([
+    fetchSheetData('フォームの回答 1'),
+    fetchSheetData('フォームの回答_視野予約')
+  ]);
+
+  // バッジを状態に応じて更新
+  updateBadgeByStatus(generalData.isAvailable, shiyaData.isAvailable);
+
+  // chrome.storage.localに保存
+  await chrome.storage.local.set({...});
+}
+```
+
+**2. バッジ更新ロジック**
+```javascript
+function updateBadgeByStatus(generalAvailable, shiyaAvailable) {
+  if (generalAvailable && shiyaAvailable) {
+    updateBadge('2', '#27ae60', '両方空き'); // 緑
+  } else if (generalAvailable && !shiyaAvailable) {
+    updateBadge('G', '#ffc107', '一般のみ空き'); // 黄
+  } else if (!generalAvailable && shiyaAvailable) {
+    updateBadge('S', '#ffc107', '視野のみ空き'); // 黄
+  } else {
+    updateBadge('0', '#dc3545', '両方満枠'); // 赤
+  }
+}
+```
+
+**3. スプレッドシートAPI呼び出し**
+- Google Sheets の `gviz/tq` エンドポイントを使用
+- JSON形式でデータ取得
+- 最新行（最も新しいタイムスタンプ）のステータスを判定
+
+**技術仕様:**
+- **Manifest V3**: 最新のChrome拡張機能仕様
+- **Service Worker**: バックグラウンドで動作
+- **Chrome Storage API**: 状態の保存
+- **Chrome Alarms API**: 1分ごとの定期的な更新
+- **パーミッション**: `alarms`, `storage`, `https://docs.google.com/*`
+
+**インストール方法:**
+1. `chrome://extensions/` を開く
+2. デベロッパーモードをON
+3. 「パッケージ化されていない拡張機能を読み込む」をクリック
+4. `chrome-extension-status-indicator/` フォルダを選択
+5. Chromeアイコンをタスクバーにピン留め（推奨）
+
+詳細: [chrome-extension-status-indicator/README.md](chrome-extension-status-indicator/README.md)
+
+#### 📈 改善効果
+
+1. **常時確認**: Windowsタスクバー上で予約状況を常に視認可能
+2. **省スペース**: ブラウザタブを開かずに状況確認
+3. **詳細表示**: クリックで一般予約・視野予約それぞれの状態を確認
+4. **完全無料**: GitHub PagesとGoogle Sheetsを使用、追加コストゼロ
+5. **自動更新**: 1分ごとに最新データを自動取得
+
+#### 📁 変更ファイル
+- `chrome-extension-status-indicator/` - 新規ディレクトリ
+  - `manifest.json` - 拡張機能設定
+  - `background.js` - 229行（データ取得・バッジ更新ロジック）
+  - `popup.html` - 156行（ポップアップUI）
+  - `popup.js` - 107行（ポップアップロジック）
+  - `README.md` - 211行（ドキュメント）
+- `README.md` - ディレクトリ構成とドキュメント更新
+
+---
 
 ### 2025年11月14日 - 統合予約状況ディスプレイの実装
 
