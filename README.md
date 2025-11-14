@@ -2,13 +2,25 @@
 
 眼科クリニックの予約状況を自動判定し、ホームページのバナーに表示するシステムです。
 
+**対応予約:** 一般予約・視野予約の2種類の予約システムを独立して管理
+
 ## 🌐 デモ
+
+### 一般予約（fujimino）
 
 **バナー表示（ホームページ埋め込み用）：** https://nekonekoganka.github.io/reservation-status/
 
 **全画面ディスプレイ（クリニック入口用・レスポンシブ対応）：** https://nekonekoganka.github.io/reservation-status/display.html
 
 **デバッグページ（テスト用）：** https://nekonekoganka.github.io/reservation-status/display-test.html
+
+### 視野予約（fujiminohikari）🆕
+
+**バナー表示（ホームページ埋め込み用）：** https://nekonekoganka.github.io/reservation-status/shiya.html
+
+**全画面ディスプレイ（クリニック入口用・レスポンシブ対応）：** https://nekonekoganka.github.io/reservation-status/display-shiya.html
+
+**デバッグページ（テスト用）：** https://nekonekoganka.github.io/reservation-status/display-test-shiya.html
 
 ---
 
@@ -33,14 +45,18 @@
 
 ```
 reservation-status/
-├── index.html                  # バナー表示用HTML（ホームページ埋め込み用）
-├── display.html                # 全画面ディスプレイ用HTML（レスポンシブ対応・クリニック入口用）🆕
-├── display-test.html           # デバッグ用テストページ（カスタマイズ機能付き）🆕
+├── index.html                  # 一般予約: バナー表示用HTML（ホームページ埋め込み用）
+├── display.html                # 一般予約: 全画面ディスプレイ用HTML（レスポンシブ対応・クリニック入口用）🆕
+├── display-test.html           # 一般予約: デバッグ用テストページ（カスタマイズ機能付き）🆕
+├── shiya.html                  # 視野予約: バナー表示用HTML（ホームページ埋め込み用）🆕
+├── display-shiya.html          # 視野予約: 全画面ディスプレイ用HTML（レスポンシブ対応・クリニック入口用）🆕
+├── display-test-shiya.html     # 視野予約: デバッグ用テストページ（カスタマイズ機能付き）🆕
 ├── Downloads/                  # バナー用画像ファイル
 │   ├── vacant_reservation.png  # 予約空きありバナー
 │   ├── full_reservation.png    # 予約満バナー
 │   ├── closed_days.png         # 休診日バナー
-│   └── QR_fujiminohikari.png   # 予約QRコード（左下固定表示）
+│   ├── QR_fujiminohikari.png   # 一般予約QRコード（左下固定表示）
+│   └── QR_Field_of_vision_reservation.png   # 視野予約QRコード（後で追加）🆕
 ├── docs/                       # ドキュメント
 │   ├── handover-to-claude-code.md      # システム全体の引き継ぎ資料
 │   ├── implementation-guide-v5.md      # 実装手順
@@ -56,12 +72,18 @@ reservation-status/
 │   ├── store-listing.md        # ストア掲載情報
 │   ├── privacy-policy.md       # プライバシーポリシー
 │   └── screenshot-guide.md     # スクリーンショットガイド
-├── docker-automation/          # Docker自動化システム 🆕
+├── docker-automation/          # 一般予約: Docker自動化システム 🆕
+│   ├── server.js               # メインコード（Node.js + Puppeteer）
+│   ├── Dockerfile              # Docker設定
+│   ├── package.json            # 依存関係
+│   └── README.md               # 詳細なデプロイ手順
+├── docker-automation-shiya/    # 視野予約: Docker自動化システム 🆕
 │   ├── server.js               # メインコード（Node.js + Puppeteer）
 │   ├── Dockerfile              # Docker設定
 │   ├── package.json            # 依存関係
 │   └── README.md               # 詳細なデプロイ手順
 ├── gas/                        # Google Apps Script
+│   ├── google-apps-script-shiya.js  # 視野予約用GAS 🆕
 │   └── delete-old-rows-fixed.gs
 └── bookmarklet/                # ブックマークレット（スマホ用）
     └── bookmarklet-v7.md
@@ -258,6 +280,45 @@ https://ckreserve.com/clinic/fujiminohikari-ganka
 ---
 
 ## 🆕 最近のアップデート（技術的な改善履歴）
+
+### 2025年11月14日 - 視野予約システムの追加
+
+#### 🎯 完全に独立した視野予約システムを構築
+
+**概要:**
+一般予約（fujimino）とは完全に独立した視野予約（fujiminohikari）システムを新規構築しました。
+
+**新規作成ファイル:**
+
+**1. Google Apps Script（視野予約専用）**
+- `gas/google-apps-script-shiya.js` - 視野予約用GAS
+- スプレッドシート「フォームの回答_視野予約」に記録
+
+**2. Docker自動化システム（視野予約専用）**
+- `docker-automation-shiya/server.js` - Puppeteer自動化コード
+- `docker-automation-shiya/package.json` - 依存関係
+- `docker-automation-shiya/Dockerfile` - Docker設定
+- `docker-automation-shiya/README.md` - デプロイ手順書
+- 予約ページ: `https://ckreserve.com/clinic/fujiminohikari-ganka/fujiminohikari`
+
+**3. 表示用HTML（視野予約専用）**
+- `shiya.html` - バナー（ホームページ埋め込み用）
+- `display-shiya.html` - 全画面ディスプレイ（クリニック入口用）
+- `display-test-shiya.html` - デバッグページ
+- 表示名称: 「ふじみ野ひかり眼科 視野予約」
+- メッセージ: 「視野予約枠 「空き」あり」
+
+**設計方針:**
+- 一般予約システムに一切触れず、完全独立
+- 同じロジック（日付判定、営業時間、実行頻度）を使用
+- Cloud Runで2つのサービスを並行稼働（月40〜160円程度）
+
+**デプロイ方法:**
+- 一般予約: Cloud Run `reservation-checker`
+- 視野予約: Cloud Run `reservation-checker-shiya` ← 新規
+- 詳細: `docker-automation-shiya/README.md` 参照
+
+---
 
 ### 2025年11月13日 - display.htmlとdisplay-test.htmlのレイアウト統一
 
