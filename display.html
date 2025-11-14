@@ -37,14 +37,14 @@
             transition: background-color 0.5s ease;
         }
 
-        /* 予約可能の時のスタイル（濃い黄緑色） */
+        /* 予約可能の時のスタイル（濃い黄緑色） - 背景色はJSで動的に設定 */
         .display-container.available {
-            background: #27ae60;
+            /* background color set by JavaScript */
         }
 
-        /* 予約不可の時のスタイル（赤色） */
+        /* 予約不可の時のスタイル（赤色） - 背景色はJSで動的に設定 */
         .display-container.unavailable {
-            background: #dc3545;
+            /* background color set by JavaScript */
         }
 
         /* 読み込み中のスタイル */
@@ -57,27 +57,18 @@
             display: none;
         }
 
+        :root {
+            --pulse-duration: 3s;
+        }
+
         /* アイコン */
         .icon {
             font-size: clamp(144px, 12vw, 200px);
             margin-bottom: 95px;
             margin-top: 80px;
             line-height: 1;
-            animation: pulse 2s ease-in-out infinite;
-            /* 白い縁取り効果 */
-            text-shadow:
-                -4px -4px 0 white,
-                4px -4px 0 white,
-                -4px 4px 0 white,
-                4px 4px 0 white,
-                0 -4px 0 white,
-                0 4px 0 white,
-                -4px 0 0 white,
-                4px 0 0 white,
-                -3px -3px 0 white,
-                3px -3px 0 white,
-                -3px 3px 0 white,
-                3px 3px 0 white;
+            animation: pulse var(--pulse-duration) ease-in-out infinite;
+            /* text-shadow is set by JavaScript based on DISPLAY_CONFIG */
         }
 
         /* アイコンのパルスアニメーション */
@@ -191,18 +182,14 @@
 <body>
 <div class="display-area">
     <!-- 営業時間前バナー -->
-    <div id="openingSoonBanner" class="lunch-break-banner">
-        10時に窓口が開きます　お待ち下さい
-    </div>
+    <div id="openingSoonBanner" class="lunch-break-banner"></div>
 
     <!-- 昼休みバナー -->
-    <div id="lunchBreakBanner" class="lunch-break-banner">
-        昼休み中　午後３時より窓口が開きます
-    </div>
+    <div id="lunchBreakBanner" class="lunch-break-banner"></div>
 
     <!-- QRコード（左下固定） -->
-    <div class="qr-code-corner">
-        <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード">
+    <div id="qrCodeCorner" class="qr-code-corner">
+        <img id="qrImage" src="" alt="予約QRコード">
     </div>
 
     <div id="displayContainer" class="display-container loading">
@@ -230,7 +217,65 @@
         subMsg: '誠に恐れ入りますが、翌診療日以降で ご予約ください',
         qrMsg: '受付窓口 もしくは QRコードから ご予約ください',
         availableIcon: '⭕',
-        fullIcon: '😔'
+        fullIcon: '😔',
+        availableBg: '#27ae60',
+        fullBg: '#dc3545',
+        bannerBg: '#ffc107',
+        bannerText: '#212529',
+        iconSize: 12,
+        mainMsgSize: 6,
+        subMsgSize: 4.1,
+        qrMsgSize: 4.6,
+        updateTimeSize: 3,
+        openingSoonText: '10時に窓口が開きます　お待ち下さい',
+        lunchBreakText: '昼休み中　午後３時より窓口が開きます',
+        bannerFontSize: 2.8,
+        bannerHeight: 115,
+        bannerPadding: 0,
+        iconToMainGap: 95,
+        mainToSubGap: 60,
+        subToQrGap: 5,
+        qrToUpdateGap: 60,
+        mainMsgFontWeight: 900,
+        subMsgFontWeight: 400,
+        qrMsgFontWeight: 400,
+        updateTimeFontWeight: 400,
+        mainMsgLineHeight: 1.2,
+        mainMsgLetterSpacing: 0,
+        textShadowEnabled: true,
+        textShadowColor: '#000000',
+        textShadowBlur: 5,
+        textShadowDistance: 3,
+        textStrokeEnabled: false,
+        textStrokeColor: '#ffffff',
+        textStrokeWidth: 2,
+        qrEnabled: true,
+        qrSize: 175,
+        qrPosition: 'top-left',
+        qrOpacity: 1,
+        qrBorderRadius: 10,
+        qrShadowEnabled: true,
+        qrImageUrl: 'Downloads/QR_fujiminohikari.png',
+        pulseEnabled: true,
+        pulseSpeed: 3,
+        pulseScale: 1.15,
+        glowEnabled: false,
+        glowIntensity: 'weak',
+        glowColor: 'yellow',
+        glowPulse: false,
+        floatTarget: 'off',
+        floatSpeed: 'slow',
+        zoomTarget: 'icon',
+        zoomSpeed: 'normal',
+        sparkleEnabled: false,
+        neonEnabled: false,
+        neonSpeed: 'normal',
+        screenEffect: 'none',
+        gradientEnabled: false,
+        gradientType: 'diagonal',
+        gradientColor1: '#27ae60',
+        gradientColor2: '#1e8449',
+        gradientAnimEnabled: false
     };
 
     const FAVICON_CONFIG = {
@@ -240,6 +285,94 @@
         fullIcon: '✕',
         fullColor: '#F44336'
     };
+
+    /**
+     * 初期設定を適用
+     */
+    function applyInitialSettings() {
+        // バナーテキストとスタイルを設定
+        const openingSoonBanner = document.getElementById('openingSoonBanner');
+        const lunchBreakBanner = document.getElementById('lunchBreakBanner');
+
+        openingSoonBanner.textContent = DISPLAY_CONFIG.openingSoonText;
+        lunchBreakBanner.textContent = DISPLAY_CONFIG.lunchBreakText;
+
+        // バナーのスタイルを適用
+        [openingSoonBanner, lunchBreakBanner].forEach(banner => {
+            banner.style.backgroundColor = DISPLAY_CONFIG.bannerBg;
+            banner.style.color = DISPLAY_CONFIG.bannerText;
+            banner.style.fontSize = `clamp(16px, ${DISPLAY_CONFIG.bannerFontSize}vw, 32px)`;
+            banner.style.height = DISPLAY_CONFIG.bannerHeight + 'px';
+            banner.style.padding = DISPLAY_CONFIG.bannerPadding + 'px 20px';
+        });
+
+        // QR画像を設定
+        const qrImage = document.getElementById('qrImage');
+        const qrCodeCorner = document.getElementById('qrCodeCorner');
+
+        if (DISPLAY_CONFIG.qrEnabled) {
+            qrImage.src = DISPLAY_CONFIG.qrImageUrl;
+            qrImage.style.width = DISPLAY_CONFIG.qrSize + 'px';
+            qrImage.style.height = DISPLAY_CONFIG.qrSize + 'px';
+            qrImage.style.opacity = DISPLAY_CONFIG.qrOpacity;
+            qrImage.style.borderRadius = DISPLAY_CONFIG.qrBorderRadius + 'px';
+
+            if (DISPLAY_CONFIG.qrShadowEnabled) {
+                qrImage.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+            }
+
+            // QR位置を設定
+            switch (DISPLAY_CONFIG.qrPosition) {
+                case 'top-left':
+                    qrCodeCorner.style.top = '20px';
+                    qrCodeCorner.style.left = '20px';
+                    qrCodeCorner.style.bottom = 'auto';
+                    qrCodeCorner.style.right = 'auto';
+                    break;
+                case 'top-right':
+                    qrCodeCorner.style.top = '20px';
+                    qrCodeCorner.style.right = '20px';
+                    qrCodeCorner.style.bottom = 'auto';
+                    qrCodeCorner.style.left = 'auto';
+                    break;
+                case 'bottom-right':
+                    qrCodeCorner.style.bottom = '20px';
+                    qrCodeCorner.style.right = '20px';
+                    qrCodeCorner.style.top = 'auto';
+                    qrCodeCorner.style.left = 'auto';
+                    break;
+                default: // bottom-left
+                    qrCodeCorner.style.bottom = '20px';
+                    qrCodeCorner.style.left = '20px';
+                    qrCodeCorner.style.top = 'auto';
+                    qrCodeCorner.style.right = 'auto';
+            }
+        } else {
+            qrCodeCorner.style.display = 'none';
+        }
+
+        // パルスアニメーションの速度とスケールを動的に設定
+        if (DISPLAY_CONFIG.pulseEnabled) {
+            const styleSheet = document.styleSheets[0];
+            const pulseKeyframes = `
+                @keyframes pulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(${DISPLAY_CONFIG.pulseScale}); }
+                    100% { transform: scale(1); }
+                }
+            `;
+            // 既存のpulseアニメーションを置き換え
+            for (let i = styleSheet.cssRules.length - 1; i >= 0; i--) {
+                if (styleSheet.cssRules[i].name === 'pulse') {
+                    styleSheet.deleteRule(i);
+                }
+            }
+            styleSheet.insertRule(pulseKeyframes, styleSheet.cssRules.length);
+
+            // アニメーション速度を設定
+            document.documentElement.style.setProperty('--pulse-duration', DISPLAY_CONFIG.pulseSpeed + 's');
+        }
+    }
 
     /**
      * 予約状況を取得して表示する関数
@@ -448,6 +581,40 @@
     }
 
     /**
+     * テキストシャドウとストロークのスタイルを生成
+     */
+    function generateTextStyle() {
+        const shadows = [];
+
+        // テキストストローク（縁取り）
+        if (DISPLAY_CONFIG.textStrokeEnabled) {
+            const width = DISPLAY_CONFIG.textStrokeWidth;
+            const color = DISPLAY_CONFIG.textStrokeColor;
+            // 複数方向のtext-shadowで縁取りを実現
+            for (let angle = 0; angle < 360; angle += 45) {
+                const rad = (angle * Math.PI) / 180;
+                const x = Math.round(Math.cos(rad) * width);
+                const y = Math.round(Math.sin(rad) * width);
+                shadows.push(`${x}px ${y}px 0 ${color}`);
+            }
+        }
+
+        // テキストシャドウ
+        if (DISPLAY_CONFIG.textShadowEnabled) {
+            const dx = DISPLAY_CONFIG.textShadowDistance;
+            const blur = DISPLAY_CONFIG.textShadowBlur;
+            const color = DISPLAY_CONFIG.textShadowColor;
+            shadows.push(`0 ${dx}px ${blur}px ${color}`);
+        }
+
+        if (shadows.length > 0) {
+            return `text-shadow: ${shadows.join(', ')}`;
+        }
+
+        return '';
+    }
+
+    /**
      * ディスプレイを表示する関数
      */
     function displayStatus(isAvailable, updateTime) {
@@ -462,26 +629,34 @@
         // タイムスタンプをフォーマット
         const formattedTime = formatTimestamp(updateTime);
 
+        // テキストスタイルを生成
+        const textStyle = generateTextStyle();
+
+        // 背景色を設定
+        const bgColor = isAvailable ? DISPLAY_CONFIG.availableBg : DISPLAY_CONFIG.fullBg;
+
         if (isAvailable) {
             // 予約可能（濃い黄緑色）
             container.className = 'display-container available';
+            container.style.backgroundColor = bgColor;
             container.innerHTML = `
                 <div class="clinic-name">${DISPLAY_CONFIG.clinicName}</div>
-                <div class="icon">${DISPLAY_CONFIG.availableIcon}</div>
-                <div class="main-message">${DISPLAY_CONFIG.availableMsg.replace('{day}', dayText)}</div>
-                <div class="qr-message">${DISPLAY_CONFIG.qrMsg}</div>
-                <div class="update-time">${formattedTime}</div>
+                <div class="icon" style="${textStyle}; margin-bottom: ${DISPLAY_CONFIG.iconToMainGap}px;">${DISPLAY_CONFIG.availableIcon}</div>
+                <div class="main-message" style="${textStyle}; font-weight: ${DISPLAY_CONFIG.mainMsgFontWeight}; line-height: ${DISPLAY_CONFIG.mainMsgLineHeight}; letter-spacing: ${DISPLAY_CONFIG.mainMsgLetterSpacing}px; margin-bottom: ${DISPLAY_CONFIG.subToQrGap}px;">${DISPLAY_CONFIG.availableMsg.replace('{day}', dayText)}</div>
+                <div class="qr-message" style="font-weight: ${DISPLAY_CONFIG.qrMsgFontWeight}; margin-bottom: ${DISPLAY_CONFIG.qrToUpdateGap}px;">${DISPLAY_CONFIG.qrMsg}</div>
+                <div class="update-time" style="font-weight: ${DISPLAY_CONFIG.updateTimeFontWeight}">${formattedTime}</div>
             `;
         } else {
             // 予約不可（赤色）
             container.className = 'display-container unavailable';
+            container.style.backgroundColor = bgColor;
             container.innerHTML = `
                 <div class="clinic-name">${DISPLAY_CONFIG.clinicName}</div>
-                <div class="icon">${DISPLAY_CONFIG.fullIcon}</div>
-                <div class="main-message">${DISPLAY_CONFIG.fullMsg.replace('{day}', dayText)}</div>
-                <div class="sub-message">${DISPLAY_CONFIG.subMsg}</div>
-                <div class="qr-message">${DISPLAY_CONFIG.qrMsg}</div>
-                <div class="update-time">${formattedTime}</div>
+                <div class="icon" style="${textStyle}; margin-bottom: ${DISPLAY_CONFIG.iconToMainGap}px;">${DISPLAY_CONFIG.fullIcon}</div>
+                <div class="main-message" style="${textStyle}; font-weight: ${DISPLAY_CONFIG.mainMsgFontWeight}; line-height: ${DISPLAY_CONFIG.mainMsgLineHeight}; letter-spacing: ${DISPLAY_CONFIG.mainMsgLetterSpacing}px; margin-bottom: ${DISPLAY_CONFIG.mainToSubGap}px;">${DISPLAY_CONFIG.fullMsg.replace('{day}', dayText)}</div>
+                <div class="sub-message" style="font-weight: ${DISPLAY_CONFIG.subMsgFontWeight}; margin-bottom: ${DISPLAY_CONFIG.subToQrGap}px;">${DISPLAY_CONFIG.subMsg}</div>
+                <div class="qr-message" style="font-weight: ${DISPLAY_CONFIG.qrMsgFontWeight}; margin-bottom: ${DISPLAY_CONFIG.qrToUpdateGap}px;">${DISPLAY_CONFIG.qrMsg}</div>
+                <div class="update-time" style="font-weight: ${DISPLAY_CONFIG.updateTimeFontWeight}">${formattedTime}</div>
             `;
         }
 
@@ -505,6 +680,7 @@
     }
 
     // ページ読み込み時に実行
+    applyInitialSettings();
     updateFavicon(true);
     updateReservationStatus();
 
