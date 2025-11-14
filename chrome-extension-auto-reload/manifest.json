@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Display Test Auto Reloader",
-  "version": "1.0.0",
-  "description": "display-test.htmlを1分ごとに自動更新するChrome拡張機能",
+  "name": "Display Auto Reloader",
+  "version": "1.1.0",
+  "description": "display.htmlとdisplay-shiya.htmlを1分ごとに自動更新するChrome拡張機能",
   "permissions": [
     "tabs",
     "scripting",
@@ -17,7 +17,8 @@
   "content_scripts": [
     {
       "matches": [
-        "https://nekonekoganka.github.io/reservation-status/display-test.html"
+        "https://nekonekoganka.github.io/reservation-status/display.html",
+        "https://nekonekoganka.github.io/reservation-status/display-shiya.html"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
