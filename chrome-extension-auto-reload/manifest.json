@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Display Auto Reloader",
-  "version": "1.1.0",
-  "description": "display.htmlとdisplay-shiya.htmlを1分ごとに自動更新するChrome拡張機能",
+  "version": "1.2.0",
+  "description": "display.html、display-shiya.html、display-combined.htmlを1分ごとに自動更新するChrome拡張機能",
   "permissions": [
     "tabs",
     "scripting",
@@ -18,7 +18,8 @@
     {
       "matches": [
         "https://nekonekoganka.github.io/reservation-status/display.html",
-        "https://nekonekoganka.github.io/reservation-status/display-shiya.html"
+        "https://nekonekoganka.github.io/reservation-status/display-shiya.html",
+        "https://nekonekoganka.github.io/reservation-status/display-combined.html"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
