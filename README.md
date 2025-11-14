@@ -22,6 +22,14 @@
 
 **デバッグページ（テスト用）：** https://nekonekoganka.github.io/reservation-status/display-test-shiya.html
 
+### 統合予約状況ディスプレイ 🆕
+
+**全画面ディスプレイ（一般予約+視野予約の統合表示）：** https://nekonekoganka.github.io/reservation-status/display-combined.html
+
+- 一般予約と視野予約の両方のデータを統合判定
+- 両方とも満枠 → 「満枠」表示（QRコード表示）
+- どちらか空き → 「空き」表示（QRコードなし）
+
 ---
 
 ## 📌 主な機能
@@ -51,6 +59,7 @@ reservation-status/
 ├── shiya.html                  # 視野予約: バナー表示用HTML（ホームページ埋め込み用）🆕
 ├── display-shiya.html          # 視野予約: 全画面ディスプレイ用HTML（レスポンシブ対応・クリニック入口用）🆕
 ├── display-test-shiya.html     # 視野予約: デバッグ用テストページ（カスタマイズ機能付き）🆕
+├── display-combined.html       # 統合ディスプレイ: 一般予約+視野予約の統合判定表示 🆕
 ├── Downloads/                  # バナー用画像ファイル・設定ファイル
 │   ├── vacant_reservation.png  # 予約空きありバナー
 │   ├── full_reservation.png    # 予約満バナー
@@ -286,6 +295,88 @@ https://ckreserve.com/clinic/fujiminohikari-ganka
 ---
 
 ## 🆕 最近のアップデート（技術的な改善履歴）
+
+### 2025年11月14日 - 統合予約状況ディスプレイの実装
+
+#### 🎯 一般予約と視野予約の統合判定システム
+
+**概要:**
+一般予約と視野予約の2つのスプレッドシートから並列でデータを取得し、統合判定して表示する新しいディスプレイページを実装しました。
+
+**新規作成ファイル:**
+- `display-combined.html` - 統合予約状況ディスプレイ
+
+**統合判定ロジック:**
+```javascript
+// 両方満枠の場合のみ「満枠」表示
+const generalAvailable = generalData.status.includes('空きあり');
+const shiyaAvailable = shiyaData.status.includes('空きあり');
+const isAvailable = generalAvailable || shiyaAvailable;
+```
+
+**表示仕様:**
+
+**空きあり（どちらか一方でも空き）:**
+- メインメッセージ: 「本日の予約  「空き」あり」
+- サブメッセージ: 「受付窓口でご案内いたします」
+- 背景色: 緑（#27ae60）
+- QRコード: 非表示
+- アイコン: ⭕
+
+**満枠（両方とも満枠）:**
+- メインメッセージ: 「本日の予約は 「満枠」です」
+- サブメッセージ: 「誠に恐れ入りますが、翌診療日以降で ご予約ください」
+- QRメッセージ: 「受付窓口 もしくは QRコードから ご予約ください」
+- 背景色: 赤（#dc3545）
+- QRコード: 表示（一般予約QRコード）
+- アイコン: 😔
+
+**技術実装:**
+- **Promise.all()** で2つのスプレッドシートから並列データ取得
+- より新しいタイムスタンプを更新時刻として使用
+- display-preset.jsonの設定を適用
+- テキストシャドウ効果、営業時間前バナー、昼休みバナー、ファビコン対応
+
+**利用シーン:**
+クリニック入口に設置して、一般診療・視野検査のどちらかに空きがある限り「空き」を表示し、窓口での柔軟な案内を可能にします。
+
+#### 🔄 Chrome拡張機能の3ページ対応（v1.2.0）
+
+**変更内容:**
+Chrome拡張機能 `chrome-extension-auto-reload` を更新し、統合ディスプレイも自動リロード対象に追加しました。
+
+**更新ファイル:**
+
+**1. manifest.json** (v1.1.0 → v1.2.0)
+- `matches`配列に `display-combined.html` を追加
+- 説明文を更新: 「display.html、display-shiya.html、display-combined.htmlを1分ごとに自動更新」
+
+**2. background.js**
+- `TARGET_URLS` に `display-combined.html` を追加
+- コメントを更新
+
+**対応ページ（合計3ページ）:**
+1. `https://nekonekoganka.github.io/reservation-status/display.html`（一般予約）
+2. `https://nekonekoganka.github.io/reservation-status/display-shiya.html`（視野予約）
+3. `https://nekonekoganka.github.io/reservation-status/display-combined.html`（統合）← 🆕
+
+**更新手順:**
+1. `chrome://extensions/` を開く
+2. 「更新」ボタンをクリック（v1.2.0に更新）
+
+#### 📈 改善効果
+
+1. **柔軟な窓口対応**: 一般診療・視野検査のどちらかに空きがあれば患者を受付可能
+2. **シンプルな表示**: 患者目線では「空き/満枠」のみを大きく表示
+3. **完全無料**: クライアントサイドの統合判定により追加コストゼロ
+4. **既存システムとの共存**: display.html、display-shiya.htmlはそのまま残し、用途に応じて使い分け可能
+
+#### 📁 変更ファイル
+- `display-combined.html` - 新規作成（729行）
+- `chrome-extension-auto-reload/manifest.json` - v1.2.0に更新
+- `chrome-extension-auto-reload/background.js` - 3ページ対応
+
+---
 
 ### 2025年11月14日 - ディスプレイ設定の統一とChrome拡張機能の追加
 
