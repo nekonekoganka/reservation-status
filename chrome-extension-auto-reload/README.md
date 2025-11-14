@@ -1,10 +1,12 @@
-# Display Test Auto Reloader
+# Display Auto Reloader
 
-display-test.htmlを1分ごとに自動更新するChrome拡張機能
+display.htmlとdisplay-shiya.htmlを1分ごとに自動更新するChrome拡張機能
 
 ## 📌 概要
 
-- **対象URL:** https://nekonekoganka.github.io/reservation-status/display-test.html
+- **対象URL:**
+  - https://nekonekoganka.github.io/reservation-status/display.html
+  - https://nekonekoganka.github.io/reservation-status/display-shiya.html
 - **更新間隔:** 1分（60秒）ごと
 - **動作条件:** タブがアクティブでない状態でも更新を継続
 - **制御方式:** 常に有効（オン/オフ切り替え機能なし）
@@ -79,7 +81,7 @@ chrome://extensions/
 
 ### 4. インストール完了
 
-拡張機能一覧に「**Display Test Auto Reloader**」が表示されます。
+拡張機能一覧に「**Display Auto Reloader**」が表示されます。
 
 ---
 
@@ -87,9 +89,10 @@ chrome://extensions/
 
 ### 1. 対象URLを開く
 
-ブラウザで以下のURLを開きます：
+ブラウザで以下のいずれか（または両方）のURLを開きます：
 ```
-https://nekonekoganka.github.io/reservation-status/display-test.html
+https://nekonekoganka.github.io/reservation-status/display.html
+https://nekonekoganka.github.io/reservation-status/display-shiya.html
 ```
 
 ### 2. 別のタブに切り替える
@@ -105,22 +108,23 @@ https://nekonekoganka.github.io/reservation-status/display-test.html
 対象URLのタブでデベロッパーツール（F12）を開き、コンソールを確認すると以下のログが表示されます：
 
 ```
-Display Test Auto Reloader: Content Script が読み込まれました
-Display Test Auto Reloader: 1分ごとに自動更新されます
-Display Test Auto Reloader: リロード指示を受信しました
+Display Auto Reloader: Content Script が読み込まれました
+Display Auto Reloader: 1分ごとに自動更新されます
+Display Auto Reloader: リロード指示を受信しました
 ```
 
 Service Workerのログを確認するには：
 1. `chrome://extensions/` を開く
-2. Display Test Auto Reloader の「**Service Worker**」リンクをクリック
+2. Display Auto Reloader の「**Service Worker**」リンクをクリック
 3. コンソールに以下のようなログが表示されます：
 
 ```
-Display Test Auto Reloader: インストールされました
-Display Test Auto Reloader: アラームを設定しました（1分ごと）
-Display Test Auto Reloader: アラーム発火 - リロードを実行します
-Display Test Auto Reloader: 1個のタブを発見しました
-Display Test Auto Reloader: タブID XX にリロード指示を送信しました
+Display Auto Reloader: インストールされました
+Display Auto Reloader: アラームを設定しました（1分ごと）
+Display Auto Reloader: アラーム発火 - リロードを実行します
+Display Auto Reloader: 2個のタブを発見しました
+Display Auto Reloader: タブID XX (https://nekonekoganka.github.io/reservation-status/display.html) にリロード指示を送信しました
+Display Auto Reloader: タブID YY (https://nekonekoganka.github.io/reservation-status/display-shiya.html) にリロード指示を送信しました
 ```
 
 ---
@@ -143,13 +147,18 @@ const RELOAD_INTERVAL_MINUTES = 1;  // ← この値を変更
 
 変更後、拡張機能を再読み込みしてください。
 
-### 対象URLを変更する
+### 対象URLを変更・追加する
 
 `background.js` と `manifest.json` の両方を変更する必要があります。
 
 **background.js:**
 ```javascript
-const TARGET_URL = 'https://example.com/your-page.html';  // ← 変更
+// 対象URL（複数）
+const TARGET_URLS = [
+  'https://example.com/page1.html',  // ← 変更・追加
+  'https://example.com/page2.html',  // ← 変更・追加
+  'https://example.com/page3.html'   // ← 追加も可能
+];
 ```
 
 **manifest.json:**
@@ -157,12 +166,16 @@ const TARGET_URL = 'https://example.com/your-page.html';  // ← 変更
 "content_scripts": [
   {
     "matches": [
-      "https://example.com/your-page.html"  // ← 変更
+      "https://example.com/page1.html",  // ← 変更・追加
+      "https://example.com/page2.html",  // ← 変更・追加
+      "https://example.com/page3.html"   // ← 追加も可能
     ],
     ...
   }
 ]
 ```
+
+両方のファイルで同じURLを指定してください。
 
 ---
 
@@ -185,7 +198,7 @@ const TARGET_URL = 'https://example.com/your-page.html';  // ← 変更
 #### 更新されない場合
 
 1. **拡張機能が有効か確認**
-   - `chrome://extensions/` で「Display Test Auto Reloader」が有効になっているか確認
+   - `chrome://extensions/` で「Display Auto Reloader」が有効になっているか確認
 
 2. **対象URLが正しいか確認**
    - URLが完全一致している必要があります
@@ -215,7 +228,7 @@ chrome.alarms.getAll((alarms) => {
 ## 🛑 アンインストール
 
 1. `chrome://extensions/` を開く
-2. Display Test Auto Reloader の「**削除**」ボタンをクリック
+2. Display Auto Reloader の「**削除**」ボタンをクリック
 3. 確認ダイアログで「削除」をクリック
 
 ---
