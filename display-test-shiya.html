@@ -1144,7 +1144,7 @@
             <div class="debug-section">
                 <h4 style="color: #FFC107; margin-bottom: 15px;">🖼️ 画像設定</h4>
                 <label>画像URL:</label>
-                <input type="text" id="qrImageUrl" value="Downloads/QR_fujiminohikari.png"
+                <input type="text" id="qrImageUrl" value="Downloads/QR_Field_of_vision_reservation.png"
                        style="width: 100%; padding: 8px; font-size: 14px; margin-top: 5px;"
                        oninput="applyQRSettings()">
                 <p style="opacity: 0.6; font-size: 12px; margin-top: 5px;">相対パスまたは絶対URLを指定してください</p>
@@ -1539,7 +1539,7 @@
         qrOpacity: 1,
         qrBorderRadius: 10,
         qrShadowEnabled: true,
-        qrImageUrl: 'Downloads/QR_fujiminohikari.png',
+        qrImageUrl: 'Downloads/QR_Field_of_vision_reservation.png',
         // アニメ1
         pulseEnabled: true,
         pulseSpeed: 3,
@@ -2991,7 +2991,7 @@
 
         // QRコード設定
         if (customizeState.qrEnabled !== undefined) {
-            document.getElementById('qrImageUrl').value = customizeState.qrImageUrl || 'Downloads/QR_fujiminohikari.png';
+            document.getElementById('qrImageUrl').value = customizeState.qrImageUrl || 'Downloads/QR_Field_of_vision_reservation.png';
             document.getElementById('qrSize').value = customizeState.qrSize ?? 175;
             document.getElementById('qrSizeValue').textContent = (customizeState.qrSize ?? 175) + 'px';
             document.getElementById('qrOpacity').value = ((customizeState.qrOpacity ?? 1.0) * 100);

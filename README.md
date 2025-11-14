@@ -65,7 +65,7 @@ reservation-status/
 │   ├── full_reservation.png    # 予約満バナー
 │   ├── closed_days.png         # 休診日バナー
 │   ├── QR_fujiminohikari.png   # 一般予約QRコード（左下固定表示）
-│   ├── QR_Field_of_vision_reservation.png   # 視野予約QRコード（後で追加）🆕
+│   ├── QR_Field_of_vision_reservation.png   # 視野予約QRコード🆕
 │   └── display-preset.json     # ディスプレイ設定プリセット（色・サイズ・間隔・エフェクト）🆕
 ├── docs/                       # ドキュメント
 │   ├── handover-to-claude-code.md      # システム全体の引き継ぎ資料
