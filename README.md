@@ -83,11 +83,21 @@ reservation-status/
 │   ├── background.js           # Service Worker（60秒タイマー）
 │   ├── content.js              # ページリロード処理
 │   └── README.md               # インストール・設定手順
-├── chrome-extension-status-indicator/  # Chrome拡張機能（予約状況インジケーター）🆕
+├── chrome-extension-status-indicator/  # Chrome拡張機能（予約状況インジケーター・統合）🆕
 │   ├── manifest.json           # Manifest V3設定
 │   ├── background.js           # バックグラウンド処理（1分ごと更新）
 │   ├── popup.html              # ポップアップUI
 │   ├── popup.js                # ポップアップロジック
+│   └── README.md               # インストール・使い方
+├── chrome-extension-general-indicator/  # Chrome拡張機能（一般予約インジケーター）🆕
+│   ├── manifest.json           # Manifest V3設定
+│   ├── background.js           # Canvas API動的アイコン生成
+│   ├── icons/                  # アイコンフォルダ（動的生成）
+│   └── README.md               # インストール・使い方
+├── chrome-extension-shiya-indicator/  # Chrome拡張機能（視野予約インジケーター）🆕
+│   ├── manifest.json           # Manifest V3設定
+│   ├── background.js           # Canvas API動的アイコン生成
+│   ├── icons/                  # アイコンフォルダ（動的生成）
 │   └── README.md               # インストール・使い方
 ├── chrome-web-store/           # Chrome Web Store公開用ファイル 🆕
 │   ├── publishing-guide.md     # 公開手順ガイド
@@ -304,7 +314,124 @@ https://ckreserve.com/clinic/fujiminohikari-ganka
 
 ## 🆕 最近のアップデート（技術的な改善履歴）
 
-### 2025年11月14日 - 予約状況インジケーター Chrome拡張機能（v1.0.0）
+### 2025年11月14日 - 2つの独立したChrome拡張機能インジケーター（v1.0.0）
+
+#### 🎯 一般予約と視野予約の独立したインジケーター
+
+**概要:**
+タスクバー上で一般予約と視野予約を個別に確認できる、2つの独立したChrome拡張機能を実装しました。
+
+**新規作成ファイル:**
+
+**1. 一般予約インジケーター (`chrome-extension-general-indicator`)**
+- `manifest.json` - 拡張機能設定（v1.0.0）
+- `background.js` - Canvas API動的アイコン生成ロジック
+- `icons/README.md` - アイコンフォルダ説明
+- `README.md` - インストール・使用手順
+
+**2. 視野予約インジケーター (`chrome-extension-shiya-indicator`)**
+- `manifest.json` - 拡張機能設定（v1.0.0）
+- `background.js` - Canvas API動的アイコン生成ロジック
+- `icons/README.md` - アイコンフォルダ説明
+- `README.md` - インストール・使用手順
+
+**アイコンデザイン（2×2グリッド）:**
+
+| 部分 | 一般予約 | 視野予約 |
+|------|---------|---------|
+| 左上3マス（予約状況） | 🟢 緑（空き）or 🔴 赤+白バツ（満枠） | 🟢 緑（空き）or 🔴 赤+白バツ（満枠） |
+| 右下1マス（識別） | 🟠 #F57C00 + 白文字「一」 | 🟢 #4CAF50 + 白文字「野」 |
+
+**主な機能:**
+
+1. **Canvas API動的アイコン生成**: 予約状況に応じてリアルタイムでアイコンを生成
+2. **2×2グリッドデザイン**: 左上3マス（予約状況）+ 右下1マス（テーマカラー+文字）
+3. **自動更新**: 1分ごとにスプレッドシートから最新データ取得
+4. **クリック機能なし**: シンプル設計、アイコンの見た目のみで状況確認
+5. **独立動作**: 2つの拡張機能が並行して動作
+
+**技術実装:**
+
+**Canvas APIでのアイコン動的生成** (background.js)
+```javascript
+function createIcon(isAvailable) {
+  const sizes = [16, 48, 128];
+
+  sizes.forEach(size => {
+    const canvas = new OffscreenCanvas(size, size);
+    const ctx = canvas.getContext('2d');
+
+    const cellSize = size / 2;
+    const bgColor = isAvailable ? '#27ae60' : '#dc3545'; // 緑 or 赤
+    const themeColor = '#F57C00'; // 一般=#F57C00、視野=#4CAF50
+
+    // 左上3マス: 予約状況
+    ctx.fillStyle = bgColor;
+    // ... グリッド描画 ...
+
+    // 右下1マス: テーマカラー+文字
+    ctx.fillStyle = themeColor;
+    // ... グリッド描画 ...
+    ctx.fillText('一', ...); // 一般は「一」、視野は「野」
+
+    // 満枠の場合は白バツ
+    if (!isAvailable) {
+      ctx.fillText('✕', size / 2, size / 2);
+    }
+
+    // アイコン設定
+    chrome.action.setIcon({ imageData: { [size]: imageData } });
+  });
+}
+```
+
+**技術仕様:**
+- **Manifest V3**: 最新仕様
+- **Canvas API**: OffscreenCanvasで動的アイコン生成
+- **Service Worker**: バックグラウンド動作
+- **Chrome Alarms API**: 1分ごとの定期更新
+- **Google Sheets API**: `gviz/tq` エンドポイント使用
+- **サイズ**: 16px, 48px, 128px（自動生成）
+
+**インストール方法:**
+1. `chrome://extensions/` を開く
+2. デベロッパーモードをON
+3. 2つのフォルダをそれぞれ読み込む
+   - `chrome-extension-general-indicator`
+   - `chrome-extension-shiya-indicator`
+4. Chromeをタスクバーにピン留め
+
+**タスクバーでの見え方:**
+- 2つの拡張機能アイコンが並んで表示
+- 左: 一般予約（オレンジ「一」+ 緑 or 赤+バツ）
+- 右: 視野予約（緑「野」+ 緑 or 赤+バツ）
+
+#### 📈 改善効果
+
+1. **個別確認**: 一般予約と視野予約を別々に確認可能
+2. **視認性向上**: 2×2グリッド + 文字「一」「野」で明確な識別
+3. **Canvas API**: 静的画像不要、動的生成で柔軟性が高い
+4. **シンプル設計**: クリック機能なし、見た目だけで判断
+5. **完全無料**: 追加コストゼロ
+6. **独立動作**: それぞれが独自のスプレッドシートを監視
+
+#### 📁 変更ファイル
+- `chrome-extension-general-indicator/` - 新規ディレクトリ
+  - `manifest.json` - 拡張機能設定
+  - `background.js` - 268行（Canvas API動的生成）
+  - `icons/README.md` - アイコン説明
+  - `README.md` - 129行（ドキュメント）
+- `chrome-extension-shiya-indicator/` - 新規ディレクトリ
+  - `manifest.json` - 拡張機能設定
+  - `background.js` - 268行（Canvas API動的生成）
+  - `icons/README.md` - アイコン説明
+  - `README.md` - 129行（ドキュメント）
+- `README.md` - ディレクトリ構成とドキュメント更新
+- `icon-preview.html` - デザインプレビュー（2×2グリッド+文字）
+
+---
+
+### 2025年11月14日 - 予約状況インジケーター Chrome拡張機能（統合版v1.0.0）
 
 #### 🎯 Windowsタスクバー常駐型の予約状況確認システム
 
