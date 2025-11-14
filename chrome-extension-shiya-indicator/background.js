@@ -207,14 +207,12 @@ function createIcon(isAvailable) {
     ctx.textBaseline = 'middle';
     ctx.fillText('野', cellSize + cellSize / 2, cellSize + cellSize / 2);
 
-    // 満枠の場合は白バツを中央に描画
-    if (!isAvailable) {
-      ctx.fillStyle = 'white';
-      ctx.font = `bold ${size * 0.6}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('✕', size / 2, size / 2);
-    }
+    // 中央にマークを描画（空きあり:◯、満枠:✕）
+    ctx.fillStyle = 'white';
+    ctx.font = `bold ${size * 0.6}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(isAvailable ? '◯' : '✕', size / 2, size / 2);
 
     // ImageDataを取得
     const imageData = ctx.getImageData(0, 0, size, size);
