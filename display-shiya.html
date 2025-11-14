@@ -646,8 +646,8 @@
                 <div class="clinic-name">${DISPLAY_CONFIG.clinicName}</div>
                 <div class="icon" style="${textStyle}; margin-bottom: ${DISPLAY_CONFIG.iconToMainGap}px;">${DISPLAY_CONFIG.availableIcon}</div>
                 <div class="main-message" style="${textStyle}; font-weight: ${DISPLAY_CONFIG.mainMsgFontWeight}; line-height: ${DISPLAY_CONFIG.mainMsgLineHeight}; letter-spacing: ${DISPLAY_CONFIG.mainMsgLetterSpacing}px; margin-bottom: ${DISPLAY_CONFIG.subToQrGap}px;">${DISPLAY_CONFIG.availableMsg.replace('{day}', dayText)}</div>
-                <div class="qr-message" style="font-weight: ${DISPLAY_CONFIG.qrMsgFontWeight}; margin-bottom: ${DISPLAY_CONFIG.qrToUpdateGap}px;">${DISPLAY_CONFIG.qrMsg}</div>
-                <div class="update-time" style="font-weight: ${DISPLAY_CONFIG.updateTimeFontWeight}">${formattedTime}</div>
+                <div class="qr-message" style="${textStyle}; font-weight: ${DISPLAY_CONFIG.qrMsgFontWeight}; margin-bottom: ${DISPLAY_CONFIG.qrToUpdateGap}px;">${DISPLAY_CONFIG.qrMsg}</div>
+                <div class="update-time" style="${textStyle}; font-weight: ${DISPLAY_CONFIG.updateTimeFontWeight}">${formattedTime}</div>
             `;
         } else {
             // 予約不可（赤色）
@@ -657,9 +657,9 @@
                 <div class="clinic-name">${DISPLAY_CONFIG.clinicName}</div>
                 <div class="icon" style="${textStyle}; margin-bottom: ${DISPLAY_CONFIG.iconToMainGap}px;">${DISPLAY_CONFIG.fullIcon}</div>
                 <div class="main-message" style="${textStyle}; font-weight: ${DISPLAY_CONFIG.mainMsgFontWeight}; line-height: ${DISPLAY_CONFIG.mainMsgLineHeight}; letter-spacing: ${DISPLAY_CONFIG.mainMsgLetterSpacing}px; margin-bottom: ${DISPLAY_CONFIG.mainToSubGap}px;">${DISPLAY_CONFIG.fullMsg.replace('{day}', dayText)}</div>
-                <div class="sub-message" style="font-weight: ${DISPLAY_CONFIG.subMsgFontWeight}; margin-bottom: ${DISPLAY_CONFIG.subToQrGap}px;">${DISPLAY_CONFIG.subMsg}</div>
-                <div class="qr-message" style="font-weight: ${DISPLAY_CONFIG.qrMsgFontWeight}; margin-bottom: ${DISPLAY_CONFIG.qrToUpdateGap}px;">${DISPLAY_CONFIG.qrMsg}</div>
-                <div class="update-time" style="font-weight: ${DISPLAY_CONFIG.updateTimeFontWeight}">${formattedTime}</div>
+                <div class="sub-message" style="${textStyle}; font-weight: ${DISPLAY_CONFIG.subMsgFontWeight}; margin-bottom: ${DISPLAY_CONFIG.subToQrGap}px;">${DISPLAY_CONFIG.subMsg}</div>
+                <div class="qr-message" style="${textStyle}; font-weight: ${DISPLAY_CONFIG.qrMsgFontWeight}; margin-bottom: ${DISPLAY_CONFIG.qrToUpdateGap}px;">${DISPLAY_CONFIG.qrMsg}</div>
+                <div class="update-time" style="${textStyle}; font-weight: ${DISPLAY_CONFIG.updateTimeFontWeight}">${formattedTime}</div>
             `;
         }
 
