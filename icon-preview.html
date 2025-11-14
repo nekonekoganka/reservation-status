@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome拡張機能アイコン プレビュー</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .pattern-section {
+            margin-bottom: 60px;
+        }
+
+        .pattern-title {
+            font-size: 1.8em;
+            color: #444;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .icon-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid #e0e0e0;
+        }
+
+        .icon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .icon-card h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.3em;
+        }
+
+        .icon-wrapper {
+            position: relative;
+            display: inline-block;
+            margin: 20px;
+        }
+
+        .extension-icon {
+            width: 128px;
+            height: 128px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .extension-icon.general {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        }
+
+        .extension-icon.shiya {
+            background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+        }
+
+        .badge {
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            border: 4px solid white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .badge.available {
+            background: #27ae60;
+        }
+
+        .badge.full {
+            background: #dc3545;
+        }
+
+        .icon-label {
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .size-label {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .taskbar-preview {
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .taskbar-preview h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .taskbar {
+            background: linear-gradient(to bottom, #e8e8e8 0%, #d0d0d0 100%);
+            border: 1px solid #999;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .taskbar-icon {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .taskbar-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .taskbar-icon .mini-badge {
+            position: absolute;
+            bottom: -3px;
+            right: -3px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .comparison-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .badge-preview {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+
+        .note strong {
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Chrome拡張機能アイコン プレビュー</h1>
+        <p class="subtitle">一般予約と視野予約の2つの拡張機能デザイン案</p>
+
+        <!-- パターンA: シンプル記号型 -->
+        <div class="pattern-section">
+            <h2 class="pattern-title">パターンA: シンプル記号型（⭕/✕）★推奨</h2>
+
+            <div class="icon-grid">
+                <!-- 一般予約 - 空きあり -->
+                <div class="icon-card">
+                    <h3>一般予約 - 空きあり</h3>
+                    <div class="icon-wrapper">
+                        <div class="extension-icon general">一般</div>
+                        <div class="badge available">⭕</div>
+                    </div>
+                    <div class="icon-label">緑バッジ: 空きあり</div>
+                    <span class="size-label">128px × 128px</span>
+                </div>
+
+                <!-- 一般予約 - 満枠 -->
+                <div class="icon-card">
+                    <h3>一般予約 - 満枠</h3>
+                    <div class="icon-wrapper">
+                        <div class="extension-icon general">一般</div>
+                        <div class="badge full">✕</div>
+                    </div>
+                    <div class="icon-label">赤バッジ: 満枠</div>
+                    <span class="size-label">128px × 128px</span>
+                </div>
+
+                <!-- 視野予約 - 空きあり -->
+                <div class="icon-card">
+                    <h3>視野予約 - 空きあり</h3>
+                    <div class="icon-wrapper">
+                        <div class="extension-icon shiya">視野</div>
+                        <div class="badge available">⭕</div>
+                    </div>
+                    <div class="icon-label">緑バッジ: 空きあり</div>
+                    <span class="size-label">128px × 128px</span>
+                </div>
+
+                <!-- 視野予約 - 満枠 -->
+                <div class="icon-card">
+                    <h3>視野予約 - 満枠</h3>
+                    <div class="icon-wrapper">
+                        <div class="extension-icon shiya">視野</div>
+                        <div class="badge full">✕</div>
+                    </div>
+                    <div class="icon-label">赤バッジ: 満枠</div>
+                    <span class="size-label">128px × 128px</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- パターンB: 日本語1文字型 -->
+        <div class="pattern-section">
+            <h2 class="pattern-title">パターンB: 日本語1文字型（空/満）</h2>
+
+            <div class="icon-grid">
+                <!-- 一般予約 - 空きあり -->
+                <div class="icon-card">
+                    <h3>一般予約 - 空きあり</h3>
+                    <div class="icon-wrapper">
+                        <div class="extension-icon general">一般</div>
+                        <div class="badge available">空</div>
+                    </div>
+                    <div class="icon-label">緑バッジ: 空きあり</div>
+                    <span class="size-label">128px × 128px</span>
+                </div>
+
+                <!-- 一般予約 - 満枠 -->
+                <div class="icon-card">
+                    <h3>一般予約 - 満枠</h3>
+                    <div class="icon-wrapper">
+                        <div class="extension-icon general">一般</div>
+                        <div class="badge full">満</div>
+                    </div>
+                    <div class="icon-label">赤バッジ: 満枠</div>
+                    <span class="size-label">128px × 128px</span>
+                </div>
+
+                <!-- 視野予約 - 空きあり -->
+                <div class="icon-card">
+                    <h3>視野予約 - 空きあり</h3>
+                    <div class="icon-wrapper">
+                        <div class="extension-icon shiya">視野</div>
+                        <div class="badge available">空</div>
+                    </div>
+                    <div class="icon-label">緑バッジ: 空きあり</div>
+                    <span class="size-label">128px × 128px</span>
+                </div>
+
+                <!-- 視野予約 - 満枠 -->
+                <div class="icon-card">
+                    <h3>視野予約 - 満枠</h3>
+                    <div class="icon-wrapper">
+                        <div class="extension-icon shiya">視野</div>
+                        <div class="badge full">満</div>
+                    </div>
+                    <div class="icon-label">赤バッジ: 満枠</div>
+                    <span class="size-label">128px × 128px</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- パターンC: 絵文字型 -->
+        <div class="pattern-section">
+            <h2 class="pattern-title">パターンC: 絵文字型（😊/😔）</h2>
+
+            <div class="icon-grid">
+                <!-- 一般予約 - 空きあり -->
+                <div class="icon-card">
+                    <h3>一般予約 - 空きあり</h3>
+                    <div class="icon-wrapper">
+                        <div class="extension-icon general">一般</div>
+                        <div class="badge available">😊</div>
+                    </div>
+                    <div class="icon-label">緑バッジ: 空きあり</div>
+                    <span class="size-label">128px × 128px</span>
+                </div>
+
+                <!-- 一般予約 - 満枠 -->
+                <div class="icon-card">
+                    <h3>一般予約 - 満枠</h3>
+                    <div class="icon-wrapper">
+                        <div class="extension-icon general">一般</div>
+                        <div class="badge full">😔</div>
+                    </div>
+                    <div class="icon-label">赤バッジ: 満枠</div>
+                    <span class="size-label">128px × 128px</span>
+                </div>
+
+                <!-- 視野予約 - 空きあり -->
+                <div class="icon-card">
+                    <h3>視野予約 - 空きあり</h3>
+                    <div class="icon-wrapper">
+                        <div class="extension-icon shiya">視野</div>
+                        <div class="badge available">😊</div>
+                    </div>
+                    <div class="icon-label">緑バッジ: 空きあり</div>
+                    <span class="size-label">128px × 128px</span>
+                </div>
+
+                <!-- 視野予約 - 満枠 -->
+                <div class="icon-card">
+                    <h3>視野予約 - 満枠</h3>
+                    <div class="icon-wrapper">
+                        <div class="extension-icon shiya">視野</div>
+                        <div class="badge full">😔</div>
+                    </div>
+                    <div class="icon-label">赤バッジ: 満枠</div>
+                    <span class="size-label">128px × 128px</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- タスクバープレビュー -->
+        <div class="taskbar-preview">
+            <h3>💻 Windowsタスクバーでの見え方（イメージ）</h3>
+            <p style="color: #666; margin-bottom: 15px;">2つの拡張機能を同時にインストールした場合</p>
+
+            <div class="taskbar">
+                <div class="taskbar-icon" style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);">
+                    <span style="font-size: 16px;">一般</span>
+                    <div class="mini-badge" style="background: #27ae60;">⭕</div>
+                </div>
+                <div class="taskbar-icon" style="background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);">
+                    <span style="font-size: 16px;">視野</span>
+                    <div class="mini-badge" style="background: #dc3545;">✕</div>
+                </div>
+                <div style="color: #666; margin-left: 20px; font-size: 14px;">
+                    ← 左: 一般予約（空き） / 右: 視野予約（満枠）
+                </div>
+            </div>
+        </div>
+
+        <!-- バッジパターン比較表 -->
+        <div class="pattern-section">
+            <h2 class="pattern-title">バッジパターン比較表</h2>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>パターン</th>
+                        <th>空きあり</th>
+                        <th>満枠</th>
+                        <th>メリット</th>
+                        <th>デメリット</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>A: 記号型</strong></td>
+                        <td><span class="badge-preview" style="background: #27ae60;">⭕</span></td>
+                        <td><span class="badge-preview" style="background: #dc3545;">✕</span></td>
+                        <td>シンプル、視認性最高、国際的</td>
+                        <td>特になし</td>
+                    </tr>
+                    <tr>
+                        <td><strong>B: 日本語型</strong></td>
+                        <td><span class="badge-preview" style="background: #27ae60;">空</span></td>
+                        <td><span class="badge-preview" style="background: #dc3545;">満</span></td>
+                        <td>明確、日本語で分かりやすい</td>
+                        <td>小さいサイズだと読みにくい可能性</td>
+                    </tr>
+                    <tr>
+                        <td><strong>C: 絵文字型</strong></td>
+                        <td><span class="badge-preview" style="background: #27ae60;">😊</span></td>
+                        <td><span class="badge-preview" style="background: #dc3545;">😔</span></td>
+                        <td>親しみやすい、感情的</td>
+                        <td>ビジネス感が低い</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 推奨事項 -->
+        <div class="note">
+            <strong>💡 推奨:</strong> パターンA（記号型 ⭕/✕）が最もシンプルで視認性が高く、どんな状況でも一目で理解できます。
+            タスクバー上の小さなサイズでも判別しやすいです。
+        </div>
+
+        <div class="note" style="margin-top: 15px; background: #d1ecf1; border-left-color: #0c5460;">
+            <strong>🎨 カラーリング:</strong><br>
+            • 一般予約: 青系グラデーション (#2196F3 → #1976D2)<br>
+            • 視野予約: 緑系グラデーション (#4CAF50 → #388E3C)<br>
+            • 空きバッジ: 緑 (#27ae60)<br>
+            • 満枠バッジ: 赤 (#dc3545)
+        </div>
+    </div>
+</body>
+</html>
