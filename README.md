@@ -51,22 +51,28 @@ reservation-status/
 ├── shiya.html                  # 視野予約: バナー表示用HTML（ホームページ埋め込み用）🆕
 ├── display-shiya.html          # 視野予約: 全画面ディスプレイ用HTML（レスポンシブ対応・クリニック入口用）🆕
 ├── display-test-shiya.html     # 視野予約: デバッグ用テストページ（カスタマイズ機能付き）🆕
-├── Downloads/                  # バナー用画像ファイル
+├── Downloads/                  # バナー用画像ファイル・設定ファイル
 │   ├── vacant_reservation.png  # 予約空きありバナー
 │   ├── full_reservation.png    # 予約満バナー
 │   ├── closed_days.png         # 休診日バナー
 │   ├── QR_fujiminohikari.png   # 一般予約QRコード（左下固定表示）
-│   └── QR_Field_of_vision_reservation.png   # 視野予約QRコード（後で追加）🆕
+│   ├── QR_Field_of_vision_reservation.png   # 視野予約QRコード（後で追加）🆕
+│   └── display-preset.json     # ディスプレイ設定プリセット（色・サイズ・間隔・エフェクト）🆕
 ├── docs/                       # ドキュメント
 │   ├── handover-to-claude-code.md      # システム全体の引き継ぎ資料
 │   ├── implementation-guide-v5.md      # 実装手順
 │   └── delete-old-rows-guide.md        # データ管理設定
-├── chrome-extension/           # Chrome拡張機能
+├── chrome-extension/           # Chrome拡張機能（予約状況チェック）
 │   ├── content.js
 │   ├── manifest.json
 │   ├── google-apps-script.js
 │   ├── README.md
 │   └── ICON_README.md
+├── chrome-extension-auto-reload/  # Chrome拡張機能（ディスプレイ自動リロード）🆕
+│   ├── manifest.json           # Manifest V3設定
+│   ├── background.js           # Service Worker（60秒タイマー）
+│   ├── content.js              # ページリロード処理
+│   └── README.md               # インストール・設定手順
 ├── chrome-web-store/           # Chrome Web Store公開用ファイル 🆕
 │   ├── publishing-guide.md     # 公開手順ガイド
 │   ├── store-listing.md        # ストア掲載情報
@@ -280,6 +286,122 @@ https://ckreserve.com/clinic/fujiminohikari-ganka
 ---
 
 ## 🆕 最近のアップデート（技術的な改善履歴）
+
+### 2025年11月14日 - ディスプレイ設定の統一とChrome拡張機能の追加
+
+#### 🎨 display-preset.json設定システムの導入
+
+**概要:**
+ディスプレイの設定を一元管理するJSON設定ファイルを導入し、display.htmlとdisplay-shiya.htmlの両方に適用しました。
+
+**新規作成ファイル:**
+- `Downloads/display-preset.json` - 66個の設定パラメータを含む統合設定ファイル
+
+**設定内容（主要項目）:**
+- **テキスト設定:** clinicName、availableMsg、fullMsg、subMsg、qrMsg
+- **色設定:** availableBg、fullBg、bannerBg、bannerText
+- **サイズ設定:** iconSize、mainMsgSize、subMsgSize、qrMsgSize、updateTimeSize
+- **レイアウト設定:** iconToMainGap、mainToSubGap、subToQrGap、qrToUpdateGap
+- **フォント設定:** mainMsgFontWeight、subMsgFontWeight、qrMsgFontWeight
+- **テキストエフェクト:** textShadowEnabled、textShadowColor、textShadowBlur、textShadowDistance
+- **QRコード設定:** qrEnabled、qrSize、qrPosition、qrOpacity、qrBorderRadius
+- **アニメーション設定:** pulseEnabled、pulseSpeed、pulseScale、glowEnabled
+- **ファビコン設定:** faviconEnabled、faviconAvailableIcon、faviconFullIcon
+
+**適用方針:**
+- **display.html**: すべての設定を適用（一般予約用）
+- **display-shiya.html**: テキスト内容以外のすべての設定を適用（視野予約のテキストは保持）
+
+**主な変更点:**
+- サブメッセージ: 「大変申し訳ございません」に統一
+- QRメッセージ: 「ご予約は 受付窓口 もしくは QRコードから お願い致します」に統一
+- バナーフォントサイズ: 2.8vw → 3.6vw（視認性向上）
+- バナー高さ: 115px → 100px（コンパクト化）
+- メインメッセージとサブメッセージの間隔: 60px → 20px（レイアウト最適化）
+
+#### 🎨 全テキスト要素へのシャドウ効果適用
+
+**修正前の問題:**
+テキストシャドウ効果がメインメッセージとアイコンのみに適用されており、サブメッセージ・QRメッセージ・更新時刻には適用されていませんでした。
+
+**実施した修正:**
+- display.html: すべてのテキスト要素（icon、main-message、sub-message、qr-message、update-time）に`${textStyle}`を追加
+- display-shiya.html: 同様にすべてのテキスト要素に`${textStyle}`を追加
+
+**シャドウ設定:**
+- 影の色: #000000（黒）
+- ぼかし: 5px
+- 距離: 3px
+- どんな背景色でも視認性を確保
+
+**generateTextStyle()関数の活用:**
+```javascript
+function generateTextStyle() {
+    const shadows = [];
+    if (DISPLAY_CONFIG.textShadowEnabled) {
+        shadows.push(`0 ${DISPLAY_CONFIG.textShadowDistance}px ${DISPLAY_CONFIG.textShadowBlur}px ${DISPLAY_CONFIG.textShadowColor}`);
+    }
+    return shadows.length > 0 ? `text-shadow: ${shadows.join(', ')}` : '';
+}
+```
+
+#### 🔄 Chrome拡張機能の2ページ自動リロード対応
+
+**概要:**
+Chrome拡張機能 `display-auto-reload` を拡張し、display.htmlとdisplay-shiya.htmlの両方を1分ごとに自動リロードする機能を実装しました。
+
+**変更ファイル:**
+
+**1. manifest.json** (chrome-extension-auto-reload/manifest.json)
+- `matches`配列を2つのURLに拡張:
+  - `https://nekonekoganka.github.io/reservation-status/display.html`
+  - `https://nekonekoganka.github.io/reservation-status/display-shiya.html`
+- バージョン: 1.0 → 1.1.0
+- 説明文を更新: 「display.htmlとdisplay-shiya.htmlを1分ごとに自動更新」
+
+**2. background.js** (chrome-extension-auto-reload/background.js)
+- `TARGET_URL`（単一）→ `TARGET_URLS`（配列）に変更
+- ループ処理で複数URLのタブを検索・リロード
+- ログメッセージを更新: 「X個のタブを発見しました」
+
+**3. content.js** (chrome-extension-auto-reload/content.js)
+- 変更なし（既存のリロードロジックをそのまま使用）
+
+**4. README.md** (chrome-extension-auto-reload/README.md)
+- 対象URLを2つに更新
+- 動作確認手順を両ページ対応に更新
+- コンソールログ例を更新（複数タブ対応）
+
+**技術仕様:**
+- **更新間隔:** 60秒（1分）ごと
+- **動作方式:** Service Worker（Manifest V3）
+- **使用API:** chrome.alarms、chrome.tabs、chrome.runtime
+- **動作条件:** タブがアクティブでない状態でも更新を継続
+
+**インストール手順:**
+1. `chrome://extensions/` を開く
+2. デベロッパーモードをON
+3. 「パッケージ化されていない拡張機能を読み込む」をクリック
+4. `chrome-extension-auto-reload/` フォルダを選択
+
+詳細: [chrome-extension-auto-reload/README.md](chrome-extension-auto-reload/README.md)
+
+#### 📈 改善効果
+
+1. **設定の一元管理**: 66個のパラメータをJSONファイルで管理し、変更が容易に
+2. **一貫性の向上**: display.htmlとdisplay-shiya.htmlで共通のスタイルを使用
+3. **視認性の向上**: すべてのテキスト要素にシャドウ効果を適用し、背景色に依存しない視認性を確保
+4. **自動更新の完全化**: 一般予約と視野予約の両ディスプレイを自動リロードし、常に最新の状態を表示
+
+#### 📁 変更ファイル
+- `Downloads/display-preset.json` - 新規作成
+- `display.html` - 設定適用、全テキストにシャドウ追加
+- `display-shiya.html` - 設定適用（テキスト保持）、全テキストにシャドウ追加
+- `chrome-extension-auto-reload/manifest.json` - 2URL対応
+- `chrome-extension-auto-reload/background.js` - 複数URL処理
+- `chrome-extension-auto-reload/README.md` - ドキュメント更新
+
+---
 
 ### 2025年11月14日 - 視野予約システムの追加
 
