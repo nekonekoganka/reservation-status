@@ -138,6 +138,7 @@ function updateBadgeError() {
 // Canvas APIでアイコンを動的生成
 function createIcon(isAvailable) {
   const sizes = [16, 48, 128];
+  const imageDataSet = {};
 
   sizes.forEach(size => {
     const canvas = new OffscreenCanvas(size, size);
@@ -209,16 +210,13 @@ function createIcon(isAvailable) {
       ctx.fillText('✕', size / 2, size / 2);
     }
 
-    // ImageDataを取得してアイコンに設定
-    canvas.convertToBlob().then(blob => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const imageData = ctx.getImageData(0, 0, size, size);
-        chrome.action.setIcon({ imageData: { [size]: imageData } });
-      };
-      reader.readAsDataURL(blob);
-    });
+    // ImageDataを取得
+    const imageData = ctx.getImageData(0, 0, size, size);
+    imageDataSet[size] = imageData;
   });
+
+  // 全サイズのアイコンを一度に設定
+  chrome.action.setIcon({ imageData: imageDataSet });
 }
 
 // 初回実行
