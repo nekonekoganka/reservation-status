@@ -71,6 +71,28 @@ git clone https://github.com/nekonekoganka/reservation-status.git
 cd reservation-status/docker-automation-shiya
 ```
 
+**🔧 トラブルシューティング:**
+
+もし `cd reservation-status/docker-automation-shiya` で以下のエラーが出た場合：
+```bash
+-bash: cd: reservation-status/docker-automation-shiya: No such file or directory
+```
+
+これは、クローンしたリポジトリが古いバージョンの可能性があります。以下のコマンドで最新のコードを取得してください：
+```bash
+cd ~/reservation-status
+git pull origin main
+cd docker-automation-shiya
+```
+
+**または、既にクローン済みの場合は削除して再クローン：**
+```bash
+cd ~
+rm -rf reservation-status
+git clone https://github.com/nekonekoganka/reservation-status.git
+cd reservation-status/docker-automation-shiya
+```
+
 ---
 
 ### ステップ3: Google Cloud の設定
@@ -105,6 +127,28 @@ export GAS_URL="https://script.google.com/macros/s/YOUR_SHIYA_GAS_URL_HERE/exec"
 # 視野予約ページのURL
 export RESERVATION_URL="https://ckreserve.com/clinic/fujiminohikari-ganka/fujiminohikari"
 ```
+
+---
+
+### ステップ4.5: ビルド前の確認
+
+Dockerイメージをビルドする前に、必要なファイルが存在するか確認します。
+```bash
+# 現在のディレクトリの確認
+pwd
+
+# ファイル一覧を表示
+ls -la
+```
+
+**確認ポイント:** 以下のファイルが表示されることを確認してください：
+- ✅ Dockerfile
+- ✅ server.js
+- ✅ package.json
+- ✅ README.md
+- ✅ .env.example
+
+もしこれらのファイルが表示されない場合は、ステップ2に戻って正しいディレクトリ（`docker-automation-shiya`）に移動してください。
 
 ---
 
@@ -301,6 +345,26 @@ curl http://localhost:8080/test
 ---
 
 ## 🛠️ トラブルシューティング
+
+### 0. リポジトリのクローン後にディレクトリが見つからない
+
+**エラー:**
+```bash
+-bash: cd: reservation-status/docker-automation-shiya: No such file or directory
+```
+
+**原因:**
+- クローンしたリポジトリが古いバージョン
+- `docker-automation-shiya`ディレクトリが存在しない
+
+**解決方法:**
+```bash
+cd ~/reservation-status
+git pull origin main
+cd docker-automation-shiya
+```
+
+---
 
 ### 1. デプロイに失敗する
 
