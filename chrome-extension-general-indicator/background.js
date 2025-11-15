@@ -208,11 +208,25 @@ function createIcon(isAvailable) {
     ctx.fillText('一', cellSize + cellSize / 2, cellSize + cellSize / 2);
 
     // 中央にマークを描画（空きあり:◯、満枠:✕）
-    ctx.fillStyle = 'white';
-    ctx.font = `bold ${size * 0.6}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(isAvailable ? '◯' : '✕', size / 2, size / 2);
+    if (isAvailable) {
+      // 空きあり：白い丸◯
+      ctx.fillStyle = 'white';
+      ctx.font = `bold ${size * 0.6}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('◯', size / 2, size / 2);
+    } else {
+      // 満枠：太いバツ✕（線で描画）
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = size * 0.12;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(size * 0.3, size * 0.3);
+      ctx.lineTo(size * 0.7, size * 0.7);
+      ctx.moveTo(size * 0.7, size * 0.3);
+      ctx.lineTo(size * 0.3, size * 0.7);
+      ctx.stroke();
+    }
 
     // ImageDataを取得
     const imageData = ctx.getImageData(0, 0, size, size);
