@@ -14,6 +14,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "予約状況（視野）"
+    "default_title": "予約状況（視野）",
+    "default_popup": "popup.html"
   }
 }
