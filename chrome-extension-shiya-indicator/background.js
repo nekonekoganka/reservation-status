@@ -57,7 +57,8 @@ async function updateStatus() {
       lastUpdate: new Date().toISOString(),
       status: data.status,
       isAvailable: data.isAvailable,
-      timestamp: data.timestamp
+      timestamp: data.timestamp,
+      error: false
     });
 
     console.log('[視野予約] ステータス更新完了');
@@ -114,25 +115,45 @@ async function fetchSheetData() {
 }
 
 // バッジを更新
-function updateBadge(isAvailable) {
-  if (isAvailable) {
-    // 空きあり: アイコンは緑
-    chrome.action.setTitle({ title: '予約状況（視野）: 空きあり' });
-    console.log('[視野予約] バッジ更新: 空きあり（緑）');
-  } else {
-    // 満枠: アイコンは赤+白バツ
-    chrome.action.setTitle({ title: '予約状況（視野）: 満枠' });
-    console.log('[視野予約] バッジ更新: 満枠（赤+白バツ）');
-  }
+async function updateBadge(isAvailable) {
+  // 最終更新時刻と次回更新時刻を取得
+  const data = await chrome.storage.local.get(['lastUpdate']);
+  const lastUpdate = data.lastUpdate ? new Date(data.lastUpdate) : new Date();
+  const nextUpdate = new Date(lastUpdate.getTime() + 60000); // 1分後
+  const now = new Date();
+  const secondsUntilNext = Math.max(0, Math.floor((nextUpdate - now) / 1000));
+
+  const timeStr = lastUpdate.toLocaleTimeString('ja-JP', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  // ツールチップを拡張
+  const statusText = isAvailable ? '◯空きあり' : '✕満枠';
+  const title = `予約状況（視野）: ${statusText}\n最終更新: ${timeStr}\n次回更新: ${secondsUntilNext}秒後`;
+
+  chrome.action.setTitle({ title });
+  console.log(`[視野予約] バッジ更新: ${statusText}`);
 
   // アイコンを動的に生成
   createIcon(isAvailable);
 }
 
 // エラー時のバッジ更新
-function updateBadgeError() {
-  chrome.action.setTitle({ title: '予約状況（視野）: エラー' });
+async function updateBadgeError() {
+  const data = await chrome.storage.local.get(['lastUpdate']);
+  const lastUpdate = data.lastUpdate ? new Date(data.lastUpdate) : null;
+  const timeStr = lastUpdate ? lastUpdate.toLocaleTimeString('ja-JP', {
+    hour: '2-digit',
+    minute: '2-digit'
+  }) : '--:--';
+
+  const title = `予約状況（視野）: エラー\n最終更新: ${timeStr}`;
+  chrome.action.setTitle({ title });
   console.log('[視野予約] バッジ更新: エラー');
+
+  // エラーフラグを保存
+  await chrome.storage.local.set({ error: true });
 }
 
 // Canvas APIでアイコンを動的生成
@@ -236,6 +257,17 @@ function createIcon(isAvailable) {
   // 全サイズのアイコンを一度に設定
   chrome.action.setIcon({ imageData: imageDataSet });
 }
+
+// ポップアップからのメッセージを受信
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'updateNow') {
+    console.log('[視野予約] 手動更新が要求されました');
+    updateStatus().then(() => {
+      sendResponse({ success: true });
+    });
+    return true; // 非同期応答を示す
+  }
+});
 
 // 初回実行
 updateStatus();
