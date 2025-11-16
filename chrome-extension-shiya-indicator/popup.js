@@ -39,6 +39,7 @@ async function loadStatus() {
       'status',
       'isAvailable',
       'timestamp',
+      'dayText',
       'error'
     ]);
 
@@ -55,13 +56,15 @@ async function loadStatus() {
       indicator.innerHTML = '<span>✓</span><span>正常動作中</span>';
     }
 
-    // ステータステキスト
+    // ステータステキスト（日付情報を追加）
     const statusText = document.getElementById('status-text');
     if (hasError) {
       statusText.textContent = 'データ取得エラー';
       statusText.className = 'status-text error';
     } else if (data.isAvailable !== undefined) {
-      statusText.textContent = data.isAvailable ? '◯ 空きあり' : '✕ 満枠';
+      const dayText = data.dayText || '本日';
+      const availabilityText = data.isAvailable ? '◯ 空きあり' : '✕ 満枠';
+      statusText.textContent = `${dayText} ${availabilityText}`;
       statusText.className = data.isAvailable ? 'status-text available' : 'status-text full';
     } else {
       statusText.textContent = '読み込み中...';
