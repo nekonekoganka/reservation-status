@@ -33,6 +33,44 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   }
 });
 
+/**
+ * 日付テキストを計算する関数
+ * display.htmlのcalculateDayText()と同じロジック
+ */
+function calculateDayText(updateTime) {
+  const now = new Date(updateTime);
+  const dayOfWeek = now.getDay(); // 0=日, 1=月, 2=火, 3=水...
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+  const isAfter1830 = (hour > 18) || (hour === 18 && minute >= 30);
+
+  let dayText = '本日';
+
+  if (isAfter1830) {
+    // 18:30以降
+    // 月末チェック
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    if (now.getDate() === lastDayOfMonth) {
+      dayText = '翌営業日';
+    } else if (dayOfWeek === 2) {
+      // 火曜日
+      dayText = '木曜';
+    } else {
+      dayText = '明日';
+    }
+  } else {
+    // 18:30より前
+    if (dayOfWeek === 3) {
+      // 水曜日
+      dayText = '木曜';
+    } else {
+      dayText = '本日';
+    }
+  }
+
+  return dayText;
+}
+
 // メイン処理: ステータス更新
 async function updateStatus() {
   try {
@@ -49,8 +87,11 @@ async function updateStatus() {
 
     console.log('[一般予約] データ取得成功:', data);
 
+    // 日付テキストを計算
+    const dayText = calculateDayText(new Date());
+
     // バッジを更新
-    updateBadge(data.isAvailable);
+    updateBadge(data.isAvailable, dayText);
 
     // ストレージに保存
     await chrome.storage.local.set({
@@ -58,6 +99,7 @@ async function updateStatus() {
       status: data.status,
       isAvailable: data.isAvailable,
       timestamp: data.timestamp,
+      dayText: dayText,
       error: false
     });
 
@@ -115,7 +157,7 @@ async function fetchSheetData() {
 }
 
 // バッジを更新
-async function updateBadge(isAvailable) {
+async function updateBadge(isAvailable, dayText) {
   // 最終更新時刻と次回更新時刻を取得
   const data = await chrome.storage.local.get(['lastUpdate']);
   const lastUpdate = data.lastUpdate ? new Date(data.lastUpdate) : new Date();
@@ -128,12 +170,12 @@ async function updateBadge(isAvailable) {
     minute: '2-digit'
   });
 
-  // ツールチップを拡張
+  // ツールチップを拡張（日付情報を追加）
   const statusText = isAvailable ? '◯空きあり' : '✕満枠';
-  const title = `予約状況（一般）: ${statusText}\n最終更新: ${timeStr}\n次回更新: ${secondsUntilNext}秒後`;
+  const title = `予約状況（一般）: ${dayText} ${statusText}\n最終更新: ${timeStr}\n次回更新: ${secondsUntilNext}秒後`;
 
   chrome.action.setTitle({ title });
-  console.log(`[一般予約] バッジ更新: ${statusText}`);
+  console.log(`[一般予約] バッジ更新: ${dayText} ${statusText}`);
 
   // アイコンを動的に生成
   createIcon(isAvailable);

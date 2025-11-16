@@ -34,7 +34,8 @@ async function loadStatus() {
     if (data.generalStatus) {
       updateStatusDisplay(
         'general',
-        data.generalStatus.isAvailable
+        data.generalStatus.isAvailable,
+        data.generalStatus.dayText
       );
     }
 
@@ -42,7 +43,8 @@ async function loadStatus() {
     if (data.shiyaStatus) {
       updateStatusDisplay(
         'shiya',
-        data.shiyaStatus.isAvailable
+        data.shiyaStatus.isAvailable,
+        data.shiyaStatus.dayText
       );
     }
 
@@ -63,19 +65,21 @@ async function loadStatus() {
 /**
  * 状態表示を更新
  */
-function updateStatusDisplay(type, isAvailable) {
+function updateStatusDisplay(type, isAvailable, dayText) {
   const icon = document.getElementById(`${type}Icon`);
   const text = document.getElementById(`${type}Text`);
+
+  const dayPrefix = dayText ? `${dayText} ` : '';
 
   if (isAvailable) {
     // 空きあり
     icon.textContent = '⭕';
-    text.textContent = '空き';
+    text.textContent = `${dayPrefix}空き`;
     text.className = 'status-text available';
   } else {
     // 満枠
     icon.textContent = '😔';
-    text.textContent = '満枠';
+    text.textContent = `${dayPrefix}満枠`;
     text.className = 'status-text full';
   }
 }

@@ -128,6 +128,44 @@ async function fetchSheetData(sheetName) {
 }
 
 /**
+ * 日付テキストを計算する関数
+ * display.htmlのcalculateDayText()と同じロジック
+ */
+function calculateDayText(updateTime) {
+  const now = new Date(updateTime);
+  const dayOfWeek = now.getDay(); // 0=日, 1=月, 2=火, 3=水...
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+  const isAfter1830 = (hour > 18) || (hour === 18 && minute >= 30);
+
+  let dayText = '本日';
+
+  if (isAfter1830) {
+    // 18:30以降
+    // 月末チェック
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    if (now.getDate() === lastDayOfMonth) {
+      dayText = '翌営業日';
+    } else if (dayOfWeek === 2) {
+      // 火曜日
+      dayText = '木曜';
+    } else {
+      dayText = '明日';
+    }
+  } else {
+    // 18:30より前
+    if (dayOfWeek === 3) {
+      // 水曜日
+      dayText = '木曜';
+    } else {
+      dayText = '本日';
+    }
+  }
+
+  return dayText;
+}
+
+/**
  * 予約状況をチェックしてバッジを更新
  */
 async function checkReservationStatus() {
@@ -153,6 +191,9 @@ async function checkReservationStatus() {
       return;
     }
 
+    // 日付テキストを計算
+    const dayText = calculateDayText(new Date());
+
     // バッジを更新
     updateBadgeByStatus(generalData.isAvailable, shiyaData.isAvailable);
 
@@ -166,20 +207,22 @@ async function checkReservationStatus() {
       generalStatus: {
         isAvailable: generalData.isAvailable,
         status: generalData.status,
-        timestamp: generalData.timestamp
+        timestamp: generalData.timestamp,
+        dayText: dayText
       },
       shiyaStatus: {
         isAvailable: shiyaData.isAvailable,
         status: shiyaData.status,
-        timestamp: shiyaData.timestamp
+        timestamp: shiyaData.timestamp,
+        dayText: dayText
       },
       lastUpdate: latestTimestamp,
       error: false
     });
 
     console.log('予約状況インジケーター: 状態を更新しました', {
-      general: generalData.isAvailable ? '空き' : '満枠',
-      shiya: shiyaData.isAvailable ? '空き' : '満枠'
+      general: `${dayText} ${generalData.isAvailable ? '空き' : '満枠'}`,
+      shiya: `${dayText} ${shiyaData.isAvailable ? '空き' : '満枠'}`
     });
 
   } catch (error) {
