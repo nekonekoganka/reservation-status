@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome拡張機能アイコン プレビュー（2×2グリッド最終版）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .pattern-section {
+            margin-bottom: 60px;
+        }
+
+        .pattern-title {
+            font-size: 1.8em;
+            color: #444;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .icon-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid #e0e0e0;
+        }
+
+        .icon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .icon-card h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.3em;
+        }
+
+        .icon-wrapper {
+            position: relative;
+            display: inline-block;
+            margin: 20px;
+        }
+
+        .extension-icon {
+            width: 128px;
+            height: 128px;
+            border-radius: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grid-cell {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .grid-cell.top-left {
+            border-radius: 20px 0 0 0;
+        }
+
+        .grid-cell.top-right {
+            border-radius: 0 20px 0 0;
+        }
+
+        .grid-cell.bottom-left {
+            border-radius: 0 0 0 20px;
+        }
+
+        .grid-cell.bottom-right {
+            border-radius: 0 0 20px 0;
+        }
+
+        .x-mark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        .icon-label {
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .color-label {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .taskbar-preview {
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .taskbar {
+            background: linear-gradient(to bottom, #e8e8e8 0%, #d0d0d0 100%);
+            border: 1px solid #999;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .taskbar-icon {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .taskbar-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .taskbar-cell {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .taskbar-cell.tl { border-radius: 8px 0 0 0; }
+        .taskbar-cell.tr { border-radius: 0 8px 0 0; }
+        .taskbar-cell.bl { border-radius: 0 0 0 8px; }
+        .taskbar-cell.br { border-radius: 0 0 8px 0; }
+
+        .taskbar-x {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 30px;
+            font-weight: bold;
+            color: white;
+            z-index: 10;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+
+        .note strong {
+            color: #856404;
+        }
+
+        .size-comparison {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .size-item {
+            text-align: center;
+        }
+
+        .size-icon {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            margin: 0 auto 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .diagram {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .diagram-grid {
+            display: inline-grid;
+            grid-template-columns: 100px 100px;
+            grid-template-rows: 100px 100px;
+            gap: 2px;
+            background: #999;
+            border: 3px solid #333;
+            margin: 20px;
+        }
+
+        .diagram-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .color-swatch {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            border: 2px solid #ddd;
+            vertical-align: middle;
+            margin: 0 10px;
+        }
+
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .spec-table th,
+        .spec-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .spec-table th {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Chrome拡張機能アイコン プレビュー</h1>
+        <p class="subtitle">2×2グリッドデザイン（最終版）</p>
+
+        <!-- デザイン説明図 -->
+        <div class="diagram">
+            <h3 style="color: #333; margin-bottom: 20px;">📐 2×2グリッド構造</h3>
+
+            <div style="display: inline-block;">
+                <h4 style="color: #666; margin-bottom: 10px;">一般予約 - 空きあり</h4>
+                <div class="diagram-grid">
+                    <div class="diagram-cell" style="background: #27ae60; color: white;">緑</div>
+                    <div class="diagram-cell" style="background: #27ae60; color: white;">緑</div>
+                    <div class="diagram-cell" style="background: #27ae60; color: white;">緑</div>
+                    <div class="diagram-cell" style="background: #F57C00; color: white; font-size: 48px; font-weight: bold;">一</div>
+                </div>
+                <p style="color: #666; font-size: 0.9em;">左上3マス: 緑（予約可）<br>右下1マス: オレンジ「一」（一般予約）</p>
+            </div>
+
+            <div style="display: inline-block;">
+                <h4 style="color: #666; margin-bottom: 10px;">一般予約 - 満枠</h4>
+                <div class="diagram-grid" style="position: relative;">
+                    <div class="diagram-cell" style="background: #dc3545; color: white;">赤</div>
+                    <div class="diagram-cell" style="background: #dc3545; color: white;">赤</div>
+                    <div class="diagram-cell" style="background: #dc3545; color: white;">赤</div>
+                    <div class="diagram-cell" style="background: #F57C00; color: white; font-size: 48px; font-weight: bold;">一</div>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 60px; color: white; font-weight: bold;">✕</div>
+                </div>
+                <p style="color: #666; font-size: 0.9em;">左上3マス: 赤（満枠）+ 白バツ<br>右下1マス: オレンジ「一」（一般予約）</p>
+            </div>
+
+            <div style="display: inline-block;">
+                <h4 style="color: #666; margin-bottom: 10px;">視野予約 - 空きあり</h4>
+                <div class="diagram-grid">
+                    <div class="diagram-cell" style="background: #27ae60; color: white;">緑</div>
+                    <div class="diagram-cell" style="background: #27ae60; color: white;">緑</div>
+                    <div class="diagram-cell" style="background: #27ae60; color: white;">緑</div>
+                    <div class="diagram-cell" style="background: #4CAF50; color: white; font-size: 48px; font-weight: bold;">野</div>
+                </div>
+                <p style="color: #666; font-size: 0.9em;">左上3マス: 緑（予約可）<br>右下1マス: 濃い緑「野」（視野予約）</p>
+            </div>
+
+            <div style="display: inline-block;">
+                <h4 style="color: #666; margin-bottom: 10px;">視野予約 - 満枠</h4>
+                <div class="diagram-grid" style="position: relative;">
+                    <div class="diagram-cell" style="background: #dc3545; color: white;">赤</div>
+                    <div class="diagram-cell" style="background: #dc3545; color: white;">赤</div>
+                    <div class="diagram-cell" style="background: #dc3545; color: white;">赤</div>
+                    <div class="diagram-cell" style="background: #4CAF50; color: white; font-size: 48px; font-weight: bold;">野</div>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 60px; color: white; font-weight: bold;">✕</div>
+                </div>
+                <p style="color: #666; font-size: 0.9em;">左上3マス: 赤（満枠）+ 白バツ<br>右下1マス: 濃い緑「野」（視野予約）</p>
+            </div>
+        </div>
+
+        <!-- 128pxアイコンプレビュー -->
+        <div class="pattern-section">
+            <h2 class="pattern-title">✨ 128px アイコンプレビュー</h2>
+
+            <div class="icon-grid">
+                <!-- 一般予約 - 空きあり -->
+                <div class="icon-card">
+                    <h3>一般予約 - 空きあり</h3>
+                    <div class="icon-wrapper">
+                        <div class="extension-icon">
+                            <div class="grid-cell top-left" style="background: #27ae60;"></div>
+                            <div class="grid-cell top-right" style="background: #27ae60;"></div>
+                            <div class="grid-cell bottom-left" style="background: #27ae60;"></div>
+                            <div class="grid-cell bottom-right" style="background: #F57C00;">一</div>
+                        </div>
+                    </div>
+                    <div class="icon-label">🟢 緑（空き）+ 🟠「一」</div>
+                    <span class="color-label">#F57C00</span>
+                </div>
+
+                <!-- 一般予約 - 満枠 -->
+                <div class="icon-card">
+                    <h3>一般予約 - 満枠</h3>
+                    <div class="icon-wrapper">
+                        <div class="extension-icon">
+                            <div class="grid-cell top-left" style="background: #dc3545;"></div>
+                            <div class="grid-cell top-right" style="background: #dc3545;"></div>
+                            <div class="grid-cell bottom-left" style="background: #dc3545;"></div>
+                            <div class="grid-cell bottom-right" style="background: #F57C00;">一</div>
+                            <div class="x-mark">✕</div>
+                        </div>
+                    </div>
+                    <div class="icon-label">🔴 赤（満枠）+ 白バツ + 🟠「一」</div>
+                    <span class="color-label">#F57C00</span>
+                </div>
+
+                <!-- 視野予約 - 空きあり -->
+                <div class="icon-card">
+                    <h3>視野予約 - 空きあり</h3>
+                    <div class="icon-wrapper">
+                        <div class="extension-icon">
+                            <div class="grid-cell top-left" style="background: #27ae60;"></div>
+                            <div class="grid-cell top-right" style="background: #27ae60;"></div>
+                            <div class="grid-cell bottom-left" style="background: #27ae60;"></div>
+                            <div class="grid-cell bottom-right" style="background: #4CAF50;">野</div>
+                        </div>
+                    </div>
+                    <div class="icon-label">🟢 緑（空き）+ 🟢「野」</div>
+                    <span class="color-label">#4CAF50</span>
+                </div>
+
+                <!-- 視野予約 - 満枠 -->
+                <div class="icon-card">
+                    <h3>視野予約 - 満枠</h3>
+                    <div class="icon-wrapper">
+                        <div class="extension-icon">
+                            <div class="grid-cell top-left" style="background: #dc3545;"></div>
+                            <div class="grid-cell top-right" style="background: #dc3545;"></div>
+                            <div class="grid-cell bottom-left" style="background: #dc3545;"></div>
+                            <div class="grid-cell bottom-right" style="background: #4CAF50;">野</div>
+                            <div class="x-mark">✕</div>
+                        </div>
+                    </div>
+                    <div class="icon-label">🔴 赤（満枠）+ 白バツ + 🟢「野」</div>
+                    <span class="color-label">#4CAF50</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- サイズ別プレビュー -->
+        <div class="pattern-section">
+            <h2 class="pattern-title">📏 サイズ別プレビュー</h2>
+            <p style="color: #666; margin-bottom: 20px;">様々なサイズでの見え方を確認</p>
+
+            <div class="size-comparison">
+                <!-- 128px -->
+                <div class="size-item">
+                    <div class="size-icon" style="width: 128px; height: 128px; border-radius: 20px; position: relative;">
+                        <div style="background: #27ae60; border-radius: 20px 0 0 0;"></div>
+                        <div style="background: #27ae60; border-radius: 0 20px 0 0;"></div>
+                        <div style="background: #27ae60; border-radius: 0 0 0 20px;"></div>
+                        <div style="background: #F57C00; border-radius: 0 0 20px 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: bold;">一</div>
+                    </div>
+                    <div style="font-size: 0.9em; color: #666;">128px<br>Chrome Store</div>
+                </div>
+
+                <!-- 48px -->
+                <div class="size-item">
+                    <div class="size-icon" style="width: 48px; height: 48px; border-radius: 8px; position: relative;">
+                        <div style="background: #dc3545; border-radius: 8px 0 0 0;"></div>
+                        <div style="background: #dc3545; border-radius: 0 8px 0 0;"></div>
+                        <div style="background: #dc3545; border-radius: 0 0 0 8px;"></div>
+                        <div style="background: #F57C00; border-radius: 0 0 8px 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;">一</div>
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 30px; color: white; font-weight: bold;">✕</div>
+                    </div>
+                    <div style="font-size: 0.9em; color: #666;">48px<br>拡張機能バー</div>
+                </div>
+
+                <!-- 32px -->
+                <div class="size-item">
+                    <div class="size-icon" style="width: 32px; height: 32px; border-radius: 6px; position: relative;">
+                        <div style="background: #27ae60; border-radius: 6px 0 0 0;"></div>
+                        <div style="background: #27ae60; border-radius: 0 6px 0 0;"></div>
+                        <div style="background: #27ae60; border-radius: 0 0 0 6px;"></div>
+                        <div style="background: #4CAF50; border-radius: 0 0 6px 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;">野</div>
+                    </div>
+                    <div style="font-size: 0.9em; color: #666;">32px<br>タスクバー</div>
+                </div>
+
+                <!-- 16px -->
+                <div class="size-item">
+                    <div class="size-icon" style="width: 16px; height: 16px; border-radius: 3px; position: relative;">
+                        <div style="background: #dc3545; border-radius: 3px 0 0 0;"></div>
+                        <div style="background: #dc3545; border-radius: 0 3px 0 0;"></div>
+                        <div style="background: #dc3545; border-radius: 0 0 0 3px;"></div>
+                        <div style="background: #4CAF50; border-radius: 0 0 3px 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 6px; font-weight: bold;">野</div>
+                    </div>
+                    <div style="font-size: 0.9em; color: #666;">16px<br>favicon</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- タスクバープレビュー -->
+        <div class="pattern-section">
+            <h2 class="pattern-title">💻 Windowsタスクバーでの見え方</h2>
+
+            <div class="taskbar-preview">
+                <h4 style="color: #555; margin-bottom: 10px;">ケース1: 両方空き</h4>
+                <div class="taskbar">
+                    <div class="taskbar-icon">
+                        <div class="taskbar-cell tl" style="background: #27ae60;"></div>
+                        <div class="taskbar-cell tr" style="background: #27ae60;"></div>
+                        <div class="taskbar-cell bl" style="background: #27ae60;"></div>
+                        <div class="taskbar-cell br" style="background: #F57C00;">一</div>
+                    </div>
+                    <div class="taskbar-icon">
+                        <div class="taskbar-cell tl" style="background: #27ae60;"></div>
+                        <div class="taskbar-cell tr" style="background: #27ae60;"></div>
+                        <div class="taskbar-cell bl" style="background: #27ae60;"></div>
+                        <div class="taskbar-cell br" style="background: #4CAF50;">野</div>
+                    </div>
+                    <div style="color: #666; margin-left: 20px; font-size: 14px;">
+                        両方とも緑 → 予約できます！
+                    </div>
+                </div>
+            </div>
+
+            <div class="taskbar-preview" style="margin-top: 15px;">
+                <h4 style="color: #555; margin-bottom: 10px;">ケース2: 一般のみ空き</h4>
+                <div class="taskbar">
+                    <div class="taskbar-icon">
+                        <div class="taskbar-cell tl" style="background: #27ae60;"></div>
+                        <div class="taskbar-cell tr" style="background: #27ae60;"></div>
+                        <div class="taskbar-cell bl" style="background: #27ae60;"></div>
+                        <div class="taskbar-cell br" style="background: #F57C00;">一</div>
+                    </div>
+                    <div class="taskbar-icon" style="position: relative;">
+                        <div class="taskbar-cell tl" style="background: #dc3545;"></div>
+                        <div class="taskbar-cell tr" style="background: #dc3545;"></div>
+                        <div class="taskbar-cell bl" style="background: #dc3545;"></div>
+                        <div class="taskbar-cell br" style="background: #4CAF50;">野</div>
+                        <div class="taskbar-x">✕</div>
+                    </div>
+                    <div style="color: #666; margin-left: 20px; font-size: 14px;">
+                        一般は空き（緑+「一」）、視野は満枠（赤+バツ+「野」）
+                    </div>
+                </div>
+            </div>
+
+            <div class="taskbar-preview" style="margin-top: 15px;">
+                <h4 style="color: #555; margin-bottom: 10px;">ケース3: 両方満枠</h4>
+                <div class="taskbar">
+                    <div class="taskbar-icon" style="position: relative;">
+                        <div class="taskbar-cell tl" style="background: #dc3545;"></div>
+                        <div class="taskbar-cell tr" style="background: #dc3545;"></div>
+                        <div class="taskbar-cell bl" style="background: #dc3545;"></div>
+                        <div class="taskbar-cell br" style="background: #F57C00;">一</div>
+                        <div class="taskbar-x">✕</div>
+                    </div>
+                    <div class="taskbar-icon" style="position: relative;">
+                        <div class="taskbar-cell tl" style="background: #dc3545;"></div>
+                        <div class="taskbar-cell tr" style="background: #dc3545;"></div>
+                        <div class="taskbar-cell bl" style="background: #dc3545;"></div>
+                        <div class="taskbar-cell br" style="background: #4CAF50;">野</div>
+                        <div class="taskbar-x">✕</div>
+                    </div>
+                    <div style="color: #666; margin-left: 20px; font-size: 14px;">
+                        両方とも赤+バツ → 満枠です
+                    </div>
+                </div>
+            </div>
+
+            <div class="taskbar-preview" style="margin-top: 15px;">
+                <h4 style="color: #555; margin-bottom: 10px;">ケース4: 視野のみ空き</h4>
+                <div class="taskbar">
+                    <div class="taskbar-icon" style="position: relative;">
+                        <div class="taskbar-cell tl" style="background: #dc3545;"></div>
+                        <div class="taskbar-cell tr" style="background: #dc3545;"></div>
+                        <div class="taskbar-cell bl" style="background: #dc3545;"></div>
+                        <div class="taskbar-cell br" style="background: #F57C00;">一</div>
+                        <div class="taskbar-x">✕</div>
+                    </div>
+                    <div class="taskbar-icon">
+                        <div class="taskbar-cell tl" style="background: #27ae60;"></div>
+                        <div class="taskbar-cell tr" style="background: #27ae60;"></div>
+                        <div class="taskbar-cell bl" style="background: #27ae60;"></div>
+                        <div class="taskbar-cell br" style="background: #4CAF50;">野</div>
+                    </div>
+                    <div style="color: #666; margin-left: 20px; font-size: 14px;">
+                        一般は満枠（赤+バツ+「一」）、視野は空き（緑+「野」）
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- カラー仕様 -->
+        <div class="pattern-section">
+            <h2 class="pattern-title">🎨 カラー仕様</h2>
+
+            <table class="spec-table">
+                <thead>
+                    <tr>
+                        <th>要素</th>
+                        <th>カラー</th>
+                        <th>用途</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>空き状態</strong></td>
+                        <td><span class="color-swatch" style="background: #27ae60;"></span>#27ae60（緑）</td>
+                        <td>左上3マス - 予約可能を示す</td>
+                    </tr>
+                    <tr>
+                        <td><strong>満枠状態</strong></td>
+                        <td><span class="color-swatch" style="background: #dc3545;"></span>#dc3545（赤）</td>
+                        <td>左上3マス - 満枠を示す</td>
+                    </tr>
+                    <tr>
+                        <td><strong>満枠マーク</strong></td>
+                        <td><span class="color-swatch" style="background: white; border-color: #333;"></span>白（✕）</td>
+                        <td>赤エリアの中央 - 満枠の強調</td>
+                    </tr>
+                    <tr>
+                        <td><strong>一般予約テーマ</strong></td>
+                        <td><span class="color-swatch" style="background: #F57C00;"></span>#F57C00（オレンジ）</td>
+                        <td>右下1マス - 一般予約の識別</td>
+                    </tr>
+                    <tr>
+                        <td><strong>視野予約テーマ</strong></td>
+                        <td><span class="color-swatch" style="background: #4CAF50;"></span>#4CAF50（緑）</td>
+                        <td>右下1マス - 視野予約の識別</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- デザインのポイント -->
+        <div class="note">
+            <strong>💡 デザインのポイント:</strong><br>
+            • <strong>2×2グリッド:</strong> 視覚的に分かりやすい4分割<br>
+            • <strong>左上3マス:</strong> 予約状況（緑=空き、赤+白バツ=満枠）<br>
+            • <strong>右下1マス:</strong> テーマカラー+文字（オレンジ「一」=一般予約、緑「野」=視野予約）<br>
+            • <strong>文字表示:</strong> 小さいサイズでも判別しやすい<br>
+            • <strong>Material Design色:</strong> 標準的で見慣れた色使い
+        </div>
+
+        <div class="note" style="margin-top: 15px; background: #d1ecf1; border-left-color: #0c5460;">
+            <strong>🎯 視認性:</strong><br>
+            • 16pxの小さいサイズでもテーマカラーと文字「一」「野」が識別可能<br>
+            • 緑/赤のコントラストで予約状況が一目で分かる<br>
+            • 白バツで満枠をさらに強調<br>
+            • 白文字「一」「野」で一般/視野を明確に区別<br>
+            • グリッド線なしでシンプル&クリーン
+        </div>
+
+        <div class="note" style="margin-top: 15px; background: #e8f5e9; border-left-color: #4CAF50;">
+            <strong>⚙️ 技術仕様:</strong><br>
+            • CSS Grid Layoutで2×2グリッド実装<br>
+            • 各マスに個別の背景色を設定<br>
+            • 白バツは絶対配置で中央に表示<br>
+            • 白文字「一」「野」はflexboxで中央配置<br>
+            • border-radiusで角を個別に丸める<br>
+            • アイコンクリック機能なし（シンプル設計）
+        </div>
+    </div>
+</body>
+</html>

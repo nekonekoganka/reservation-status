@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>予約状況（一般）</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 280px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f8f9fa;
+      padding: 16px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+    }
+
+    .icon-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    canvas {
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .status-section {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .status-indicator.ok {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-indicator.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-text {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .status-text.available {
+      color: #27ae60;
+    }
+
+    .status-text.full {
+      color: #dc3545;
+    }
+
+    .status-text.error {
+      color: #999;
+    }
+
+    .info-section {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .info-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .info-label {
+      font-weight: 500;
+    }
+
+    .info-value {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .refresh-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .refresh-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .refresh-btn:active {
+      transform: translateY(0);
+    }
+
+    .refresh-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>予約状況（一般）</h1>
+    </div>
+
+    <div class="icon-wrapper">
+      <canvas id="icon-canvas" width="96" height="96"></canvas>
+    </div>
+
+    <div class="status-section">
+      <div id="status-indicator" class="status-indicator ok">
+        <span>✓</span>
+        <span>正常動作中</span>
+      </div>
+      <div id="status-text" class="status-text">読み込み中...</div>
+    </div>
+
+    <div class="info-section">
+      <div class="info-row">
+        <span class="info-label">最終更新:</span>
+        <span id="last-update" class="info-value">--:--</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">次回更新:</span>
+        <span id="next-update" class="info-value">--秒後</span>
+      </div>
+    </div>
+
+    <button id="refresh-btn" class="refresh-btn">🔄 今すぐ更新</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

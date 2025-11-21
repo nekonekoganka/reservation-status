@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>視野予約状況バナー</title>
+    <style>
+        /* バナーのスタイル */
+        .reservation-banner {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        /* ホバー時の効果 */
+        .reservation-banner:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 予約可能の時のスタイル */
+        .reservation-banner.available {
+            background: #0056B3;
+            color: white;
+            border: 3px solid #004085;
+        }
+
+        /* 予約不可の時のスタイル */
+        .reservation-banner.unavailable {
+            background: #DC3545;
+            color: white;
+            border: 3px solid #bd2130;
+        }
+
+        /* 読み込み中のスタイル */
+        .reservation-banner.loading {
+            background: #c8d0e7;
+            color: #333;
+        }
+
+        /* メインメッセージ */
+        .reservation-banner h2 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        /* サブメッセージ */
+        .reservation-banner p {
+            margin: 5px 0;
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        /* 補足メッセージ */
+        .reservation-banner .note {
+            margin: 10px 0;
+            font-size: 14px;
+            opacity: 0.85;
+        }
+
+        /* 更新時刻 */
+        .reservation-banner .update-time {
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        /* エラーメッセージ */
+        .reservation-banner.error {
+            background: #f5f5f5;
+            color: #666;
+            border: 2px dashed #ccc;
+        }
+
+        /* スマホ対応 */
+        @media (max-width: 600px) {
+            .reservation-banner {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .reservation-banner h2 {
+                font-size: 22px;
+            }
+
+            .reservation-banner p {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 視野予約状況バナー -->
+<div id="reservationBanner" class="reservation-banner loading">
+    <h2>読み込み中...</h2>
+    <p>視野予約状況を確認しています</p>
+</div>
+
+<script>
+    // スプレッドシートのID
+    const SPREADSHEET_ID = '1RSd9aC5B_-gQ1_j5V1aQcZn1iVw9v8mpmhJ78_8gY80';
+
+    // 視野予約用のシート名
+    const SHEET_NAME = 'フォームの回答_視野予約';
+
+    // Google Sheets APIのURL
+    const API_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+    /**
+     * 予約状況を取得して表示する関数
+     */
+    async function updateReservationStatus() {
+        const banner = document.getElementById('reservationBanner');
+
+        try {
+            // スプレッドシートからデータを取得
+            const response = await fetch(API_URL);
+            const text = await response.text();
+
+            // JSONデータを抽出（Google特有の形式）
+            const json = JSON.parse(text.substring(47).slice(0, -2));
+
+            // データの行を取得
+            const rows = json.table.rows;
+
+            if (rows.length === 0) {
+                throw new Error('データがありません');
+            }
+
+            // 全ての行から最新のタイムスタンプを探す
+            let latestRow = null;
+            let latestDate = null;
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                if (row.c && row.c[0] && row.c[0].v) {
+                    // タイムスタンプをDateオブジェクトに変換
+                    const timestampStr = row.c[0].f || row.c[0].v;
+                    const date = new Date(timestampStr);
+
+                    if (!latestDate || date > latestDate) {
+                        latestDate = date;
+                        latestRow = row;
+                    }
+                }
+            }
+
+            if (!latestRow) {
+                throw new Error('有効なデータがありません');
+            }
+
+            const timestamp = latestRow.c[0].f; // タイムスタンプ（フォーマット済み）
+            const status = latestRow.c[1].v; // 予約状況（「空きあり」or「「満」」）
+
+            // 現在時刻を取得
+            const now = new Date();
+            const currentHour = now.getHours();
+
+            // 18時以降かどうかを判定
+            const isAfter18 = currentHour >= 18;
+
+            // 予約可能かどうかを判定（「空きあり」が含まれているかチェック）
+            const isAvailable = status.includes('空きあり');
+
+            // バナーを更新
+            displayBanner(isAvailable, isAfter18, timestamp);
+
+        } catch (error) {
+            console.error('エラー:', error);
+            displayError();
+        }
+    }
+
+    /**
+     * タイムスタンプを「更新：YYYY/MM/DD HH:MM」形式にフォーマット
+     */
+    function formatTimestamp(timestampStr) {
+        // スプレッドシートのタイムスタンプをパース
+        const date = new Date(timestampStr);
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return `更新：${year}/${month}/${day} ${hours}:${minutes}`;
+    }
+
+    /**
+     * バナーを表示する関数
+     */
+    function displayBanner(isAvailable, isAfter18, updateTime) {
+        const banner = document.getElementById('reservationBanner');
+
+        // スプレッドシートのタイムスタンプで判定
+        const now = new Date(updateTime);
+        const dayOfWeek = now.getDay(); // 0=日, 1=月, 2=火, 3=水...
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const isAfter1830 = (hour > 18) || (hour === 18 && minute >= 30);
+
+        // 表示テキストを決定
+        let dayText = '本日';
+
+        if (isAfter1830) {
+            // 18:30以降
+
+            // 月末チェック
+            const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            if (now.getDate() === lastDayOfMonth) {
+                dayText = '翌営業日';
+            } else if (dayOfWeek === 2) {
+                // 火曜日
+                dayText = '木曜';
+            } else {
+                dayText = '明日';
+            }
+        } else {
+            // 18:30より前
+            if (dayOfWeek === 3) {
+                // 水曜日
+                dayText = '木曜';
+            } else {
+                dayText = '本日';
+            }
+        }
+
+        // タイムスタンプをフォーマット
+        const formattedTime = formatTimestamp(updateTime);
+
+        if (isAvailable) {
+            // 予約可能
+            banner.className = 'reservation-banner available';
+            banner.innerHTML = `
+                <h2>✅ ${dayText}分の視野予約枠 空きあり</h2>
+                <p>ご予約いただけます</p>
+                <p>クリックして予約ページへ</p>
+                <div class="update-time">${formattedTime}</div>
+            `;
+        } else {
+            // 予約不可
+            banner.className = 'reservation-banner unavailable';
+            banner.innerHTML = `
+                <h2>🙇 ${dayText}の視野予約は 満枠です</h2>
+                <p>誠に恐れ入りますが、翌診療日以降で ご予約ください</p>
+                <p>クリックして 予約ページへ</p>
+                <div class="update-time">${formattedTime}</div>
+            `;
+        }
+    }
+
+    /**
+     * エラー表示する関数
+     */
+    function displayError() {
+        const banner = document.getElementById('reservationBanner');
+        banner.className = 'reservation-banner error';
+        banner.innerHTML = `
+            <h2>⚠️ 情報を取得できません</h2>
+            <p>しばらくしてから再度お試しください</p>
+        `;
+    }
+
+    // バナーをクリックしたときの処理
+    document.getElementById('reservationBanner').addEventListener('click', function() {
+        window.open('https://ckreserve.com/clinic/fujiminohikari-ganka/fujiminohikari', '_blank');
+    });
+
+    // ページ読み込み時に実行
+    updateReservationStatus();
+
+    // 1分ごとに自動更新（60000ミリ秒 = 1分）
+    setInterval(updateReservationStatus, 60000);
+</script>
+
+</body>
+</html>

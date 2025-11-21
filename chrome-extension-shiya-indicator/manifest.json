@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "予約状況（視野）",
+  "version": "1.0.0",
+  "description": "視野予約の空き状況をタスクバーで確認できます",
+  "permissions": [
+    "alarms",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://docs.google.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "予約状況（視野）",
+    "default_popup": "popup.html"
+  }
+}
