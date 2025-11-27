@@ -46,6 +46,7 @@
    - テキスト・アイコン・色・サイズ・レイアウト・バナー・QRコード・アニメーション・背景・設定
    - プリセット管理（5スロット）・デフォルト設定保存・エクスポート/インポート
    - フルスクリーンモード・トップバー2段構成・フローティングボタン
+   - **背景点滅機能**: 通行人訴求に最適な3つのモード（明るく/暗く/白フラッシュ）+ 細かい速度調整 🆕
 7. **曜日・時間対応** - 火曜18:30以降は木曜、水曜は木曜をチェック
 8. **自動データ管理** - 20,000行以上の古いデータを自動削除
 9. **iframe対応** - iframe内のカレンダーも正しく検出
@@ -317,6 +318,149 @@ https://ckreserve.com/clinic/fujiminohikari-ganka
 ---
 
 ## 🆕 最近のアップデート（技術的な改善履歴）
+
+### 2025年11月27日 - 背景点滅機能の実装と速度調整の改善 🆕
+
+#### 💡 通行人訴求に最適化された背景点滅システム
+
+**概要:**
+デバッグページに背景点滅機能を実装し、通行人の注目を集めるための効果的なアニメーション機能を追加しました。背景のみを点滅させる技術により、テキストやアイコンの視認性を保ちながら目を引く演出が可能になりました。
+
+**更新ファイル:**
+- `display-test.html` - 背景点滅機能の実装と改善
+- `display-test-shiya.html` - 同機能の実装
+- `display-test-combined.html` - 同機能の実装
+
+**実装された機能:**
+
+**1. 背景のみを点滅させる仕組み**
+- **CSS ::before疑似要素**: オーバーレイ方式で背景のみをアニメーション
+- **z-indexレイヤリング**: 背景層（z-index: 1）とコンテンツ層（z-index: 2）を分離
+- **技術的メリット**: テキストやアイコンはそのままで、背景だけが点滅
+
+**実装コード:**
+```css
+.display-container::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 1;
+}
+.display-container > * {
+    position: relative;
+    z-index: 2;
+}
+```
+
+**2. 3つの点滅モード**
+- **明るく（brighten）**: 白いオーバーレイで背景を明るく点滅
+- **暗く（darken）**: 黒いオーバーレイで背景を暗く点滅
+- **白フラッシュ（flash-white）**: 最も目を引く強力な効果、通行人訴求に最適
+
+**3. 2つの点滅パターン**
+- **なめらか（pulse）**: ease-in-outでゆっくりと点滅（落ち着いた印象）
+- **パチパチ（flash）**: steps(2)で瞬間的に点滅（強いインパクト）
+
+**4. 速度調整機能の段階的改善**
+
+**第1段階（コミット c71dd13）:**
+- 3つのボタン（遅い/普通/速い）で速度を選択
+- 固定値: 3.0秒 / 1.5秒 / 0.8秒
+
+**第2段階（コミット a71e305）:**
+- スライダーバー + 数値入力のデュアルモード実装
+- 速度範囲: 0.3秒 〜 5.0秒（0.1秒刻み）
+- トグルボタンで入力方法を切り替え可能
+- より細かい調整が可能に
+
+**スライダー/数値入力切り替え:**
+```javascript
+function toggleSpeedInputMode() {
+    customizeState.bgBlinkSpeedInputMode = !customizeState.bgBlinkSpeedInputMode;
+    if (customizeState.bgBlinkSpeedInputMode) {
+        // 数値入力モード
+        sliderContainer.style.display = 'none';
+        inputContainer.style.display = 'block';
+    } else {
+        // スライダーモード
+        sliderContainer.style.display = 'block';
+        inputContainer.style.display = 'none';
+    }
+}
+```
+
+**5. 強度調整**
+- スライダーで点滅の強さを調整（0.1 〜 0.8）
+- オーバーレイの透明度をCSS変数で動的に制御
+- 状況に応じて控えめ〜強めまで調整可能
+
+**6. 動的スタイル注入**
+```javascript
+function applyBgBlinkEffect() {
+    const style = document.createElement('style');
+    style.id = 'bgBlinkStyle';
+    style.textContent = `
+        #displayContainer::before {
+            background: ${overlayColor};
+            animation: ${animationName} ${duration} ease-in-out infinite;
+        }
+    `;
+    document.head.appendChild(style);
+}
+```
+
+**アニメーション1タブのUI:**
+- **ON/OFFトグル**: 背景点滅の有効/無効
+- **モード選択**: 明るく / 暗く / 白フラッシュ（3つのボタン）
+- **パターン選択**: なめらか / パチパチ（2つのボタン）
+- **速度調整**: スライダーまたは数値入力（トグルで切替）
+  - 範囲: 0.3秒（超高速）〜 5.0秒（ゆっくり）
+- **強度調整**: スライダー（0.1 〜 0.8）
+- **ヒント表示**: 「目を引きたい時に有効ですが、長時間表示では控えめ設定がおすすめです」
+
+**カスタマイズ状態の保存:**
+```javascript
+customizeState: {
+    bgBlinkEnabled: false,
+    bgBlinkMode: 'brighten',  // 'brighten', 'darken', 'flash-white'
+    bgBlinkPattern: 'pulse',  // 'pulse', 'flash'
+    bgBlinkSpeed: 1.5,  // 0.3〜5.0秒
+    bgBlinkSpeedInputMode: false,  // false: スライダー, true: 数値入力
+    bgBlinkIntensity: 0.3,
+}
+```
+
+#### 📈 改善効果
+
+1. **通行人訴求力の向上**: 白フラッシュモードで遠くからでも注目を集める
+2. **柔軟な調整**: 状況に応じて速度・強度・パターンを細かく調整可能
+3. **視認性の維持**: 背景のみ点滅するため、テキストやアイコンは常に読みやすい
+4. **直感的なUI**: スライダーと数値入力を切り替えて、好みの方法で設定
+5. **設定の永続化**: localStorageに保存され、リロード後も設定を保持
+
+#### 🎯 推奨設定
+
+**通行人を呼び込みたい時:**
+- モード: 白フラッシュ
+- パターン: パチパチ
+- 速度: 0.8秒（速め）
+- 強度: 0.5〜0.7（中〜強）
+
+**営業時間中の控えめ表示:**
+- モード: 明るく or 暗く
+- パターン: なめらか
+- 速度: 2.0秒（ゆっくり）
+- 強度: 0.2〜0.3（弱め）
+
+#### 📁 変更ファイル
+- `display-test.html` - 背景点滅機能の実装（約200行追加）
+- `display-test-shiya.html` - 同機能の実装
+- `display-test-combined.html` - 同機能の実装
+- `README.md` - 背景点滅機能のドキュメント追加
+
+---
 
 ### 2025年11月18日 - 統合予約状況ディスプレイの高度なデバッグ機能実装 🆕
 
