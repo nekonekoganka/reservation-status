@@ -36,6 +36,26 @@
             text-align: center;
             color: white;
             transition: background-color 0.5s ease;
+            position: relative;
+        }
+
+        /* 背景点滅用オーバーレイ */
+        .display-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 1;
+        }
+
+        /* 子要素を前面に */
+        .display-container > * {
+            position: relative;
+            z-index: 2;
         }
 
         /* 予約可能の時のスタイル（濃い黄緑色） */
@@ -107,17 +127,43 @@
             }
         }
 
-        /* 背景点滅アニメーション（なめらか） */
-        @keyframes bgBlink {
-            0%, 100% { filter: brightness(1); }
-            50% { filter: brightness(var(--blink-intensity, 0.7)); }
+        /* 背景点滅アニメーション - 明るく（なめらか） */
+        @keyframes bgBlinkBrighten {
+            0%, 100% { opacity: 0; }
+            50% { opacity: var(--blink-intensity, 0.3); }
         }
 
-        /* 背景点滅アニメーション（パチパチ） */
-        @keyframes bgFlash {
-            0%, 40% { filter: brightness(1); }
-            50%, 90% { filter: brightness(var(--blink-intensity, 0.7)); }
-            100% { filter: brightness(1); }
+        /* 背景点滅アニメーション - 明るく（パチパチ） */
+        @keyframes bgFlashBrighten {
+            0%, 40% { opacity: 0; }
+            50%, 90% { opacity: var(--blink-intensity, 0.3); }
+            100% { opacity: 0; }
+        }
+
+        /* 背景点滅アニメーション - 暗く（なめらか） */
+        @keyframes bgBlinkDarken {
+            0%, 100% { opacity: 0; }
+            50% { opacity: var(--blink-intensity, 0.3); }
+        }
+
+        /* 背景点滅アニメーション - 暗く（パチパチ） */
+        @keyframes bgFlashDarken {
+            0%, 40% { opacity: 0; }
+            50%, 90% { opacity: var(--blink-intensity, 0.3); }
+            100% { opacity: 0; }
+        }
+
+        /* 背景点滅アニメーション - 白フラッシュ（なめらか） */
+        @keyframes bgBlinkWhite {
+            0%, 100% { opacity: 0; }
+            50% { opacity: var(--blink-intensity, 0.5); }
+        }
+
+        /* 背景点滅アニメーション - 白フラッシュ（パチパチ） */
+        @keyframes bgFlashWhite {
+            0%, 40% { opacity: 0; }
+            50%, 90% { opacity: var(--blink-intensity, 0.5); }
+            100% { opacity: 0; }
         }
 
         /* メインメッセージ（空きあり/満枠） */
@@ -1270,11 +1316,11 @@
         </div>
 
         <div class="slider-group">
-            <label>点滅速度: <span id="bgBlinkSpeedValue">普通 (1.5秒)</span></label>
+            <label>点滅モード: <span id="bgBlinkModeValue">明るく</span></label>
             <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button id="btnBgBlinkSpeedSlow" onclick="setBgBlinkSpeed('slow')">遅い</button>
-                <button id="btnBgBlinkSpeedNormal" onclick="setBgBlinkSpeed('normal')" class="active">普通</button>
-                <button id="btnBgBlinkSpeedFast" onclick="setBgBlinkSpeed('fast')">速い</button>
+                <button id="btnBgBlinkModeBrighten" onclick="setBgBlinkMode('brighten')" class="active">明るく</button>
+                <button id="btnBgBlinkModeDarken" onclick="setBgBlinkMode('darken')">暗く</button>
+                <button id="btnBgBlinkModeFlashWhite" onclick="setBgBlinkMode('flash-white')">白フラッシュ</button>
             </div>
         </div>
 
@@ -1287,8 +1333,17 @@
         </div>
 
         <div class="slider-group">
-            <label>暗くなる度合い: <span id="bgBlinkIntensityValue">0.3</span></label>
-            <input type="range" id="bgBlinkIntensity" min="0.1" max="0.5" step="0.05" value="0.3" oninput="updateBgBlinkIntensity(this.value)">
+            <label>点滅速度: <span id="bgBlinkSpeedValue">普通 (1.5秒)</span></label>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button id="btnBgBlinkSpeedSlow" onclick="setBgBlinkSpeed('slow')">遅い</button>
+                <button id="btnBgBlinkSpeedNormal" onclick="setBgBlinkSpeed('normal')" class="active">普通</button>
+                <button id="btnBgBlinkSpeedFast" onclick="setBgBlinkSpeed('fast')">速い</button>
+            </div>
+        </div>
+
+        <div class="slider-group">
+            <label>点滅強度: <span id="bgBlinkIntensityValue">0.3</span></label>
+            <input type="range" id="bgBlinkIntensity" min="0.1" max="0.8" step="0.05" value="0.3" oninput="updateBgBlinkIntensity(this.value)">
         </div>
 
         <div style="margin-top: 15px; padding: 12px; background: rgba(255,193,7,0.1); border-radius: 6px; font-size: 0.85em; color: #ffc107;">
@@ -1612,9 +1667,10 @@
         gradientAnimEnabled: false,
         // 背景点滅
         bgBlinkEnabled: false,
+        bgBlinkMode: 'brighten',  // 'brighten', 'darken', 'flash-white'
+        bgBlinkPattern: 'pulse',  // 'pulse', 'flash'
         bgBlinkSpeed: 'normal',
         bgBlinkIntensity: 0.3,
-        bgBlinkPattern: 'pulse',
         // ファビコン
         faviconEnabled: true,
         faviconAvailableIcon: 'OK',
@@ -2443,6 +2499,29 @@
     }
 
     /**
+     * 背景点滅のモード設定
+     */
+    function setBgBlinkMode(mode) {
+        customizeState.bgBlinkMode = mode;
+        const modeLabels = {
+            'brighten': '明るく',
+            'darken': '暗く',
+            'flash-white': '白フラッシュ'
+        };
+        document.getElementById('bgBlinkModeValue').textContent = modeLabels[mode];
+
+        document.getElementById('btnBgBlinkModeBrighten').classList.remove('active');
+        document.getElementById('btnBgBlinkModeDarken').classList.remove('active');
+        document.getElementById('btnBgBlinkModeFlashWhite').classList.remove('active');
+
+        const modeId = mode === 'flash-white' ? 'btnBgBlinkModeFlashWhite' :
+                       'btnBgBlinkMode' + mode.charAt(0).toUpperCase() + mode.slice(1);
+        document.getElementById(modeId).classList.add('active');
+
+        applyBgBlinkEffect();
+    }
+
+    /**
      * 背景点滅のパターン設定
      */
     function setBgBlinkPattern(pattern) {
@@ -2473,20 +2552,64 @@
         const container = document.getElementById('displayContainer');
         if (!container) return;
 
-        // CSS変数で暗さを設定（1 - intensity で brightness値に変換）
-        const brightnessValue = 1 - customizeState.bgBlinkIntensity;
-        container.style.setProperty('--blink-intensity', brightnessValue);
+        // CSS変数で強度を設定
+        container.style.setProperty('--blink-intensity', customizeState.bgBlinkIntensity);
 
         if (customizeState.bgBlinkEnabled) {
             const speedValues = { slow: '3s', normal: '1.5s', fast: '0.8s' };
             const duration = speedValues[customizeState.bgBlinkSpeed];
-            const animationName = customizeState.bgBlinkPattern === 'pulse' ? 'bgBlink' : 'bgFlash';
-            container.style.animation = `${animationName} ${duration} ease-in-out infinite`;
+
+            // モードに応じたアニメーション名を決定
+            const mode = customizeState.bgBlinkMode;
+            const pattern = customizeState.bgBlinkPattern; // 'pulse' or 'flash'
+
+            let animationName;
+            if (pattern === 'pulse') {
+                animationName = mode === 'brighten' ? 'bgBlinkBrighten' :
+                               mode === 'darken' ? 'bgBlinkDarken' :
+                               'bgBlinkWhite';
+            } else {
+                animationName = mode === 'brighten' ? 'bgFlashBrighten' :
+                               mode === 'darken' ? 'bgFlashDarken' :
+                               'bgFlashWhite';
+            }
+
+            // ::beforeにアニメーションを適用するため、カスタムプロパティを設定
+            container.setAttribute('data-blink-animation', animationName);
+            container.setAttribute('data-blink-duration', duration);
+
+            // 背景色を設定
+            let overlayColor;
+            if (mode === 'brighten') {
+                overlayColor = 'rgba(255, 255, 255, 1)';
+            } else if (mode === 'darken') {
+                overlayColor = 'rgba(0, 0, 0, 1)';
+            } else {
+                overlayColor = 'rgba(255, 255, 255, 1)';
+            }
+
+            // スタイルを直接適用
+            const style = document.createElement('style');
+            style.id = 'bgBlinkStyle';
+            const existingStyle = document.getElementById('bgBlinkStyle');
+            if (existingStyle) {
+                existingStyle.remove();
+            }
+
+            style.textContent = `
+                #displayContainer::before {
+                    background: ${overlayColor};
+                    animation: ${animationName} ${duration} ease-in-out infinite;
+                }
+            `;
+            document.head.appendChild(style);
         } else {
-            // 他のアニメーション（グラデーションなど）を維持するため、背景点滅のみ解除
-            const currentAnim = container.style.animation || '';
-            if (currentAnim.includes('bgBlink') || currentAnim.includes('bgFlash')) {
-                container.style.animation = '';
+            // アニメーションを解除
+            container.removeAttribute('data-blink-animation');
+            container.removeAttribute('data-blink-duration');
+            const existingStyle = document.getElementById('bgBlinkStyle');
+            if (existingStyle) {
+                existingStyle.remove();
             }
         }
     }
@@ -3087,14 +3210,18 @@
             document.getElementById('bgBlinkIntensityValue').textContent = customizeState.bgBlinkIntensity;
             updateActiveButton('btnBgBlinkOn', 'btnBgBlinkOff', customizeState.bgBlinkEnabled);
 
-            // 速度ボタン
-            document.getElementById('btnBgBlinkSpeedSlow').classList.remove('active');
-            document.getElementById('btnBgBlinkSpeedNormal').classList.remove('active');
-            document.getElementById('btnBgBlinkSpeedFast').classList.remove('active');
-            const speedBtn = 'btnBgBlinkSpeed' + customizeState.bgBlinkSpeed.charAt(0).toUpperCase() + customizeState.bgBlinkSpeed.slice(1);
-            document.getElementById(speedBtn).classList.add('active');
-            const speedLabels = { slow: '遅い (3.0秒)', normal: '普通 (1.5秒)', fast: '速い (0.8秒)' };
-            document.getElementById('bgBlinkSpeedValue').textContent = speedLabels[customizeState.bgBlinkSpeed];
+            // モードボタン
+            if (customizeState.bgBlinkMode) {
+                document.getElementById('btnBgBlinkModeBrighten').classList.remove('active');
+                document.getElementById('btnBgBlinkModeDarken').classList.remove('active');
+                document.getElementById('btnBgBlinkModeFlashWhite').classList.remove('active');
+                const mode = customizeState.bgBlinkMode;
+                const modeId = mode === 'flash-white' ? 'btnBgBlinkModeFlashWhite' :
+                              'btnBgBlinkMode' + mode.charAt(0).toUpperCase() + mode.slice(1);
+                document.getElementById(modeId).classList.add('active');
+                const modeLabels = { 'brighten': '明るく', 'darken': '暗く', 'flash-white': '白フラッシュ' };
+                document.getElementById('bgBlinkModeValue').textContent = modeLabels[mode];
+            }
 
             // パターンボタン
             document.getElementById('btnBgBlinkPatternPulse').classList.remove('active');
@@ -3103,6 +3230,15 @@
             document.getElementById(patternBtn).classList.add('active');
             const patternLabels = { pulse: 'なめらか', flash: 'パチパチ' };
             document.getElementById('bgBlinkPatternValue').textContent = patternLabels[customizeState.bgBlinkPattern];
+
+            // 速度ボタン
+            document.getElementById('btnBgBlinkSpeedSlow').classList.remove('active');
+            document.getElementById('btnBgBlinkSpeedNormal').classList.remove('active');
+            document.getElementById('btnBgBlinkSpeedFast').classList.remove('active');
+            const speedBtn = 'btnBgBlinkSpeed' + customizeState.bgBlinkSpeed.charAt(0).toUpperCase() + customizeState.bgBlinkSpeed.slice(1);
+            document.getElementById(speedBtn).classList.add('active');
+            const speedLabels = { slow: '遅い (3.0秒)', normal: '普通 (1.5秒)', fast: '速い (0.8秒)' };
+            document.getElementById('bgBlinkSpeedValue').textContent = speedLabels[customizeState.bgBlinkSpeed];
         }
 
         // ボタン状態を更新
@@ -3223,9 +3359,10 @@
         customizeState.gradientAnimEnabled = false;
         // 背景点滅
         customizeState.bgBlinkEnabled = false;
+        customizeState.bgBlinkMode = 'brighten';
+        customizeState.bgBlinkPattern = 'pulse';
         customizeState.bgBlinkSpeed = 'normal';
         customizeState.bgBlinkIntensity = 0.3;
-        customizeState.bgBlinkPattern = 'pulse';
         // ファビコン
         customizeState.faviconEnabled = true;
         customizeState.faviconAvailableIcon = 'OK';
