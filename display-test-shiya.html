@@ -1334,11 +1334,24 @@
         </div>
 
         <div class="slider-group">
-            <label>点滅速度: <span id="bgBlinkSpeedValue">普通 (1.5秒)</span></label>
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button id="btnBgBlinkSpeedSlow" onclick="setBgBlinkSpeed('slow')">遅い</button>
-                <button id="btnBgBlinkSpeedNormal" onclick="setBgBlinkSpeed('normal')" class="active">普通</button>
-                <button id="btnBgBlinkSpeedFast" onclick="setBgBlinkSpeed('fast')">速い</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <label>点滅速度: <span id="bgBlinkSpeedValue">1.5秒</span></label>
+                <button id="btnToggleSpeedInput" onclick="toggleSpeedInputMode()" style="padding: 4px 12px; font-size: 0.85em; background: #555; border: 1px solid #777; border-radius: 4px; cursor: pointer;">
+                    <span id="speedInputModeLabel">数値入力</span>
+                </button>
+            </div>
+            <div id="speedSliderContainer" style="display: block;">
+                <input type="range" id="bgBlinkSpeedSlider" min="0.3" max="5.0" step="0.1" value="1.5" oninput="setBgBlinkSpeed(this.value)" style="width: 100%;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #999; margin-top: 4px;">
+                    <span>0.3秒</span>
+                    <span>5.0秒</span>
+                </div>
+            </div>
+            <div id="speedInputContainer" style="display: none;">
+                <input type="number" id="bgBlinkSpeedInput" min="0.3" max="5.0" step="0.1" value="1.5" oninput="setBgBlinkSpeed(this.value)" style="width: 100%; padding: 8px; background: #333; border: 1px solid #555; border-radius: 4px; color: #fff; font-size: 1em;">
+                <div style="font-size: 0.75em; color: #999; margin-top: 4px;">
+                    範囲: 0.3 〜 5.0秒
+                </div>
             </div>
         </div>
 
@@ -1670,7 +1683,8 @@
         bgBlinkEnabled: false,
         bgBlinkMode: 'brighten',  // 'brighten', 'darken', 'flash-white'
         bgBlinkPattern: 'pulse',  // 'pulse', 'flash'
-        bgBlinkSpeed: 'normal',
+        bgBlinkSpeed: 1.5,  // 0.3〜5.0秒
+        bgBlinkSpeedInputMode: false,  // false: スライダー, true: 数値入力
         bgBlinkIntensity: 0.3,
         // ファビコン
         faviconEnabled: true,
@@ -2487,16 +2501,35 @@
      * 背景点滅の速度設定
      */
     function setBgBlinkSpeed(speed) {
-        customizeState.bgBlinkSpeed = speed;
-        const speedLabels = { slow: '遅い (3.0秒)', normal: '普通 (1.5秒)', fast: '速い (0.8秒)' };
-        document.getElementById('bgBlinkSpeedValue').textContent = speedLabels[speed];
+        const speedValue = parseFloat(speed);
+        customizeState.bgBlinkSpeed = speedValue;
+        document.getElementById('bgBlinkSpeedValue').textContent = speedValue.toFixed(1) + '秒';
 
-        document.getElementById('btnBgBlinkSpeedSlow').classList.remove('active');
-        document.getElementById('btnBgBlinkSpeedNormal').classList.remove('active');
-        document.getElementById('btnBgBlinkSpeedFast').classList.remove('active');
-        document.getElementById('btnBgBlinkSpeed' + speed.charAt(0).toUpperCase() + speed.slice(1)).classList.add('active');
+        // スライダーと入力欄の両方を同期
+        document.getElementById('bgBlinkSpeedSlider').value = speedValue;
+        document.getElementById('bgBlinkSpeedInput').value = speedValue;
 
         applyBgBlinkEffect();
+    }
+
+    /**
+     * 速度入力モードの切り替え
+     */
+    function toggleSpeedInputMode() {
+        customizeState.bgBlinkSpeedInputMode = !customizeState.bgBlinkSpeedInputMode;
+        const sliderContainer = document.getElementById('speedSliderContainer');
+        const inputContainer = document.getElementById('speedInputContainer');
+        const label = document.getElementById('speedInputModeLabel');
+
+        if (customizeState.bgBlinkSpeedInputMode) {
+            sliderContainer.style.display = 'none';
+            inputContainer.style.display = 'block';
+            label.textContent = 'スライダー';
+        } else {
+            sliderContainer.style.display = 'block';
+            inputContainer.style.display = 'none';
+            label.textContent = '数値入力';
+        }
     }
 
     /**
@@ -2557,8 +2590,7 @@
         container.style.setProperty('--blink-intensity', customizeState.bgBlinkIntensity);
 
         if (customizeState.bgBlinkEnabled) {
-            const speedValues = { slow: '3s', normal: '1.5s', fast: '0.8s' };
-            const duration = speedValues[customizeState.bgBlinkSpeed];
+            const duration = customizeState.bgBlinkSpeed + 's';
 
             // モードに応じたアニメーション名を決定
             const mode = customizeState.bgBlinkMode;
@@ -3232,14 +3264,18 @@
             const patternLabels = { pulse: 'なめらか', flash: 'パチパチ' };
             document.getElementById('bgBlinkPatternValue').textContent = patternLabels[customizeState.bgBlinkPattern];
 
-            // 速度ボタン
-            document.getElementById('btnBgBlinkSpeedSlow').classList.remove('active');
-            document.getElementById('btnBgBlinkSpeedNormal').classList.remove('active');
-            document.getElementById('btnBgBlinkSpeedFast').classList.remove('active');
-            const speedBtn = 'btnBgBlinkSpeed' + customizeState.bgBlinkSpeed.charAt(0).toUpperCase() + customizeState.bgBlinkSpeed.slice(1);
-            document.getElementById(speedBtn).classList.add('active');
-            const speedLabels = { slow: '遅い (3.0秒)', normal: '普通 (1.5秒)', fast: '速い (0.8秒)' };
-            document.getElementById('bgBlinkSpeedValue').textContent = speedLabels[customizeState.bgBlinkSpeed];
+            // 速度スライダー/入力
+            const speedValue = typeof customizeState.bgBlinkSpeed === 'number' ? customizeState.bgBlinkSpeed : 1.5;
+            document.getElementById('bgBlinkSpeedSlider').value = speedValue;
+            document.getElementById('bgBlinkSpeedInput').value = speedValue;
+            document.getElementById('bgBlinkSpeedValue').textContent = speedValue.toFixed(1) + '秒';
+
+            // 入力モード復元
+            if (customizeState.bgBlinkSpeedInputMode) {
+                document.getElementById('speedSliderContainer').style.display = 'none';
+                document.getElementById('speedInputContainer').style.display = 'block';
+                document.getElementById('speedInputModeLabel').textContent = 'スライダー';
+            }
         }
 
         // ボタン状態を更新
