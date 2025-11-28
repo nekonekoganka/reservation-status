@@ -3117,8 +3117,18 @@
 
         const preset = JSON.parse(presetData);
 
-        // カスタマイズステートを復元
+        // カスタマイズステートを復元（古いプリセットの場合、不足する設定をデフォルト値で補完）
         Object.assign(customizeState, preset.state);
+
+        // 背景点滅の設定が存在しない場合はデフォルト値を設定
+        if (customizeState.bgBlinkEnabled === undefined) {
+            customizeState.bgBlinkEnabled = false;
+            customizeState.bgBlinkMode = 'brighten';
+            customizeState.bgBlinkPattern = 'pulse';
+            customizeState.bgBlinkSpeed = 1.5;
+            customizeState.bgBlinkSpeedInputMode = false;
+            customizeState.bgBlinkIntensity = 0.3;
+        }
 
         // UIを更新
         applyCustomizationsFromState();
