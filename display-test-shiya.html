@@ -845,7 +845,7 @@
 
             <div class="debug-section">
                 <label>サブメッセージ:</label>
-                <input type="text" class="customize-input" id="customSubMsg" value="誠に恐れ入りますが、翌診療日以降で ご予約ください" oninput="applyCustomizations()">
+                <input type="text" class="customize-input" id="customSubMsg" value="誠に恐れ入りますが、次の診療日以降で ご予約ください" oninput="applyCustomizations()">
             </div>
 
             <div class="debug-section">
@@ -1607,7 +1607,7 @@
         clinicName: 'ふじみ野ひかり眼科 視野予約',
         availableMsg: '{day}分の視野予約枠 「空き」あり',
         fullMsg: '{day}の視野予約は 「満枠」です',
-        subMsg: '誠に恐れ入りますが、翌診療日以降で ご予約ください',
+        subMsg: '誠に恐れ入りますが、次の診療日以降で ご予約ください',
         qrMsg: '受付窓口 もしくは QRコードから ご予約ください',
         availableIcon: '⭕',
         fullIcon: '😔',
@@ -3361,7 +3361,7 @@
         customizeState.clinicName = 'ふじみ野ひかり眼科';
         customizeState.availableMsg = '{day}分の予約枠 「空き」あり';
         customizeState.fullMsg = '{day}の予約は 「満枠」です';
-        customizeState.subMsg = '誠に恐れ入りますが、翌診療日以降で ご予約ください';
+        customizeState.subMsg = '誠に恐れ入りますが、次の診療日以降で ご予約ください';
         customizeState.qrMsg = '受付窓口 もしくは QRコードから ご予約ください';
         customizeState.availableIcon = '⭕';
         customizeState.fullIcon = '😔';
@@ -3834,7 +3834,7 @@
         if (isAfter1830) {
             const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
             if (now.getDate() === lastDayOfMonth) {
-                dayText = '翌診療日';
+                dayText = '次の診療日';
             } else if (dayOfWeek === 2) {
                 dayText = '木曜';
             } else {

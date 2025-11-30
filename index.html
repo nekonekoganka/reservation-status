@@ -217,7 +217,7 @@
             // 月末チェック
             const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
             if (now.getDate() === lastDayOfMonth) {
-                dayText = '翌診療日';
+                dayText = '次の診療日';
             } else if (dayOfWeek === 2) {
                 // 火曜日
                 dayText = '木曜';
@@ -251,7 +251,7 @@
             banner.className = 'reservation-banner unavailable';
             banner.innerHTML = `
                 <h2>😔 ${dayText}の予約は 満枠です</h2>
-                <p>誠に恐れ入りますが、翌診療日以降で ご予約ください</p>
+                <p>誠に恐れ入りますが、次の診療日以降で ご予約ください</p>
                 <p>クリックして 予約ページへ</p>
                 <div class="update-time">${formattedTime}</div>
             `;

@@ -216,7 +216,7 @@
         clinicName: 'ふじみ野ひかり眼科 視野予約',
         availableMsg: '{day}の視野予約  「空き」あり',
         fullMsg: '{day}の視野予約は 「満枠」です',
-        subMsg: '誠に恐れ入りますが、翌診療日以降で ご予約ください',
+        subMsg: '誠に恐れ入りますが、次の診療日以降で ご予約ください',
         qrMsg: '受付窓口 もしくは QRコードから ご予約ください',
         openingSoonText: '10時に窓口が開きます　お待ち下さい',
         lunchBreakText: '昼休み中　午後３時より窓口が開きます',
@@ -506,7 +506,7 @@
             // 月末チェック
             const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
             if (now.getDate() === lastDayOfMonth) {
-                dayText = '翌診療日';
+                dayText = '次の診療日';
             } else if (dayOfWeek === 2) {
                 // 火曜日
                 dayText = '木曜';
