@@ -522,7 +522,7 @@
             // 月末チェック
             const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
             if (now.getDate() === lastDayOfMonth) {
-                dayText = '翌営業日';
+                dayText = '翌診療日';
             } else if (dayOfWeek === 2) {
                 // 火曜日
                 dayText = '木曜';
