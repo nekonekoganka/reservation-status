@@ -191,11 +191,8 @@
 </div>
 
 <script>
-    // Cloud RunのURL（デプロイ後に設定）
-    const API_URL = 'https://reservation-timeslot-checker-XXXXX-an.a.run.app/timeslots.json';
-
-    // ローカルテスト用（コメントアウトを外してローカルテスト）
-    // const API_URL = 'http://localhost:8080/timeslots.json';
+    // Cloud StorageのURL（公開アクセス）
+    const API_URL = 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/timeslots.json';
 
     /**
      * 営業時間前判定関数（8:00-10:00、営業日のみ）

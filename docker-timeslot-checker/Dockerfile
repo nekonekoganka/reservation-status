@@ -26,9 +26,6 @@ USER root
 # アプリケーションファイルをコピー
 COPY server.js ./
 
-# データディレクトリを作成
-RUN mkdir -p /tmp && chown -R pptruser:pptruser /tmp
-
 # pptruser に所有権を変更
 RUN chown -R pptruser:pptruser /home/pptruser/app
 
@@ -38,8 +35,8 @@ USER pptruser
 # タイムゾーンを Asia/Tokyo に設定
 ENV TZ=Asia/Tokyo
 
-# データディレクトリを設定
-ENV DATA_DIR=/tmp
+# Cloud Storage バケット名を設定
+ENV BUCKET_NAME=reservation-timeslots-fujiminohikari
 
 # Cloud Run はポート 8080 を使用
 ENV PORT=8080
