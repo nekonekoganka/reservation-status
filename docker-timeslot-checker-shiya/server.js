@@ -27,9 +27,22 @@ const bucket = storage.bucket(BUCKET_NAME);
 const file = bucket.file(FILE_NAME);
 
 /**
+ * 年末年始休業期間かどうかを判定する関数
+ * @param {Date} date - 判定する日付
+ * @returns {boolean} 年末年始休業期間の場合true
+ */
+function isNewYearHoliday(date) {
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+
+  // 12/31 〜 1/3
+  return (month === 12 && day === 31) || (month === 1 && day <= 3);
+}
+
+/**
  * チェックする日付を計算する関数
  *
- * @returns {Object} {targetDate: number|null, displayText: string}
+ * @returns {Object} {targetDate: number, targetMonth: number, needsNextMonthClick: boolean, displayText: string}
  */
 function calculateTargetDate() {
   const now = new Date();
@@ -40,46 +53,85 @@ function calculateTargetDate() {
   // 18:30以降かチェック
   const isAfter1830 = (hour > 18) || (hour === 18 && minute >= 30);
 
-  let daysToAdd = 0;
+  let targetDate = new Date(now);
   let displayText = '本日';
+  let needsNextMonthClick = false;
 
   if (isAfter1830) {
     // 18:30以降の処理
 
     // 月末チェック
     const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    if (now.getDate() === lastDayOfMonth) {
-      // 月末の18:30以降は自動判定しない
-      console.log('月末18:30以降のため、自動判定をスキップします');
-      return { targetDate: null, displayText: '次の診療日' };
-    }
+    const isEndOfMonth = (now.getDate() === lastDayOfMonth);
 
-    // 火曜日（dayOfWeek === 2）の18:30以降
-    if (dayOfWeek === 2) {
-      daysToAdd = 2; // 木曜日をチェック
-      displayText = '木曜';
+    if (isEndOfMonth) {
+      // 翌月1日に設定
+      targetDate.setMonth(targetDate.getMonth() + 1);
+      targetDate.setDate(1);
+      displayText = '次の診療日';
+      needsNextMonthClick = true; // カレンダー切り替えフラグ
+
+      console.log(`月末18:30以降のため、翌月${targetDate.getMonth() + 1}月に切り替えます`);
     } else {
-      daysToAdd = 1; // 明日をチェック
-      displayText = '明日';
+      // 既存ロジック（火曜18:30以降→木曜、その他→明日）
+      if (dayOfWeek === 2) {
+        targetDate.setDate(targetDate.getDate() + 2);
+        displayText = '木曜';
+      } else {
+        targetDate.setDate(targetDate.getDate() + 1);
+        displayText = '明日';
+      }
     }
   } else {
     // 18:30より前の処理
 
     // 水曜日（dayOfWeek === 3）
     if (dayOfWeek === 3) {
-      daysToAdd = 1; // 木曜日をチェック
+      targetDate.setDate(targetDate.getDate() + 1);
       displayText = '木曜';
     } else {
-      daysToAdd = 0; // 本日をチェック
+      // 本日をチェック
       displayText = '本日';
     }
   }
 
-  // 計算した日付を取得
-  const targetDate = new Date(now);
-  targetDate.setDate(targetDate.getDate() + daysToAdd);
+  // 年末年始チェック
+  const originalMonth = targetDate.getMonth();
+  while (isNewYearHoliday(targetDate)) {
+    console.log(`${targetDate.getMonth() + 1}月${targetDate.getDate()}日は年末年始休業のため、翌日をチェック`);
+    targetDate.setDate(targetDate.getDate() + 1);
+    displayText = '営業再開日';
 
-  return { targetDate: targetDate.getDate(), displayText: displayText };
+    // 月をまたぐ場合はフラグを立てる
+    if (targetDate.getMonth() !== originalMonth) {
+      needsNextMonthClick = true;
+    }
+  }
+
+  // 水曜日（休診日）チェック
+  if (targetDate.getDay() === 3) {
+    console.log(`${targetDate.getMonth() + 1}月${targetDate.getDate()}日は水曜日（休診日）のため、翌日をチェック`);
+    targetDate.setDate(targetDate.getDate() + 1);
+    if (displayText === '営業再開日') {
+      displayText = '営業再開日（木曜）';
+    } else {
+      displayText = '木曜';
+    }
+
+    // 月をまたぐ場合はフラグを立てる
+    if (targetDate.getMonth() !== originalMonth) {
+      needsNextMonthClick = true;
+    }
+  }
+
+  console.log(`判定結果: ${targetDate.getMonth() + 1}月${targetDate.getDate()}日 (${displayText})`);
+
+  return {
+    targetDate: targetDate.getDate(),
+    targetMonth: targetDate.getMonth() + 1,
+    needsNextMonthClick,
+    displayText
+  };
 }
 
 const CALENDAR_CELL_SELECTOR = 'td.select-cell-available, td.day-closed, td.day-full';
@@ -129,7 +181,7 @@ async function waitForCalendarContext(page, timeoutMs = 20000) {
 }
 
 /**
- * Puppeteerで視野予約ページから時間枠をチェックする関数
+ * Puppeteerで予約ページから時間枠をチェックする関数
  */
 async function checkTimeslots() {
   console.log('=== 視野予約時間枠チェック開始 ===');
@@ -139,15 +191,9 @@ async function checkTimeslots() {
 
   try {
     // チェックする日付を計算
-    const { targetDate, displayText } = calculateTargetDate();
+    const { targetDate, targetMonth, needsNextMonthClick, displayText } = calculateTargetDate();
 
-    // 月末の18:30以降は静かに終了
-    if (targetDate === null) {
-      console.log('月末のため処理を終了します');
-      return { success: true, skipped: true, reason: 'end-of-month' };
-    }
-
-    console.log(`チェック対象: ${displayText}分 (${targetDate}日)`);
+    console.log(`チェック対象: ${displayText}分 (${targetMonth}月${targetDate}日)`);
 
     // Puppeteerブラウザを起動
     browser = await puppeteer.launch({
@@ -239,8 +285,62 @@ async function checkTimeslots() {
     console.log(`カレンダーのtd要素を検出しました (${frameType})`);
     console.log('使用する frame URL:', calendarFrame.url());
 
+    // 月送りが必要な場合
+    if (needsNextMonthClick) {
+      console.log(`翌月（${targetMonth}月）のカレンダーに切り替えます`);
+
+      // 次月ボタンを複数のセレクターで試行
+      const selectors = [
+        '.fa-caret-right',           // FontAwesomeアイコン
+        'i.fa-caret-right',          // iタグのFontAwesomeアイコン
+        'button .fa-caret-right',    // ボタン内のアイコン
+        '[aria-label*="次"]',        // aria-label
+        '[aria-label*="Next"]',
+        '.calendar-next',
+        'button[onclick*="next"]'
+      ];
+
+      let nextMonthButton = null;
+      let usedSelector = null;
+
+      // 複数のセレクターを試す
+      for (const selector of selectors) {
+        try {
+          nextMonthButton = await calendarFrame.$(selector);
+          if (nextMonthButton) {
+            usedSelector = selector;
+            console.log(`次月ボタンを発見: ${selector}`);
+            break;
+          }
+        } catch (error) {
+          console.log(`セレクター ${selector} で検索失敗:`, error.message);
+        }
+      }
+
+      if (nextMonthButton) {
+        await nextMonthButton.click();
+        console.log(`次月ボタンをクリックしました (${usedSelector})`);
+
+        // カレンダー再読み込み待機
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        console.log('翌月カレンダーに切り替え完了');
+      } else {
+        console.error('次月ボタンが見つかりません');
+        console.error('利用可能なボタン要素:', await calendarFrame.evaluate(() => {
+          const buttons = document.querySelectorAll('button, a, .fa-caret-right');
+          return Array.from(buttons).slice(0, 10).map(b => ({
+            tag: b.tagName,
+            class: b.className,
+            text: b.textContent?.substring(0, 50),
+            onclick: b.getAttribute('onclick')?.substring(0, 50)
+          }));
+        }));
+        throw new Error('カレンダーの月送りボタンが見つかりません');
+      }
+    }
+
     // 対象日付のセルをクリック
-    console.log(`対象日付 ${targetDate}日 のセルをクリックします...`);
+    console.log(`対象日付 ${targetMonth}月${targetDate}日 のセルをクリックします...`);
 
     const clickResult = await calendarFrame.evaluate((targetDate) => {
       const cells = document.querySelectorAll('td');
