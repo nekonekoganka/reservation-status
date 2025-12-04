@@ -1,0 +1,51 @@
+# 公式の Puppeteer イメージを使用（Chromium と依存関係がすべて含まれる）
+FROM ghcr.io/puppeteer/puppeteer:22.0.0
+
+# rootユーザーで作業（ファイルコピーと権限設定のため）
+USER root
+
+# 作業ディレクトリを作成
+WORKDIR /home/pptruser/app
+
+# package.json と package-lock.json をコピー
+COPY package*.json ./
+
+# pptruser に所有権を変更
+RUN chown -R pptruser:pptruser /home/pptruser/app
+
+# pptruser に切り替え
+USER pptruser
+
+# Puppeteer は既にイメージに含まれているので、Puppeteer 以外の依存関係のみインストール
+# --legacy-peer-deps を追加して依存関係の競合を回避
+RUN npm install --omit=dev --legacy-peer-deps
+
+# rootに戻してファイルコピー
+USER root
+
+# アプリケーションファイルをコピー
+COPY server.js ./
+
+# データディレクトリを作成
+RUN mkdir -p /tmp && chown -R pptruser:pptruser /tmp
+
+# pptruser に所有権を変更
+RUN chown -R pptruser:pptruser /home/pptruser/app
+
+# 実行ユーザーを pptruser に設定
+USER pptruser
+
+# タイムゾーンを Asia/Tokyo に設定
+ENV TZ=Asia/Tokyo
+
+# データディレクトリを設定
+ENV DATA_DIR=/tmp
+
+# Cloud Run はポート 8080 を使用
+ENV PORT=8080
+
+# ポートを公開
+EXPOSE 8080
+
+# アプリケーションを起動
+CMD ["node", "server.js"]
