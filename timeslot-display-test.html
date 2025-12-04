@@ -734,7 +734,7 @@
         }
     </style>
 </head>
-<body>
+<body class="panel-hidden">
 
 <!-- トップコントロールバー（2段構成） -->
 <div class="top-control-bar">
@@ -801,7 +801,7 @@
     </div>
 
     <!-- デバッグパネル -->
-    <div id="debugPanel" class="debug-panel">
+    <div id="debugPanel" class="debug-panel hidden">
         <div id="currentPresetInfo" class="preset-indicator">デフォルト設定</div>
         <input type="file" id="importFileInput" accept=".json" onchange="importSettings(event)">
 
@@ -889,12 +889,12 @@
         <div class="debug-section">
             <label>空きありアイコン:</label>
             <div class="icon-selector">
-                <button onclick="selectIcon('available', '😊')">😊</button>
-                <button onclick="selectIcon('available', '✅')">✅</button>
-                <button onclick="selectIcon('available', '✔️')">✔️</button>
-                <button onclick="selectIcon('available', '⭕')">⭕</button>
-                <button onclick="selectIcon('available', '🟢')">🟢</button>
-                <button onclick="selectIcon('available', '👍')">👍</button>
+                <button onclick="selectIcon('available', '😊', event)">😊</button>
+                <button onclick="selectIcon('available', '✅', event)">✅</button>
+                <button onclick="selectIcon('available', '✔️', event)">✔️</button>
+                <button onclick="selectIcon('available', '⭕', event)">⭕</button>
+                <button onclick="selectIcon('available', '🟢', event)">🟢</button>
+                <button onclick="selectIcon('available', '👍', event)">👍</button>
                 <input type="text" class="customize-input" id="customAvailableIcon" value="⭕" placeholder="カスタム" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
             </div>
         </div>
@@ -902,12 +902,12 @@
         <div class="debug-section">
             <label>満枠アイコン:</label>
             <div class="icon-selector">
-                <button onclick="selectIcon('full', '😔')">😔</button>
-                <button onclick="selectIcon('full', '❌')">❌</button>
-                <button onclick="selectIcon('full', '✖️')">✖️</button>
-                <button onclick="selectIcon('full', '🙇')">🙇</button>
-                <button onclick="selectIcon('full', '⛔')">⛔</button>
-                <button onclick="selectIcon('full', '🚫')">🚫</button>
+                <button onclick="selectIcon('full', '😔', event)">😔</button>
+                <button onclick="selectIcon('full', '❌', event)">❌</button>
+                <button onclick="selectIcon('full', '✖️', event)">✖️</button>
+                <button onclick="selectIcon('full', '🙇', event)">🙇</button>
+                <button onclick="selectIcon('full', '⛔', event)">⛔</button>
+                <button onclick="selectIcon('full', '🚫', event)">🚫</button>
                 <input type="text" class="customize-input" id="customFullIcon" value="😔" placeholder="カスタム" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
             </div>
         </div>
@@ -1752,7 +1752,7 @@
     /**
      * アイコンを選択
      */
-    function selectIcon(type, icon) {
+    function selectIcon(type, icon, evt) {
         if (type === 'available') {
             document.getElementById('customAvailableIcon').value = icon;
             customizeState.availableIcon = icon;
@@ -1762,9 +1762,12 @@
         }
 
         // 選択状態のビジュアル更新
-        const buttons = event.target.parentElement.querySelectorAll('button');
-        buttons.forEach(btn => btn.classList.remove('selected'));
-        event.target.classList.add('selected');
+        const target = evt?.target || window.event?.target;
+        if (target && target.parentElement) {
+            const buttons = target.parentElement.querySelectorAll('button');
+            buttons.forEach(btn => btn.classList.remove('selected'));
+            target.classList.add('selected');
+        }
 
         applyCustomizations();
     }
@@ -4002,6 +4005,12 @@
         const fullMsg = customizeState.fullMsg.replace('{day}', dayText);
         const closedMsg = customizeState.closedMsg.replace('{day}', dayText);
 
+        const availableIcon = customizeState.availableIcon || '🕐';
+        const fullIcon = customizeState.fullIcon || '😔';
+
+        const availableIcon = customizeState.availableIcon || '🕐';
+        const fullIcon = customizeState.fullIcon || '😔';
+
         if (hasSlots) {
             container.className = 'display-container available';
 
@@ -4043,7 +4052,7 @@
 
             container.innerHTML = `
                 <div class="clinic-name">${customizeState.clinicName}</div>
-                <div class="icon">🕐</div>
+                <div class="icon">${availableIcon}</div>
                 <div class="main-message">${availableMsg}</div>
                 <div class="timeslots">${timeslotsText}</div>
                 <div class="sub-message">${customizeState.availableSubMsg}</div>
@@ -4095,7 +4104,7 @@
 
             container.innerHTML = `
                 <div class="clinic-name">${customizeState.clinicName}</div>
-                <div class="icon">😔</div>
+                <div class="icon">${fullIcon}</div>
                 <div class="main-message">${message}</div>
                 <div class="sub-message">${subMessage}</div>
                 <div class="qr-message">${customizeState.qrMsgFull}</div>
@@ -4224,7 +4233,7 @@
 
             container.innerHTML = `
                 <div class="clinic-name">${customizeState.clinicName}</div>
-                <div class="icon">🕐</div>
+                <div class="icon">${availableIcon}</div>
                 <div class="main-message">${availableMsg}</div>
                 <div class="timeslots">${timeslotsText}</div>
                 <div class="sub-message">${customizeState.availableSubMsg}</div>
@@ -4275,7 +4284,7 @@
 
             container.innerHTML = `
                 <div class="clinic-name">${customizeState.clinicName}</div>
-                <div class="icon">😔</div>
+                <div class="icon">${fullIcon}</div>
                 <div class="main-message">${message}</div>
                 <div class="sub-message">${subMessage}</div>
                 <div class="qr-message">${customizeState.qrMsgFull}</div>
