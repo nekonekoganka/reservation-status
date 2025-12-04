@@ -60,7 +60,7 @@ function calculateTargetDate() {
       displayText = '木曜';
     } else if (hour >= 18 && minute >= 30) {
       daysToAdd = 1; // 明日をチェック
-      displayText = '次の診療日';
+      displayText = '明日';
     } else {
       // 10:30より前
       daysToAdd = 0; // 本日をチェック
