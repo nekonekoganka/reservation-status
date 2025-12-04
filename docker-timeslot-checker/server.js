@@ -1,29 +1,33 @@
 /**
  * 予約時間枠表示システム（Docker版）
  *
- * 予約ページから具体的な空き時間枠を取得し、JSONとして提供
+ * 予約ページから具体的な空き時間枠を取得し、Cloud Storageに保存
  * Cloud Scheduler + Cloud Run で1分ごとに自動実行
  */
 
 require('dotenv').config();
 const express = require('express');
 const puppeteer = require('puppeteer');
-const fs = require('fs');
-const path = require('path');
+const { Storage } = require('@google-cloud/storage');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
 // 環境変数から設定を取得
 const RESERVATION_URL = process.env.RESERVATION_URL || 'https://ckreserve.com/clinic/fujiminohikari-ganka/fujimino';
-const DATA_DIR = process.env.DATA_DIR || '/tmp';
+const BUCKET_NAME = process.env.BUCKET_NAME || 'reservation-timeslots-fujiminohikari';
+const FILE_NAME = 'timeslots.json';
 
 // タイムゾーンを Asia/Tokyo に設定
 process.env.TZ = 'Asia/Tokyo';
 
+// Cloud Storage クライアントを初期化
+const storage = new Storage();
+const bucket = storage.bucket(BUCKET_NAME);
+const file = bucket.file(FILE_NAME);
+
 /**
  * チェックする日付を計算する関数
- * docker-automation/server.js の calculateTargetDate() を移植
  *
  * @returns {Object} {targetDate: number|null, displayText: string}
  */
@@ -280,7 +284,7 @@ async function checkTimeslots() {
         updatedAt: new Date().toISOString()
       };
 
-      saveTimeslotsToFile(timeslotsData);
+      await saveTimeslotsToCloudStorage(timeslotsData);
 
       return {
         success: true,
@@ -321,7 +325,7 @@ async function checkTimeslots() {
     console.log(`抽出された時間枠: ${timeslots.length}件`);
     console.log('時間枠:', timeslots.join(', '));
 
-    // JSONファイルに保存
+    // Cloud Storageに保存
     const timeslotsData = {
       date: targetDate,
       displayText: displayText,
@@ -330,9 +334,9 @@ async function checkTimeslots() {
       updatedAt: new Date().toISOString()
     };
 
-    saveTimeslotsToFile(timeslotsData);
+    await saveTimeslotsToCloudStorage(timeslotsData);
 
-    console.log('JSONファイルへの保存完了');
+    console.log('Cloud Storageへの保存完了');
     console.log('=== 予約時間枠チェック完了 ===\n');
 
     return { success: true, displayText, slots: timeslots };
@@ -351,7 +355,7 @@ async function checkTimeslots() {
       updatedAt: new Date().toISOString()
     };
 
-    saveTimeslotsToFile(timeslotsData);
+    await saveTimeslotsToCloudStorage(timeslotsData);
 
     return { success: false, error: error.message };
 
@@ -364,55 +368,33 @@ async function checkTimeslots() {
 }
 
 /**
- * 時間枠データをJSONファイルに保存する関数
+ * 時間枠データをCloud Storageに保存する関数
  */
-function saveTimeslotsToFile(data) {
-  const filePath = path.join(DATA_DIR, 'timeslots.json');
-
+async function saveTimeslotsToCloudStorage(data) {
   try {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
-    console.log('JSONファイルに保存しました:', filePath);
+    const jsonString = JSON.stringify(data, null, 2);
+
+    // Cloud Storageにアップロード
+    await file.save(jsonString, {
+      contentType: 'application/json',
+      metadata: {
+        cacheControl: 'public, max-age=60',
+      },
+    });
+
+    // ファイルを公開アクセス可能にする
+    await file.makePublic();
+
+    console.log(`Cloud Storageに保存しました: gs://${BUCKET_NAME}/${FILE_NAME}`);
+    console.log(`公開URL: https://storage.googleapis.com/${BUCKET_NAME}/${FILE_NAME}`);
   } catch (error) {
-    console.error('JSONファイルの保存に失敗しました:', error.message);
+    console.error('Cloud Storageへの保存に失敗しました:', error.message);
+    throw error;
   }
 }
 
 /**
- * JSONファイルを読み込む関数
- */
-function loadTimeslotsFromFile() {
-  const filePath = path.join(DATA_DIR, 'timeslots.json');
-
-  try {
-    if (fs.existsSync(filePath)) {
-      const data = fs.readFileSync(filePath, 'utf8');
-      return JSON.parse(data);
-    } else {
-      // ファイルが存在しない場合は初期データを返す
-      return {
-        date: null,
-        displayText: '本日',
-        slots: [],
-        status: 'initializing',
-        message: '初期化中',
-        updatedAt: new Date().toISOString()
-      };
-    }
-  } catch (error) {
-    console.error('JSONファイルの読み込みに失敗しました:', error.message);
-    return {
-      date: null,
-      displayText: '本日',
-      slots: [],
-      status: 'error',
-      error: error.message,
-      updatedAt: new Date().toISOString()
-    };
-  }
-}
-
-/**
- * Cloud Scheduler からの HTTP リクエストを受け取るエンドポイント
+ * Cloud Schedulerからのリクエストを受け取るエンドポイント
  */
 app.get('/check', async (req, res) => {
   console.log('Cloud Scheduler からのリクエストを受信しました');
@@ -452,19 +434,6 @@ app.get('/check', async (req, res) => {
 });
 
 /**
- * 時間枠データをJSON形式で返すエンドポイント
- */
-app.get('/timeslots.json', (req, res) => {
-  const data = loadTimeslotsFromFile();
-
-  // CORSヘッダーを設定
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Content-Type', 'application/json');
-
-  res.status(200).json(data);
-});
-
-/**
  * ヘルスチェック用エンドポイント
  */
 app.get('/', (req, res) => {
@@ -472,9 +441,10 @@ app.get('/', (req, res) => {
     service: '予約時間枠表示システム',
     status: 'running',
     version: '1.0.0',
+    bucketName: BUCKET_NAME,
+    publicUrl: `https://storage.googleapis.com/${BUCKET_NAME}/${FILE_NAME}`,
     endpoints: {
       check: '/check - 予約時間枠をチェック',
-      timeslots: '/timeslots.json - 時間枠データを取得',
       health: '/ - ヘルスチェック'
     }
   });
@@ -491,7 +461,8 @@ app.get('/test', async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'テスト実行完了',
-      result: result
+      result: result,
+      publicUrl: `https://storage.googleapis.com/${BUCKET_NAME}/${FILE_NAME}`
     });
   } catch (error) {
     res.status(500).json({
@@ -507,6 +478,7 @@ app.listen(PORT, () => {
   console.log('予約時間枠表示システム 起動しました');
   console.log(`ポート: ${PORT}`);
   console.log(`予約ページ: ${RESERVATION_URL}`);
-  console.log(`データ保存先: ${DATA_DIR}`);
+  console.log(`Cloud Storage バケット: ${BUCKET_NAME}`);
+  console.log(`公開URL: https://storage.googleapis.com/${BUCKET_NAME}/${FILE_NAME}`);
   console.log('==============================================\n');
 });
