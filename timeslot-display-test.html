@@ -747,7 +747,7 @@
         <button id="btnUnavailable" onclick="setAvailability(false)">😔 満枠</button>
         <button id="btnClosed" onclick="setClosedStatus()">🚫 休診日</button>
         <div class="separator"></div>
-        <button id="btnTogglePanel" onclick="toggleDebugPanel()">🛠️ パネル表示</button>
+        <button id="btnTogglePanel">🛠️ パネル表示</button>
     </div>
 
     <!-- 2段目：設定タブ・データ操作 -->
@@ -1624,19 +1624,52 @@
     // Cloud Storage URL
     const API_URL = 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/timeslots.json';
 
+    // 表示対象日を曜日・時間帯から決定（READMEのロジックに準拠）
+    function calculateTargetDayLabel(now = new Date()) {
+        const dayOfWeek = now.getDay(); // 0=日, 1=月, 2=火, 3=水...
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const isAfter1830 = hour > 18 || (hour === 18 && minute >= 30);
+        const isAfterClinicHours = isAfter1830 || hour < 10 || (hour === 10 && minute < 30);
+        const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+        if (isAfterClinicHours) {
+            if (isAfter1830 && now.getDate() === lastDayOfMonth) {
+                return { displayText: '次の診療日', targetDay: null };
+            }
+
+            if (dayOfWeek === 2 && isAfter1830) {
+                return { displayText: '木曜', targetDay: 'thursday' };
+            }
+
+            if (isAfter1830) {
+                return { displayText: '次の診療日', targetDay: 'next' };
+            }
+        }
+
+        if (dayOfWeek === 3) {
+            return { displayText: '木曜', targetDay: 'thursday' };
+        }
+
+        return { displayText: '本日', targetDay: 'today' };
+    }
+
+    const now = new Date();
+    const targetDayInfo = calculateTargetDayLabel(now);
+
     // テスト用の状態管理（時間枠表示システム）
     const testState = {
-        date: 4,
-        displayText: '本日',
+        date: now.getDate(),
+        displayText: targetDayInfo.displayText,
         slots: ['10:15', '11:30', '15:00', '16:45'],
         status: 'available', // 'available', 'full', 'closed'
         message: '',
-        year: 2025,
-        month: 12,
-        day: 4,
-        dayOfWeek: 3, // 0=日, 1=月, 2=火...
-        hour: 14,
-        minute: 0
+        year: now.getFullYear(),
+        month: now.getMonth() + 1,
+        day: now.getDate(),
+        dayOfWeek: now.getDay(), // 0=日, 1=月, 2=火...
+        hour: now.getHours(),
+        minute: now.getMinutes()
     };
 
     // カスタマイズの状態管理
@@ -3733,7 +3766,10 @@
     function toggleDebugPanel() {
         const panel = document.getElementById('debugPanel');
         const btn = document.getElementById('btnTogglePanel');
+        const floatingBtn = document.getElementById('floatingToggleBtn');
         const body = document.body;
+
+        if (!panel) return;
 
         if (panel.classList.contains('hidden')) {
             panel.classList.remove('hidden');
@@ -3742,12 +3778,18 @@
                 btn.classList.add('active');
                 btn.textContent = '👁️ パネル非表示';
             }
+            if (floatingBtn) {
+                floatingBtn.setAttribute('aria-expanded', 'true');
+            }
         } else {
             panel.classList.add('hidden');
             body.classList.add('panel-hidden');
             if (btn) {
                 btn.classList.remove('active');
                 btn.textContent = '👁️ パネル表示';
+            }
+            if (floatingBtn) {
+                floatingBtn.setAttribute('aria-expanded', 'false');
             }
         }
 
@@ -4182,8 +4224,8 @@
         // バナーを更新
         updateBanners(data.updatedAt);
 
-        // 日付テキスト
-        const dayText = data.displayText;
+        // 日付テキスト（バックエンド/READMEロジックのいずれかを採用）
+        const dayText = data.displayText || calculateTargetDayLabel().displayText;
 
         // タイムスタンプをフォーマット
         const formattedTime = formatTimestampProduction(data.updatedAt);
@@ -4448,12 +4490,22 @@
     // 初期起動時はデバッグパネルを非表示にしておく
     const debugPanel = document.getElementById('debugPanel');
     const toggleBtn = document.getElementById('btnTogglePanel');
+    const floatingToggleBtn = document.getElementById('floatingToggleBtn');
     debugPanel.classList.add('hidden');
     document.body.classList.add('panel-hidden');
     if (toggleBtn) {
         toggleBtn.classList.remove('active');
         toggleBtn.textContent = '👁️ パネル表示';
     }
+
+    [toggleBtn, floatingToggleBtn].forEach(btn => {
+        if (!btn) return;
+        btn.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            toggleDebugPanel();
+        });
+    });
 
     // プレビューのスケールを初期化
     updatePreviewScale();
@@ -4463,7 +4515,7 @@
 </script>
 
 <!-- フローティングボタン（右下固定、パネル非表示時のみ表示） -->
-<button id="floatingToggleBtn" class="floating-toggle-btn" onclick="toggleDebugPanel()">🛠️</button>
+<button id="floatingToggleBtn" class="floating-toggle-btn">🛠️</button>
 
 </body>
 </html>
