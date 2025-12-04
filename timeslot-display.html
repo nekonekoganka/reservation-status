@@ -413,8 +413,13 @@
             const dayText = targetDayInfo.displayText;
 
             if (hasSlots) {
-                // 時間枠を「・」で区切って表示
-                const timeslotsText = data.slots.join('・');
+                // 時間枠を「・」で区切って表示（直近3つまで、4つ以上の場合は「…」を追加）
+                let timeslotsText;
+                if (data.slots.length > 3) {
+                    timeslotsText = data.slots.slice(0, 3).join('・') + '…';
+                } else {
+                    timeslotsText = data.slots.join('・');
+                }
 
                 container.className = 'display-container available';
                 container.innerHTML = `
