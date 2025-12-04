@@ -10,6 +10,19 @@
 - **更新頻度**: 1分毎（Cloud Schedulerで設定可能）
 - **データ保存**: Cloud Storage（ステートレス設計）
 
+### ⚠️ 重要：時間枠0個のケースについて
+
+予約サイトで日付がクリック可能でも、クリック後に「選択された日には空き時間がありません」と表示される場合があります。このシステムは**時間枠が0個の場合を自動検出し、満枠として処理**します。
+
+**動作の流れ:**
+1. 日付をクリック
+2. 時間枠表示エリアを読み込み（3秒待機）
+3. `.select-cell-available` 要素を検索
+4. 要素が0個 → `slots: []`, `status: "full"` として保存
+5. 表示画面で「😔 満枠です」と表示（QRコード非表示）
+
+つまり、**時間枠表示が出ない = 予約不可 = 満枠扱い**として正しく処理されます。
+
 ## 🏗️ システム構成
 
 ```
@@ -29,11 +42,14 @@
 ## 📁 ファイル構成
 
 ```
-docker-timeslot-checker/
-├── server.js         # メインロジック（Puppeteer + Express.js + Cloud Storage）
-├── package.json      # 依存関係（@google-cloud/storage を含む）
-├── Dockerfile        # Docker設定
-└── README.md         # このファイル
+reservation-status/
+├── docker-timeslot-checker/
+│   ├── server.js         # メインロジック（Puppeteer + Express.js + Cloud Storage）
+│   ├── package.json      # 依存関係（@google-cloud/storage を含む）
+│   ├── Dockerfile        # Docker設定
+│   └── README.md         # このファイル
+├── timeslot-display.html       # 本番表示用HTML（玄関ディスプレイ用）
+└── timeslot-display-test.html  # デバッグ用HTML（カスタマイズ機能付き）
 ```
 
 ## 🚀 デプロイ手順（完全ガイド）
@@ -233,11 +249,23 @@ https://storage.googleapis.com/reservation-timeslots-fujiminohikari/timeslots.js
 
 ### 表示用HTMLページ（GitHub Pages）
 
+#### 本番表示用
 ```
 https://nekonekoganka.github.io/reservation-status/timeslot-display.html
 ```
+クリニック玄関のディスプレイに表示するページ。シンプルな表示のみ。
 
-このページにアクセスするだけで、最新の予約時間枠が表示されます。
+#### デバッグ用（カスタマイズ機能付き）
+```
+https://nekonekoganka.github.io/reservation-status/timeslot-display-test.html
+```
+デバッグ・カスタマイズ機能付きページ。以下の機能があります：
+- 🟢 デバッグモード / 🔵 本番モード 切替
+- 🛠️ パネル表示ボタン（初期状態は非表示）
+- 10タブUI：⏰時間 📝テキスト 🎨デザイン 📏サイズ 📐レイアウト 🏷️バナー 📱QRコード ⚡アニメ1 ✨アニメ2 💾設定
+- アニメーション機能（pulse, glow, background blink, float, zoom, sparkle, neon）
+- プリセット管理（5スロット、他のdisplay-testと分離）
+- エクスポート/インポート機能
 
 ---
 
@@ -270,6 +298,12 @@ https://nekonekoganka.github.io/reservation-status/timeslot-display.html
 }
 ```
 
+**注意**: 満枠のケースには以下の2パターンがあります：
+1. カレンダーで日付が `day-full` クラス（クリック不可）
+2. カレンダーで日付はクリック可能だが、時間枠が0個（「選択された日には空き時間がありません」と表示）
+
+**どちらの場合も `slots: []`, `status: "full"` として処理されます。**
+
 **レスポンス例（休診日）:**
 
 ```json
@@ -282,6 +316,17 @@ https://nekonekoganka.github.io/reservation-status/timeslot-display.html
   "updatedAt": "2025-12-04T18:45:00.000Z"
 }
 ```
+
+### フィールド説明
+
+| フィールド | 型 | 説明 |
+|-----------|---|------|
+| `date` | number | 対象日の日付（1-31） |
+| `displayText` | string | 表示用テキスト（「本日」「明日」「木曜」など） |
+| `slots` | string[] | 空き時間枠の配列（例: `["10:15", "11:30"]`）<br>**空配列の場合は予約不可** |
+| `status` | string | `"available"`（空きあり）/ `"full"`（満枠）/ `"closed"`（休診日） |
+| `message` | string? | エラーメッセージ（満枠・休診日の場合のみ） |
+| `updatedAt` | string | 最終更新日時（ISO 8601形式） |
 
 ---
 
@@ -413,11 +458,16 @@ gsutil rm -r gs://reservation-timeslots-fujiminohikari
 
 ## 🔗 関連リンク
 
+### プロジェクト内
+- [本番表示用HTML](../timeslot-display.html) - クリニック玄関用シンプル表示
+- [デバッグ用HTML](../timeslot-display-test.html) - カスタマイズ機能付き
 - [既存システム（空き/満枠判定・一般予約）](../docker-automation/)
 - [既存システム（空き/満枠判定・視野予約）](../docker-automation-shiya/)
-- [表示用HTMLページ](../timeslot-display.html)
+
+### 外部ドキュメント
 - [Google Cloud Run ドキュメント](https://cloud.google.com/run/docs)
 - [Google Cloud Storage ドキュメント](https://cloud.google.com/storage/docs)
+- [Google Cloud Scheduler ドキュメント](https://cloud.google.com/scheduler/docs)
 - [Puppeteer ドキュメント](https://pptr.dev/)
 
 ---
@@ -435,5 +485,11 @@ gsutil rm -r gs://reservation-timeslots-fujiminohikari
 ---
 
 **作成日**: 2025年12月4日
-**バージョン**: 1.0.0
+**最終更新**: 2025年12月4日
+**バージョン**: 1.1.0
 **プロジェクト**: 予約時間枠表示システム（Cloud Storage対応）
+
+### 更新履歴
+
+- **v1.1.0** (2025-12-04): 時間枠0個ケースの詳細説明追加、デバッグページ追加
+- **v1.0.0** (2025-12-04): 初版リリース
