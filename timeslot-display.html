@@ -408,9 +408,9 @@
             // 時間枠があるかチェック
             const hasSlots = data.slots && data.slots.length > 0;
 
-            // README準拠の曜日・時間ロジックと取得データを突き合わせ
+            // README準拠の曜日・時間ロジック（現在時刻で判定）
             const targetDayInfo = calculateTargetDayLabel();
-            const dayText = data.displayText || targetDayInfo.displayText;
+            const dayText = targetDayInfo.displayText;
 
             if (hasSlots) {
                 // 時間枠を「・」で区切って表示
