@@ -268,27 +268,31 @@
         const hour = now.getHours();
         const minute = now.getMinutes();
         const isAfter1830 = (hour > 18) || (hour === 18 && minute >= 30);
+        const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
 
-        let dayText = '本日';
-
-        if (isAfter1830) {
-            const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-            if (now.getDate() === lastDayOfMonth) {
-                dayText = '次の診療日';
-            } else if (dayOfWeek === 2) {
-                dayText = '木曜';
-            } else {
-                dayText = '明日';
-            }
-        } else {
-            if (dayOfWeek === 3) {
-                dayText = '木曜';
-            } else {
-                dayText = '本日';
-            }
+        // 📅 日付判定ロジック
+        // 火曜18:30以降 → 木曜日
+        // 水曜日（終日） → 木曜日
+        // 月末18:30以降 → 自動判定不可（手動入力）
+        // その他18:30以降 → 明日
+        // 18:30より前 → 本日
+        if (dayOfWeek === 3) {
+            return '木曜';
         }
 
-        return dayText;
+        if (isAfter1830) {
+            if (now.getDate() === lastDayOfMonth) {
+                return '次の診療日';
+            }
+
+            if (dayOfWeek === 2) {
+                return '木曜';
+            }
+
+            return '明日';
+        }
+
+        return '本日';
     }
 
     /**
