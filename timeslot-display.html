@@ -173,6 +173,22 @@
         .lunch-break-banner.show {
             display: flex;
         }
+
+        /* QRコード（左下固定） */
+        .qr-code-corner {
+            position: absolute;
+            bottom: 30px;
+            left: 20px;
+            z-index: 1200;
+        }
+
+        .qr-code-corner img {
+            display: block;
+            width: 175px;
+            height: 175px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -182,6 +198,11 @@
 
     <!-- 昼休みバナー -->
     <div id="lunchBreakBanner" class="lunch-break-banner">🕐 昼休み中　午後３時より窓口が開きます</div>
+
+    <!-- QRコード（左下固定） -->
+    <div id="qrCodeCorner" class="qr-code-corner" style="display: none;">
+        <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード">
+    </div>
 
     <div id="displayContainer" class="display-container loading">
         <div class="icon">⏳</div>
@@ -334,9 +355,12 @@
                     <div class="main-message">${data.displayText}の予約</div>
                     <div class="timeslots">${timeslotsText}</div>
                     <div class="sub-message">が空いています</div>
-                    <div class="qr-message">受付窓口でご案内いたします</div>
+                    <div class="qr-message">受付窓口でご案内できます。もしくはWeb予約も可能です。</div>
                     <div class="update-time">${formattedTime}</div>
                 `;
+
+                // QRコードを表示
+                document.getElementById('qrCodeCorner').style.display = 'block';
 
                 updateFavicon(true);
 
@@ -359,6 +383,9 @@
                     <div class="update-time">${formattedTime}</div>
                 `;
 
+                // QRコードを非表示
+                document.getElementById('qrCodeCorner').style.display = 'none';
+
                 updateFavicon(false);
             }
 
@@ -379,6 +406,9 @@
             <div class="main-message">情報を取得できません</div>
             <div class="error-message">しばらくしてから再度お試しください</div>
         `;
+
+        // QRコードを非表示
+        document.getElementById('qrCodeCorner').style.display = 'none';
 
         updateFavicon(false);
     }
