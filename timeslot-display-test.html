@@ -3048,7 +3048,7 @@
      * プリセットをエクスポート
      */
     function exportPreset(slotNumber) {
-        const presetData = localStorage.getItem(`displayPreset${slotNumber}`);
+        const presetData = localStorage.getItem(`timeslotDisplayPreset${slotNumber}`);
 
         if (!presetData) {
             alert('❌ このスロットには保存されていません');
@@ -3146,7 +3146,7 @@
             savedAt: new Date().toISOString()
         };
 
-        localStorage.setItem(`displayPreset${slotNumber}`, JSON.stringify(presetData));
+        localStorage.setItem(`timeslotDisplayPreset${slotNumber}`, JSON.stringify(presetData));
 
         // 名前を更新
         nameInput.value = presetName;
@@ -3162,7 +3162,7 @@
      * プリセットを読み込み
      */
     function loadPreset(slotNumber) {
-        const presetData = localStorage.getItem(`displayPreset${slotNumber}`);
+        const presetData = localStorage.getItem(`timeslotDisplayPreset${slotNumber}`);
 
         if (!presetData) {
             alert('❌ このスロットには保存されていません');
@@ -3198,7 +3198,7 @@
      * プリセットを削除
      */
     function deletePreset(slotNumber) {
-        const presetData = localStorage.getItem(`displayPreset${slotNumber}`);
+        const presetData = localStorage.getItem(`timeslotDisplayPreset${slotNumber}`);
 
         if (!presetData) {
             alert('❌ このスロットには保存されていません');
@@ -3208,7 +3208,7 @@
         const preset = JSON.parse(presetData);
 
         if (confirm(`「${preset.name}」を削除しますか？`)) {
-            localStorage.removeItem(`displayPreset${slotNumber}`);
+            localStorage.removeItem(`timeslotDisplayPreset${slotNumber}`);
             document.getElementById(`presetName${slotNumber}`).value = '';
 
             if (currentPresetSlot === slotNumber) {
@@ -3227,7 +3227,7 @@
         const infoDiv = document.getElementById('currentPresetInfo');
 
         if (currentPresetSlot) {
-            const presetData = localStorage.getItem(`displayPreset${currentPresetSlot}`);
+            const presetData = localStorage.getItem(`timeslotDisplayPreset${currentPresetSlot}`);
             if (presetData) {
                 const preset = JSON.parse(presetData);
                 infoDiv.textContent = `プリセット ${currentPresetSlot}: ${preset.name}`;
@@ -3244,7 +3244,7 @@
      */
     function loadPresetNames() {
         for (let i = 1; i <= 5; i++) {
-            const presetData = localStorage.getItem(`displayPreset${i}`);
+            const presetData = localStorage.getItem(`timeslotDisplayPreset${i}`);
             if (presetData) {
                 const preset = JSON.parse(presetData);
                 document.getElementById(`presetName${i}`).value = preset.name;
