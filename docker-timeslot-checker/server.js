@@ -37,37 +37,33 @@ function calculateTargetDate() {
   const hour = now.getHours();
   const minute = now.getMinutes();
 
-  // 診療時間内かチェック（10:30-18:30）
-  const isDuringClinicHours = (hour > 10 || (hour === 10 && minute >= 30)) && (hour < 18 || (hour === 18 && minute < 30));
+  // 18:30以降かチェック
+  const isAfter1830 = (hour > 18) || (hour === 18 && minute >= 30);
 
   let daysToAdd = 0;
   let displayText = '本日';
 
-  if (!isDuringClinicHours) {
-    // 診療時間外の処理（18:30以降または10:30より前）
+  if (isAfter1830) {
+    // 18:30以降の処理
 
     // 月末チェック
     const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    if (now.getDate() === lastDayOfMonth && (hour >= 18 && minute >= 30)) {
+    if (now.getDate() === lastDayOfMonth) {
       // 月末の18:30以降は自動判定しない
       console.log('月末18:30以降のため、自動判定をスキップします');
       return { targetDate: null, displayText: '次の診療日' };
     }
 
     // 火曜日（dayOfWeek === 2）の18:30以降
-    if (dayOfWeek === 2 && hour >= 18 && minute >= 30) {
+    if (dayOfWeek === 2) {
       daysToAdd = 2; // 木曜日をチェック
       displayText = '木曜';
-    } else if (hour >= 18 && minute >= 30) {
+    } else {
       daysToAdd = 1; // 明日をチェック
       displayText = '明日';
-    } else {
-      // 10:30より前
-      daysToAdd = 0; // 本日をチェック
-      displayText = '本日';
     }
   } else {
-    // 診療時間内（10:30-18:30）の処理
+    // 18:30より前の処理
 
     // 水曜日（dayOfWeek === 3）
     if (dayOfWeek === 3) {
