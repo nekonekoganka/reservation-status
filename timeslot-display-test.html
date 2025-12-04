@@ -1626,32 +1626,29 @@
 
     // 表示対象日を曜日・時間帯から決定（READMEのロジックに準拠）
     function calculateTargetDayLabel(now = new Date()) {
-        const dayOfWeek = now.getDay(); // 0=日, 1=月, 2=火, 3=水...
-        const hour = now.getHours();
-        const minute = now.getMinutes();
-        const isAfter1830 = hour > 18 || (hour === 18 && minute >= 30);
-        const isAfterClinicHours = isAfter1830 || hour < 10 || (hour === 10 && minute < 30);
-        const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        const referenceTime = typeof now === 'string' ? new Date(now) : now;
+        const dayText = calculateDayText(referenceTime);
 
-        if (isAfterClinicHours) {
-            if (isAfter1830 && now.getDate() === lastDayOfMonth) {
-                return { displayText: '次の診療日', targetDay: null };
-            }
+        let targetDay = null;
 
-            if (dayOfWeek === 2 && isAfter1830) {
-                return { displayText: '木曜', targetDay: 'thursday' };
-            }
-
-            if (isAfter1830) {
-                return { displayText: '次の診療日', targetDay: 'next' };
-            }
+        switch (dayText) {
+            case '本日':
+                targetDay = 'today';
+                break;
+            case '明日':
+                targetDay = 'tomorrow';
+                break;
+            case '木曜':
+                targetDay = 'thursday';
+                break;
+            case '次の診療日':
+                targetDay = 'next';
+                break;
+            default:
+                targetDay = null;
         }
 
-        if (dayOfWeek === 3) {
-            return { displayText: '木曜', targetDay: 'thursday' };
-        }
-
-        return { displayText: '本日', targetDay: 'today' };
+        return { displayText: dayText, targetDay };
     }
 
     const now = new Date();
@@ -3846,7 +3843,7 @@
     function setClosedStatus() {
         testState.slots = [];
         testState.status = 'closed';
-        testState.displayText = '本日';
+        testState.displayText = calculateDayText(getTestTimestamp());
         updateDisplay();
     }
 
@@ -4223,7 +4220,7 @@
         updateBanners(data.updatedAt);
 
         // 日付テキスト（バックエンド/READMEロジックのいずれかを採用）
-        const dayText = data.displayText || calculateTargetDayLabel().displayText;
+        const dayText = data.displayText || calculateTargetDayLabel(data.updatedAt).displayText;
 
         // タイムスタンプをフォーマット
         const formattedTime = formatTimestampProduction(data.updatedAt);
