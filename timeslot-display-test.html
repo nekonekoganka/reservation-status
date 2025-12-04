@@ -4102,8 +4102,13 @@
                 container.style.animation = '';
             }
 
-            // 時間枠を「・」で区切って表示
-            const timeslotsText = testState.slots.join('・');
+            // 時間枠を「・」で区切って表示（直近3つまで、4つ以上の場合は「…」を追加）
+            let timeslotsText;
+            if (testState.slots.length > 3) {
+                timeslotsText = testState.slots.slice(0, 3).join('・') + '…';
+            } else {
+                timeslotsText = testState.slots.join('・');
+            }
 
             container.innerHTML = `
                 <div class="clinic-name">${customizeState.clinicName}</div>
@@ -4286,8 +4291,13 @@
                 container.style.animation = '';
             }
 
-            // 時間枠を「・」で区切って表示
-            const timeslotsText = data.slots.join('・');
+            // 時間枠を「・」で区切って表示（直近3つまで、4つ以上の場合は「…」を追加）
+            let timeslotsText;
+            if (data.slots.length > 3) {
+                timeslotsText = data.slots.slice(0, 3).join('・') + '…';
+            } else {
+                timeslotsText = data.slots.join('・');
+            }
 
             container.innerHTML = `
                 <div class="clinic-name">${customizeState.clinicName}</div>
