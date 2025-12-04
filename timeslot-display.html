@@ -217,32 +217,29 @@
 
     // READMEの日時ロジックを前段でも適用して表示対象日を決定
     function calculateTargetDayLabel(now = new Date()) {
-        const dayOfWeek = now.getDay(); // 0=日, 1=月, 2=火, 3=水...
-        const hour = now.getHours();
-        const minute = now.getMinutes();
-        const isAfter1830 = hour > 18 || (hour === 18 && minute >= 30);
-        const isAfterClinicHours = isAfter1830 || hour < 10 || (hour === 10 && minute < 30);
-        const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        const referenceTime = typeof now === 'string' ? new Date(now) : now;
+        const dayText = calculateDayText(referenceTime);
 
-        if (isAfterClinicHours) {
-            if (isAfter1830 && now.getDate() === lastDayOfMonth) {
-                return { displayText: '次の診療日', targetDay: null };
-            }
+        let targetDay = null;
 
-            if (dayOfWeek === 2 && isAfter1830) {
-                return { displayText: '木曜', targetDay: 'thursday' };
-            }
-
-            if (isAfter1830) {
-                return { displayText: '次の診療日', targetDay: 'next' };
-            }
+        switch (dayText) {
+            case '本日':
+                targetDay = 'today';
+                break;
+            case '明日':
+                targetDay = 'tomorrow';
+                break;
+            case '木曜':
+                targetDay = 'thursday';
+                break;
+            case '次の診療日':
+                targetDay = 'next';
+                break;
+            default:
+                targetDay = null;
         }
 
-        if (dayOfWeek === 3) {
-            return { displayText: '木曜', targetDay: 'thursday' };
-        }
-
-        return { displayText: '本日', targetDay: 'today' };
+        return { displayText: dayText, targetDay };
     }
 
     /**
@@ -260,6 +257,38 @@
 
         // 8:00-9:59の間
         return hour >= 8 && hour < 10;
+    }
+
+    /**
+     * 日付テキストを計算する関数
+     */
+    function calculateDayText(updateTime) {
+        const now = new Date(updateTime);
+        const dayOfWeek = now.getDay();
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const isAfter1830 = (hour > 18) || (hour === 18 && minute >= 30);
+
+        let dayText = '本日';
+
+        if (isAfter1830) {
+            const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            if (now.getDate() === lastDayOfMonth) {
+                dayText = '次の診療日';
+            } else if (dayOfWeek === 2) {
+                dayText = '木曜';
+            } else {
+                dayText = '明日';
+            }
+        } else {
+            if (dayOfWeek === 3) {
+                dayText = '木曜';
+            } else {
+                dayText = '本日';
+            }
+        }
+
+        return dayText;
     }
 
     /**
@@ -376,7 +405,7 @@
             const hasSlots = data.slots && data.slots.length > 0;
 
             // README準拠の曜日・時間ロジックと取得データを突き合わせ
-            const targetDayInfo = calculateTargetDayLabel();
+            const targetDayInfo = calculateTargetDayLabel(data.updatedAt);
             const dayText = data.displayText || targetDayInfo.displayText;
 
             if (hasSlots) {
