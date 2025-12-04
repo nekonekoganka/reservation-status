@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "予約枠数表示（一般）",
+  "version": "1.0.0",
+  "description": "一般予約の空き枠数をタスクバーで確認できます",
+  "permissions": [
+    "alarms",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://storage.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "予約枠数表示（一般）",
+    "default_popup": "popup.html"
+  }
+}
