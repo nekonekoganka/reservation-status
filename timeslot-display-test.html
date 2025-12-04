@@ -3765,36 +3765,34 @@
      */
     function toggleDebugPanel() {
         const panel = document.getElementById('debugPanel');
-        const btn = document.getElementById('btnTogglePanel');
-        const floatingBtn = document.getElementById('floatingToggleBtn');
         const body = document.body;
+        const toggleButtons = getDebugToggleButtons();
 
         if (!panel) return;
 
-        if (panel.classList.contains('hidden')) {
-            panel.classList.remove('hidden');
-            body.classList.remove('panel-hidden');
-            if (btn) {
-                btn.classList.add('active');
-                btn.textContent = '👁️ パネル非表示';
+        const isHidden = panel.classList.toggle('hidden');
+        body.classList.toggle('panel-hidden', isHidden);
+
+        toggleButtons.forEach((btn) => {
+            btn.setAttribute('aria-expanded', String(!isHidden));
+            if (btn.id === 'btnTogglePanel') {
+                btn.classList.toggle('active', !isHidden);
+                btn.textContent = isHidden ? '🛠️ パネル表示' : '👁️ パネル非表示';
             }
-            if (floatingBtn) {
-                floatingBtn.setAttribute('aria-expanded', 'true');
-            }
-        } else {
-            panel.classList.add('hidden');
-            body.classList.add('panel-hidden');
-            if (btn) {
-                btn.classList.remove('active');
-                btn.textContent = '👁️ パネル表示';
-            }
-            if (floatingBtn) {
-                floatingBtn.setAttribute('aria-expanded', 'false');
-            }
-        }
+        });
 
         // パネル表示状態によってプレビューのスケールを調整
         setTimeout(updatePreviewScale, 300);
+    }
+
+    function getDebugToggleButtons() {
+        const buttons = [
+            document.getElementById('btnTogglePanel'),
+            document.getElementById('floatingToggleBtn'),
+            document.querySelector('.floating-toggle-btn'),
+        ].filter(Boolean);
+
+        return Array.from(new Set(buttons));
     }
 
     /**
@@ -4487,31 +4485,34 @@
     updateFavicon();
     updatePulseSpeedUI();
 
-    // 初期起動時はデバッグパネルを非表示にしておく
-    const debugPanel = document.getElementById('debugPanel');
-    const toggleBtn = document.getElementById('btnTogglePanel');
-    const floatingToggleBtn = document.getElementById('floatingToggleBtn');
-    debugPanel.classList.add('hidden');
-    document.body.classList.add('panel-hidden');
-    if (toggleBtn) {
-        toggleBtn.classList.remove('active');
-        toggleBtn.textContent = '👁️ パネル表示';
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+        // 初期起動時はデバッグパネルを非表示にしておく
+        const debugPanel = document.getElementById('debugPanel');
+        const toggleButtons = getDebugToggleButtons();
+        if (debugPanel) {
+            debugPanel.classList.add('hidden');
+        }
+        document.body.classList.add('panel-hidden');
 
-    [toggleBtn, floatingToggleBtn].forEach(btn => {
-        if (!btn) return;
-        btn.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            toggleDebugPanel();
+        toggleButtons.forEach((btn) => {
+            if (btn.id === 'btnTogglePanel') {
+                btn.classList.remove('active');
+                btn.textContent = '🛠️ パネル表示';
+            }
+            btn.setAttribute('aria-expanded', 'false');
+            btn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleDebugPanel();
+            });
         });
+
+        // プレビューのスケールを初期化
+        updatePreviewScale();
+
+        // ウィンドウリサイズ時にスケールを再計算
+        window.addEventListener('resize', updatePreviewScale);
     });
-
-    // プレビューのスケールを初期化
-    updatePreviewScale();
-
-    // ウィンドウリサイズ時にスケールを再計算
-    window.addEventListener('resize', updatePreviewScale);
 </script>
 
 <!-- フローティングボタン（右下固定、パネル非表示時のみ表示） -->
