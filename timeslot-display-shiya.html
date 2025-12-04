@@ -189,6 +189,128 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
+
+        /* デバッグパネル */
+        .debug-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            display: none;
+            min-width: 400px;
+        }
+
+        .debug-panel.show {
+            display: block;
+        }
+
+        .debug-panel h2 {
+            margin: 0 0 20px 0;
+            font-size: 24px;
+            border-bottom: 2px solid #fff;
+            padding-bottom: 10px;
+        }
+
+        .debug-setting {
+            margin-bottom: 20px;
+        }
+
+        .debug-setting label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .debug-setting input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+            border: 2px solid #666;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+        }
+
+        .debug-setting input[type="number"]:focus {
+            outline: none;
+            border-color: #27ae60;
+        }
+
+        .debug-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .debug-button {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .debug-button.save {
+            background: #27ae60;
+            color: white;
+        }
+
+        .debug-button.save:hover {
+            background: #229954;
+        }
+
+        .debug-button.close {
+            background: #666;
+            color: white;
+        }
+
+        .debug-button.close:hover {
+            background: #555;
+        }
+
+        .debug-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        /* デバッグパネル開閉ボタン */
+        .debug-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: 2px solid #666;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .debug-toggle:hover {
+            background: rgba(0, 0, 0, 0.9);
+            border-color: #27ae60;
+        }
     </style>
 </head>
 <body>
@@ -209,11 +331,84 @@
         <div class="main-message">読み込み中...</div>
         <div class="sub-message">予約時間枠を確認しています</div>
     </div>
+
+    <!-- デバッグパネル -->
+    <div id="debugPanel" class="debug-panel">
+        <h2>🔧 デバッグ設定（視野）</h2>
+        <div class="debug-setting">
+            <label for="maxSlotsInput">表示する時間枠の数:</label>
+            <input type="number" id="maxSlotsInput" min="1" max="20" value="3">
+        </div>
+        <div class="debug-buttons">
+            <button class="debug-button save" onclick="saveDebugSettings()">💾 保存</button>
+            <button class="debug-button close" onclick="toggleDebugPanel()">✕ 閉じる</button>
+        </div>
+        <div class="debug-info">
+            💡 「D」キーを押すか、右下のボタンでこのパネルを開閉できます
+        </div>
+    </div>
+
+    <!-- デバッグパネル開閉ボタン -->
+    <button class="debug-toggle" onclick="toggleDebugPanel()" title="デバッグパネルを開く (Dキー)">
+        🔧
+    </button>
 </div>
 
 <script>
     // Cloud StorageのURL（公開アクセス）
     const API_URL = 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/timeslots-shiya.json';
+
+    // デバッグ設定のデフォルト値
+    const DEFAULT_MAX_SLOTS = 3;
+
+    /**
+     * デバッグ設定をlocalStorageから読み込む
+     */
+    function loadDebugSettings() {
+        const maxSlots = localStorage.getItem('debug_maxSlots_shiya');
+        return {
+            maxSlots: maxSlots ? parseInt(maxSlots, 10) : DEFAULT_MAX_SLOTS
+        };
+    }
+
+    /**
+     * デバッグ設定をlocalStorageに保存する
+     */
+    function saveDebugSettings() {
+        const maxSlots = document.getElementById('maxSlotsInput').value;
+        localStorage.setItem('debug_maxSlots_shiya', maxSlots);
+
+        // パネルを閉じる
+        toggleDebugPanel();
+
+        // 即座に表示を更新
+        updateTimeslots();
+
+        alert(`設定を保存しました！\n表示する時間枠: ${maxSlots}個`);
+    }
+
+    /**
+     * デバッグパネルの表示/非表示を切り替える
+     */
+    function toggleDebugPanel() {
+        const panel = document.getElementById('debugPanel');
+        panel.classList.toggle('show');
+
+        // パネルを開くときは現在の設定を読み込む
+        if (panel.classList.contains('show')) {
+            const settings = loadDebugSettings();
+            document.getElementById('maxSlotsInput').value = settings.maxSlots;
+        }
+    }
+
+    /**
+     * キーボードショートカット（Dキー）でデバッグパネルを開く
+     */
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'd' || event.key === 'D') {
+            toggleDebugPanel();
+        }
+    });
 
     // READMEの日時ロジックを前段でも適用して表示対象日を決定
     function calculateTargetDayLabel(now = new Date()) {
@@ -413,10 +608,14 @@
             const dayText = targetDayInfo.displayText;
 
             if (hasSlots) {
-                // 時間枠を「・」で区切って表示（直近3つまで、4つ以上の場合は「…」を追加）
+                // デバッグ設定から表示する時間枠の数を取得
+                const settings = loadDebugSettings();
+                const maxSlots = settings.maxSlots;
+
+                // 時間枠を「・」で区切って表示（設定した数まで、それ以上の場合は「…」を追加）
                 let timeslotsText;
-                if (data.slots.length > 3) {
-                    timeslotsText = data.slots.slice(0, 3).join('・') + '…';
+                if (data.slots.length > maxSlots) {
+                    timeslotsText = data.slots.slice(0, maxSlots).join('・') + '…';
                 } else {
                     timeslotsText = data.slots.join('・');
                 }
