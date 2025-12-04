@@ -33,6 +33,12 @@
 - どちらか空き → 「空き」表示（QRコードなし）
 - デバッグモードで一般予約・視野予約を個別に制御可能
 
+### タイムスロット表示（一般予約カレンダー抽出）
+
+**予約枠別の抽出表示：** https://nekonekoganka.github.io/reservation-status/timeslot-display.html
+
+**デバッグページ（テスト用）：** https://nekonekoganka.github.io/reservation-status/timeslot-display-test.html
+
 ---
 
 ## 📌 主な機能
@@ -60,6 +66,8 @@ reservation-status/
 ├── index.html                  # 一般予約: バナー表示用HTML（ホームページ埋め込み用）
 ├── display.html                # 一般予約: 全画面ディスプレイ用HTML（レスポンシブ対応・クリニック入口用）🆕
 ├── display-test.html           # 一般予約: デバッグ用テストページ（カスタマイズ機能付き）🆕
+├── timeslot-display.html       # 一般予約: カレンダーから時間枠を抽出して表示
+├── timeslot-display-test.html  # 一般予約: 時間枠表示のデバッグ・テストページ
 ├── shiya.html                  # 視野予約: バナー表示用HTML（ホームページ埋め込み用）🆕
 ├── display-shiya.html          # 視野予約: 全画面ディスプレイ用HTML（レスポンシブ対応・クリニック入口用）🆕
 ├── display-test-shiya.html     # 視野予約: デバッグ用テストページ（カスタマイズ機能付き）🆕
