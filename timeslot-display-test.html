@@ -311,6 +311,7 @@
             top: 50%;
             left: 50%;
             transform-origin: center center;
+            transform: translate(-50%, -50%);
         }
 
         .preview-container .display-container {
@@ -786,7 +787,7 @@
                 </div>
 
                 <!-- QRコード（左下固定） -->
-                <div class="qr-code-corner">
+                <div id="qrCodeCorner" class="qr-code-corner">
                     <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード">
                 </div>
 
@@ -3292,9 +3293,13 @@
         // テキスト
         document.getElementById('customClinicName').value = customizeState.clinicName;
         document.getElementById('customAvailableMsg').value = customizeState.availableMsg;
+        document.getElementById('customAvailableSubMsg').value = customizeState.availableSubMsg;
         document.getElementById('customFullMsg').value = customizeState.fullMsg;
-        document.getElementById('customSubMsg').value = customizeState.subMsg;
+        document.getElementById('customClosedMsg').value = customizeState.closedMsg;
+        document.getElementById('customFullSubMsg').value = customizeState.fullSubMsg;
+        document.getElementById('customClosedSubMsg').value = customizeState.closedSubMsg;
         document.getElementById('customQrMsg').value = customizeState.qrMsg;
+        document.getElementById('customQrMsgFull').value = customizeState.qrMsgFull;
 
         // アイコン
         document.getElementById('customAvailableIcon').value = customizeState.availableIcon;
@@ -3523,9 +3528,13 @@
         // 入力フィールドを更新
         document.getElementById('customClinicName').value = customizeState.clinicName;
         document.getElementById('customAvailableMsg').value = customizeState.availableMsg;
+        document.getElementById('customAvailableSubMsg').value = customizeState.availableSubMsg;
         document.getElementById('customFullMsg').value = customizeState.fullMsg;
-        document.getElementById('customSubMsg').value = customizeState.subMsg;
+        document.getElementById('customClosedMsg').value = customizeState.closedMsg;
+        document.getElementById('customFullSubMsg').value = customizeState.fullSubMsg;
+        document.getElementById('customClosedSubMsg').value = customizeState.closedSubMsg;
         document.getElementById('customQrMsg').value = customizeState.qrMsg;
+        document.getElementById('customQrMsgFull').value = customizeState.qrMsgFull;
         document.getElementById('customAvailableIcon').value = customizeState.availableIcon;
         document.getElementById('customFullIcon').value = customizeState.fullIcon;
         document.getElementById('customAvailableBg').value = customizeState.availableBg;
@@ -3667,9 +3676,13 @@
         // テキスト
         document.getElementById('customClinicName').value = customizeState.clinicName;
         document.getElementById('customAvailableMsg').value = customizeState.availableMsg;
+        document.getElementById('customAvailableSubMsg').value = customizeState.availableSubMsg;
         document.getElementById('customFullMsg').value = customizeState.fullMsg;
-        document.getElementById('customSubMsg').value = customizeState.subMsg;
+        document.getElementById('customClosedMsg').value = customizeState.closedMsg;
+        document.getElementById('customFullSubMsg').value = customizeState.fullSubMsg;
+        document.getElementById('customClosedSubMsg').value = customizeState.closedSubMsg;
         document.getElementById('customQrMsg').value = customizeState.qrMsg;
+        document.getElementById('customQrMsgFull').value = customizeState.qrMsgFull;
         document.getElementById('customAvailableIcon').value = customizeState.availableIcon;
         document.getElementById('customFullIcon').value = customizeState.fullIcon;
 
@@ -4045,9 +4058,6 @@
         const availableIcon = customizeState.availableIcon || '🕐';
         const fullIcon = customizeState.fullIcon || '😔';
 
-        const availableIcon = customizeState.availableIcon || '🕐';
-        const fullIcon = customizeState.fullIcon || '😔';
-
         if (hasSlots) {
             container.className = 'display-container available';
 
@@ -4211,6 +4221,9 @@
     function displayStatusProduction(data) {
         const container = document.getElementById('displayContainer');
         lastProductionResult = data;
+
+        const availableIcon = customizeState.availableIcon || '🕐';
+        const fullIcon = customizeState.fullIcon || '😔';
 
         // 時間枠があるかチェック
         const hasSlots = data.slots && data.slots.length > 0;
