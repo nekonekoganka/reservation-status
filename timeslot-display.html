@@ -215,6 +215,36 @@
     // Cloud StorageのURL（公開アクセス）
     const API_URL = 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/timeslots.json';
 
+    // READMEの日時ロジックを前段でも適用して表示対象日を決定
+    function calculateTargetDayLabel(now = new Date()) {
+        const dayOfWeek = now.getDay(); // 0=日, 1=月, 2=火, 3=水...
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const isAfter1830 = hour > 18 || (hour === 18 && minute >= 30);
+        const isAfterClinicHours = isAfter1830 || hour < 10 || (hour === 10 && minute < 30);
+        const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+        if (isAfterClinicHours) {
+            if (isAfter1830 && now.getDate() === lastDayOfMonth) {
+                return { displayText: '次の診療日', targetDay: null };
+            }
+
+            if (dayOfWeek === 2 && isAfter1830) {
+                return { displayText: '木曜', targetDay: 'thursday' };
+            }
+
+            if (isAfter1830) {
+                return { displayText: '次の診療日', targetDay: 'next' };
+            }
+        }
+
+        if (dayOfWeek === 3) {
+            return { displayText: '木曜', targetDay: 'thursday' };
+        }
+
+        return { displayText: '本日', targetDay: 'today' };
+    }
+
     /**
      * 営業時間前判定関数（8:00-10:00、営業日のみ）
      */
@@ -345,6 +375,10 @@
             // 時間枠があるかチェック
             const hasSlots = data.slots && data.slots.length > 0;
 
+            // README準拠の曜日・時間ロジックと取得データを突き合わせ
+            const targetDayInfo = calculateTargetDayLabel();
+            const dayText = data.displayText || targetDayInfo.displayText;
+
             if (hasSlots) {
                 // 時間枠を「・」で区切って表示
                 const timeslotsText = data.slots.join('・');
@@ -352,7 +386,7 @@
                 container.className = 'display-container available';
                 container.innerHTML = `
                     <div class="icon">🕐</div>
-                    <div class="main-message">${data.displayText}の予約</div>
+                    <div class="main-message">${dayText}の予約</div>
                     <div class="timeslots">${timeslotsText}</div>
                     <div class="sub-message">が空いています</div>
                     <div class="qr-message">受付窓口でご案内できます。もしくはWeb予約も可能です。</div>
@@ -377,7 +411,7 @@
                 container.className = 'display-container unavailable';
                 container.innerHTML = `
                     <div class="icon">😔</div>
-                    <div class="main-message">${data.displayText}の予約は<br>「${message}」です</div>
+                    <div class="main-message">${dayText}の予約は<br>「${message}」です</div>
                     <div class="sub-message">${subMessage}</div>
                     <div class="qr-message">次の診療日以降でご予約ください</div>
                     <div class="update-time">${formattedTime}</div>
