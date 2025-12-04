@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>デバッグ - 予約空き時間 - ふじみ野ひかり眼科</title>
+    <style>
+        /* 全画面表示用のリセット */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            overflow: hidden;
+        }
+
+        .display-area {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* ディスプレイ全体のスタイル */
+        .display-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 80px;
+            text-align: center;
+            color: white;
+            transition: background-color 0.5s ease;
+        }
+
+        /* 予約可能の時のスタイル（濃い黄緑色） */
+        .display-container.available {
+            background: #27ae60;
+        }
+
+        /* 予約不可の時のスタイル（赤色） */
+        .display-container.unavailable {
+            background: #dc3545;
+        }
+
+        /* 読み込み中のスタイル */
+        .display-container.loading {
+            background: #6C757D;
+        }
+
+        /* エラー時のスタイル */
+        .display-container.error {
+            background: linear-gradient(135deg, #868E96 0%, #6C757D 100%);
+        }
+
+        :root {
+            --pulse-duration: 3s;
+        }
+
+        /* アイコン */
+        .icon {
+            font-size: clamp(144px, 12vw, 200px);
+            margin-bottom: 95px;
+            margin-top: 80px;
+            line-height: 1;
+            animation: pulse var(--pulse-duration) ease-in-out infinite;
+            text-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* アイコンのパルスアニメーション */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.15);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* メインメッセージ（時間枠表示） */
+        .main-message {
+            font-size: clamp(60px, 6vw, 120px);
+            font-weight: 900;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            text-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 1s ease-in;
+        }
+
+        /* 時間枠のスタイル */
+        .timeslots {
+            font-size: clamp(70px, 7vw, 140px);
+            font-weight: 900;
+            margin-bottom: 20px;
+            line-height: 1.3;
+            text-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.02em;
+        }
+
+        /* フェードインアニメーション */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* サブメッセージ */
+        .sub-message {
+            font-size: clamp(41px, 4.1vw, 56px);
+            margin-bottom: 5px;
+            line-height: 1.6;
+            opacity: 0.95;
+            text-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* QRコードメッセージ */
+        .qr-message {
+            font-size: clamp(46px, 4.6vw, 64px);
+            font-weight: 400;
+            margin-top: 0;
+            margin-bottom: 60px;
+            opacity: 0.95;
+            text-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 更新時刻 */
+        .update-time {
+            font-size: clamp(30px, 3vw, 40px);
+            opacity: 0.85;
+            margin-top: 0;
+            text-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .error-message {
+            font-size: clamp(36px, 4vw, 72px);
+            margin-top: 40px;
+            text-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 昼休みバナー・営業時間前バナー */
+        .lunch-break-banner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #ffc107;
+            color: #212529;
+            font-size: clamp(16px, 3.6vw, 32px);
+            font-weight: bold;
+            text-align: center;
+            padding: 0 20px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none;
+        }
+
+        .lunch-break-banner.show {
+            display: flex;
+        }
+
+        /* QRコード（左下固定） */
+        .qr-code-corner {
+            position: absolute;
+            bottom: 30px;
+            left: 20px;
+            z-index: 1200;
+        }
+
+        .qr-code-corner img {
+            display: block;
+            width: 175px;
+            height: 175px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* デバッグコントロールパネル */
+        .debug-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 350px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            z-index: 10000;
+            font-size: 14px;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .debug-panel h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #27ae60;
+            padding-bottom: 8px;
+        }
+
+        .debug-panel h3 {
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #27ae60;
+        }
+
+        .debug-panel label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .debug-panel input,
+        .debug-panel select,
+        .debug-panel textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .debug-panel textarea {
+            min-height: 80px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .debug-panel button {
+            padding: 10px 15px;
+            margin: 5px 5px 5px 0;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .debug-panel button:hover {
+            background: #229954;
+        }
+
+        .debug-panel button.secondary {
+            background: #6C757D;
+        }
+
+        .debug-panel button.secondary:hover {
+            background: #5a6268;
+        }
+
+        .debug-panel button.danger {
+            background: #dc3545;
+        }
+
+        .debug-panel button.danger:hover {
+            background: #c82333;
+        }
+
+        .toggle-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 10001;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .toggle-panel:hover {
+            background: rgba(0, 0, 0, 0.95);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 5px 5px 5px 0;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .status-badge.active {
+            background: #27ae60;
+            color: white;
+        }
+
+        .status-badge.inactive {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+        }
+    </style>
+</head>
+<body>
+<div class="display-area">
+    <!-- 営業時間前バナー -->
+    <div id="openingSoonBanner" class="lunch-break-banner">🕐 10時に窓口が開きます　お待ち下さい</div>
+
+    <!-- 昼休みバナー -->
+    <div id="lunchBreakBanner" class="lunch-break-banner">🕐 昼休み中　午後３時より窓口が開きます</div>
+
+    <!-- QRコード（左下固定） -->
+    <div id="qrCodeCorner" class="qr-code-corner" style="display: none;">
+        <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード">
+    </div>
+
+    <div id="displayContainer" class="display-container loading">
+        <div class="icon">⏳</div>
+        <div class="main-message">読み込み中...</div>
+        <div class="sub-message">予約時間枠を確認しています</div>
+    </div>
+</div>
+
+<!-- デバッグパネル非表示ボタン -->
+<div id="togglePanel" class="toggle-panel">🛠️ デバッグパネル</div>
+
+<!-- デバッグコントロールパネル -->
+<div id="debugPanel" class="debug-panel">
+    <h2>🛠️ デバッグコントロール</h2>
+
+    <!-- モード切り替え -->
+    <h3>モード切り替え</h3>
+    <div>
+        <span id="modeDebug" class="status-badge active">デバッグモード</span>
+        <span id="modeProduction" class="status-badge inactive">本番モード</span>
+    </div>
+
+    <!-- ステータス切り替え -->
+    <h3>ステータス</h3>
+    <div>
+        <span id="statusAvailable" class="status-badge active">空きあり</span>
+        <span id="statusFull" class="status-badge inactive">満枠</span>
+        <span id="statusClosed" class="status-badge inactive">休診日</span>
+        <span id="statusError" class="status-badge inactive">エラー</span>
+    </div>
+
+    <!-- 時間枠データ -->
+    <h3>時間枠データ（JSON形式）</h3>
+    <label for="slotsInput">空き時間枠（カンマ区切り）</label>
+    <input type="text" id="slotsInput" value="10:15,11:30,14:00,15:45" placeholder="例: 10:15,11:30,14:00">
+
+    <label for="displayTextInput">表示テキスト</label>
+    <select id="displayTextInput">
+        <option value="本日">本日</option>
+        <option value="明日">明日</option>
+        <option value="木曜">木曜</option>
+        <option value="次の診療日">次の診療日</option>
+    </select>
+
+    <!-- 時間シミュレーション -->
+    <h3>時間シミュレーション</h3>
+    <label for="simulateHour">時刻（時）</label>
+    <input type="number" id="simulateHour" min="0" max="23" value="10">
+
+    <label for="simulateMinute">時刻（分）</label>
+    <input type="number" id="simulateMinute" min="0" max="59" value="30">
+
+    <label for="simulateDay">曜日</label>
+    <select id="simulateDay">
+        <option value="0">日曜日</option>
+        <option value="1" selected>月曜日</option>
+        <option value="2">火曜日</option>
+        <option value="3">水曜日</option>
+        <option value="4">木曜日</option>
+        <option value="5">金曜日</option>
+        <option value="6">土曜日</option>
+    </select>
+
+    <button onclick="applyTimeSimulation()">時間を適用</button>
+
+    <!-- メッセージカスタマイズ -->
+    <h3>メッセージカスタマイズ</h3>
+    <label for="availableMsg">空きありメッセージ</label>
+    <input type="text" id="availableMsg" value="受付窓口でご案内できます。もしくはWeb予約も可能です。">
+
+    <label for="fullMsg">満枠メッセージ</label>
+    <input type="text" id="fullMsg" value="次の診療日以降でご予約ください">
+
+    <!-- アクション -->
+    <h3>アクション</h3>
+    <button onclick="updateDisplay()">表示を更新</button>
+    <button class="secondary" onclick="resetToDefault()">デフォルトに戻す</button>
+    <button class="danger" onclick="clearLocalStorage()">設定をクリア</button>
+
+    <!-- 本番データ取得 -->
+    <h3>本番データ</h3>
+    <button onclick="fetchProductionData()">Cloud Storageから取得</button>
+    <p id="lastFetchTime" style="font-size: 12px; color: #999; margin-top: 5px;"></p>
+</div>
+
+<script>
+    // Cloud StorageのURL
+    const API_URL = 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/timeslots.json';
+
+    // デバッグモード状態
+    let debugState = {
+        isDebugMode: true,
+        status: 'available', // available, full, closed, error
+        slots: ['10:15', '11:30', '14:00', '15:45'],
+        displayText: '本日',
+        simulatedTime: null,
+        messages: {
+            available: '受付窓口でご案内できます。もしくはWeb予約も可能です。',
+            full: '次の診療日以降でご予約ください'
+        }
+    };
+
+    // 初期化
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDebugState();
+        setupEventListeners();
+        updateDisplay();
+    });
+
+    // イベントリスナー設定
+    function setupEventListeners() {
+        // モード切り替え
+        document.getElementById('modeDebug').addEventListener('click', () => {
+            debugState.isDebugMode = true;
+            updateModeUI();
+            updateDisplay();
+        });
+
+        document.getElementById('modeProduction').addEventListener('click', () => {
+            debugState.isDebugMode = false;
+            updateModeUI();
+            fetchProductionData();
+        });
+
+        // ステータス切り替え
+        document.getElementById('statusAvailable').addEventListener('click', () => {
+            debugState.status = 'available';
+            updateStatusUI();
+            updateDisplay();
+        });
+
+        document.getElementById('statusFull').addEventListener('click', () => {
+            debugState.status = 'full';
+            updateStatusUI();
+            updateDisplay();
+        });
+
+        document.getElementById('statusClosed').addEventListener('click', () => {
+            debugState.status = 'closed';
+            updateStatusUI();
+            updateDisplay();
+        });
+
+        document.getElementById('statusError').addEventListener('click', () => {
+            debugState.status = 'error';
+            updateStatusUI();
+            updateDisplay();
+        });
+
+        // デバッグパネル表示/非表示
+        document.getElementById('togglePanel').addEventListener('click', () => {
+            const panel = document.getElementById('debugPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        });
+    }
+
+    // モードUI更新
+    function updateModeUI() {
+        document.getElementById('modeDebug').className = debugState.isDebugMode ? 'status-badge active' : 'status-badge inactive';
+        document.getElementById('modeProduction').className = !debugState.isDebugMode ? 'status-badge active' : 'status-badge inactive';
+    }
+
+    // ステータスUI更新
+    function updateStatusUI() {
+        document.getElementById('statusAvailable').className = debugState.status === 'available' ? 'status-badge active' : 'status-badge inactive';
+        document.getElementById('statusFull').className = debugState.status === 'full' ? 'status-badge active' : 'status-badge inactive';
+        document.getElementById('statusClosed').className = debugState.status === 'closed' ? 'status-badge active' : 'status-badge inactive';
+        document.getElementById('statusError').className = debugState.status === 'error' ? 'status-badge active' : 'status-badge inactive';
+    }
+
+    // デバッグ状態をローカルストレージから読み込み
+    function loadDebugState() {
+        const saved = localStorage.getItem('timeslotDebugState');
+        if (saved) {
+            debugState = { ...debugState, ...JSON.parse(saved) };
+
+            // UIに反映
+            document.getElementById('slotsInput').value = debugState.slots.join(',');
+            document.getElementById('displayTextInput').value = debugState.displayText;
+            document.getElementById('availableMsg').value = debugState.messages.available;
+            document.getElementById('fullMsg').value = debugState.messages.full;
+        }
+        updateModeUI();
+        updateStatusUI();
+    }
+
+    // デバッグ状態を保存
+    function saveDebugState() {
+        localStorage.setItem('timeslotDebugState', JSON.stringify(debugState));
+    }
+
+    // 時間シミュレーション適用
+    function applyTimeSimulation() {
+        const hour = parseInt(document.getElementById('simulateHour').value);
+        const minute = parseInt(document.getElementById('simulateMinute').value);
+        const day = parseInt(document.getElementById('simulateDay').value);
+
+        debugState.simulatedTime = { hour, minute, day };
+        updateBanners();
+        alert(`時間を ${hour}:${String(minute).padStart(2, '0')} に設定しました`);
+    }
+
+    // 営業時間前判定関数
+    function isOpeningSoon() {
+        if (debugState.simulatedTime) {
+            const { hour, day } = debugState.simulatedTime;
+            if (day === 3) return false; // 水曜日
+            return hour >= 8 && hour < 10;
+        }
+
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const hour = now.getHours();
+
+        if (dayOfWeek === 3) return false;
+        return hour >= 8 && hour < 10;
+    }
+
+    // 昼休み判定関数
+    function isLunchBreak() {
+        if (debugState.simulatedTime) {
+            const { hour, minute, day } = debugState.simulatedTime;
+            if (day === 3) return false; // 水曜日
+            return (hour === 13 && minute >= 30) || (hour === 14);
+        }
+
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+
+        if (dayOfWeek === 3) return false;
+        return (hour === 13 && minute >= 30) || (hour === 14);
+    }
+
+    // バナーの表示/非表示を更新
+    function updateBanners() {
+        const openingSoonBanner = document.getElementById('openingSoonBanner');
+        const lunchBreakBanner = document.getElementById('lunchBreakBanner');
+
+        if (isOpeningSoon()) {
+            openingSoonBanner.classList.add('show');
+        } else {
+            openingSoonBanner.classList.remove('show');
+        }
+
+        if (isLunchBreak()) {
+            lunchBreakBanner.classList.add('show');
+        } else {
+            lunchBreakBanner.classList.remove('show');
+        }
+    }
+
+    // 表示を更新
+    function updateDisplay() {
+        if (debugState.isDebugMode) {
+            // デバッグモード：手動設定データを使用
+            updateDebugDisplay();
+        } else {
+            // 本番モード：自動更新
+            fetchProductionData();
+        }
+
+        saveDebugState();
+    }
+
+    // デバッグモード表示
+    function updateDebugDisplay() {
+        // 入力から値を取得
+        const slotsInput = document.getElementById('slotsInput').value;
+        debugState.slots = slotsInput ? slotsInput.split(',').map(s => s.trim()) : [];
+        debugState.displayText = document.getElementById('displayTextInput').value;
+        debugState.messages.available = document.getElementById('availableMsg').value;
+        debugState.messages.full = document.getElementById('fullMsg').value;
+
+        const container = document.getElementById('displayContainer');
+        const formattedTime = formatTimestamp(new Date().toISOString());
+
+        // バナーを更新
+        updateBanners();
+
+        // ステータスに応じて表示
+        if (debugState.status === 'available') {
+            const timeslotsText = debugState.slots.length > 0 ? debugState.slots.join('・') : '（時間枠なし）';
+
+            container.className = 'display-container available';
+            container.innerHTML = `
+                <div class="icon">🕐</div>
+                <div class="main-message">${debugState.displayText}の予約</div>
+                <div class="timeslots">${timeslotsText}</div>
+                <div class="sub-message">が空いています</div>
+                <div class="qr-message">${debugState.messages.available}</div>
+                <div class="update-time">${formattedTime}</div>
+            `;
+
+            // QRコードを表示
+            document.getElementById('qrCodeCorner').style.display = 'block';
+
+        } else if (debugState.status === 'full' || debugState.status === 'closed') {
+            const message = debugState.status === 'full' ? '満枠' : '休診日';
+            const subMessage = debugState.status === 'full' ? '大変申し訳ございません' : '本日は休診日です';
+
+            container.className = 'display-container unavailable';
+            container.innerHTML = `
+                <div class="icon">😔</div>
+                <div class="main-message">${debugState.displayText}の予約は<br>「${message}」です</div>
+                <div class="sub-message">${subMessage}</div>
+                <div class="qr-message">${debugState.messages.full}</div>
+                <div class="update-time">${formattedTime}</div>
+            `;
+
+            // QRコードを非表示
+            document.getElementById('qrCodeCorner').style.display = 'none';
+
+        } else if (debugState.status === 'error') {
+            container.className = 'display-container error';
+            container.innerHTML = `
+                <div class="icon">⚠️</div>
+                <div class="main-message">情報を取得できません</div>
+                <div class="error-message">しばらくしてから再度お試しください</div>
+            `;
+
+            // QRコードを非表示
+            document.getElementById('qrCodeCorner').style.display = 'none';
+        }
+    }
+
+    // 本番データ取得
+    async function fetchProductionData() {
+        const container = document.getElementById('displayContainer');
+
+        try {
+            const response = await fetch(API_URL);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // バナーを更新
+            updateBanners();
+
+            // タイムスタンプをフォーマット
+            const formattedTime = formatTimestamp(data.updatedAt);
+
+            // 時間枠があるかチェック
+            const hasSlots = data.slots && data.slots.length > 0;
+
+            if (hasSlots) {
+                const timeslotsText = data.slots.join('・');
+
+                container.className = 'display-container available';
+                container.innerHTML = `
+                    <div class="icon">🕐</div>
+                    <div class="main-message">${data.displayText}の予約</div>
+                    <div class="timeslots">${timeslotsText}</div>
+                    <div class="sub-message">が空いています</div>
+                    <div class="qr-message">受付窓口でご案内できます。もしくはWeb予約も可能です。</div>
+                    <div class="update-time">${formattedTime}</div>
+                `;
+
+                document.getElementById('qrCodeCorner').style.display = 'block';
+
+            } else {
+                let message = '満枠';
+                let subMessage = '大変申し訳ございません';
+
+                if (data.status === 'closed') {
+                    message = '休診日';
+                    subMessage = '本日は休診日です';
+                }
+
+                container.className = 'display-container unavailable';
+                container.innerHTML = `
+                    <div class="icon">😔</div>
+                    <div class="main-message">${data.displayText}の予約は<br>「${message}」です</div>
+                    <div class="sub-message">${subMessage}</div>
+                    <div class="qr-message">次の診療日以降でご予約ください</div>
+                    <div class="update-time">${formattedTime}</div>
+                `;
+
+                document.getElementById('qrCodeCorner').style.display = 'none';
+            }
+
+            document.getElementById('lastFetchTime').textContent = `最終取得: ${new Date().toLocaleTimeString('ja-JP')}`;
+
+        } catch (error) {
+            console.error('エラー:', error);
+            displayError();
+        }
+    }
+
+    // エラー表示
+    function displayError() {
+        const container = document.getElementById('displayContainer');
+        container.className = 'display-container error';
+        container.innerHTML = `
+            <div class="icon">⚠️</div>
+            <div class="main-message">情報を取得できません</div>
+            <div class="error-message">しばらくしてから再度お試しください</div>
+        `;
+
+        document.getElementById('qrCodeCorner').style.display = 'none';
+    }
+
+    // タイムスタンプフォーマット
+    function formatTimestamp(isoString) {
+        const date = new Date(isoString);
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return `更新：${year}/${month}/${day} ${hours}:${minutes}`;
+    }
+
+    // デフォルトに戻す
+    function resetToDefault() {
+        debugState = {
+            isDebugMode: true,
+            status: 'available',
+            slots: ['10:15', '11:30', '14:00', '15:45'],
+            displayText: '本日',
+            simulatedTime: null,
+            messages: {
+                available: '受付窓口でご案内できます。もしくはWeb予約も可能です。',
+                full: '次の診療日以降でご予約ください'
+            }
+        };
+
+        document.getElementById('slotsInput').value = debugState.slots.join(',');
+        document.getElementById('displayTextInput').value = debugState.displayText;
+        document.getElementById('availableMsg').value = debugState.messages.available;
+        document.getElementById('fullMsg').value = debugState.messages.full;
+        document.getElementById('simulateHour').value = 10;
+        document.getElementById('simulateMinute').value = 30;
+        document.getElementById('simulateDay').value = 1;
+
+        updateModeUI();
+        updateStatusUI();
+        updateDisplay();
+
+        alert('デフォルト設定に戻しました');
+    }
+
+    // ローカルストレージをクリア
+    function clearLocalStorage() {
+        if (confirm('すべての設定をクリアしますか？')) {
+            localStorage.removeItem('timeslotDebugState');
+            alert('設定をクリアしました。ページをリロードします。');
+            location.reload();
+        }
+    }
+</script>
+
+</body>
+</html>
