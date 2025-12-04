@@ -4237,7 +4237,7 @@
         updateBanners(data.updatedAt);
 
         // 日付テキスト（バックエンド/READMEロジックのいずれかを採用）
-        const dayText = data.displayText || calculateTargetDayLabel(data.updatedAt).displayText;
+        const dayText = data.displayText || calculateTargetDayLabel().displayText;
 
         // タイムスタンプをフォーマット
         const formattedTime = formatTimestampProduction(data.updatedAt);

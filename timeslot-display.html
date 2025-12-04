@@ -409,7 +409,7 @@
             const hasSlots = data.slots && data.slots.length > 0;
 
             // README準拠の曜日・時間ロジックと取得データを突き合わせ
-            const targetDayInfo = calculateTargetDayLabel(data.updatedAt);
+            const targetDayInfo = calculateTargetDayLabel();
             const dayText = data.displayText || targetDayInfo.displayText;
 
             if (hasSlots) {
