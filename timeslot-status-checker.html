@@ -277,12 +277,12 @@
         </div>
         <div id="status-general" class="status">読み込み中...</div>
         <div id="day-text-general" class="day-text"></div>
-        <div id="expand-general" class="expand-indicator" style="display: none;">
-          タップして詳細を表示 ▼
+        <div id="expand-general" class="expand-indicator">
+          タップして閉じる ▲
         </div>
 
         <!-- 時間枠リスト -->
-        <div id="timeslots-general" class="timeslots-container">
+        <div id="timeslots-general" class="timeslots-container expanded">
           <div class="timeslots-header">空き時間:</div>
           <div id="timeslots-list-general" class="timeslots-list">
             <div class="no-slots">データを読み込み中...</div>
@@ -298,12 +298,12 @@
         </div>
         <div id="status-shiya" class="status">読み込み中...</div>
         <div id="day-text-shiya" class="day-text"></div>
-        <div id="expand-shiya" class="expand-indicator" style="display: none;">
-          タップして詳細を表示 ▼
+        <div id="expand-shiya" class="expand-indicator">
+          タップして閉じる ▲
         </div>
 
         <!-- 時間枠リスト -->
-        <div id="timeslots-shiya" class="timeslots-container">
+        <div id="timeslots-shiya" class="timeslots-container expanded">
           <div class="timeslots-header">空き時間:</div>
           <div id="timeslots-list-shiya" class="timeslots-list">
             <div class="no-slots">データを読み込み中...</div>
@@ -325,10 +325,10 @@
       shiya: 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/timeslots-shiya.json'
     };
 
-    // 展開状態を管理
+    // 展開状態を管理（初期状態で展開）
     const expandedState = {
-      general: false,
-      shiya: false
+      general: true,
+      shiya: true
     };
 
     /**
