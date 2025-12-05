@@ -57,6 +57,7 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
+            align-items: center;
             gap: 8px;
         }
 
@@ -110,8 +111,11 @@
         /* スマホ対応 */
         @media (max-width: 600px) {
             .reservation-banner {
-                margin: 10px;
+                margin: 5px;
                 padding: 15px;
+                max-width: none;
+                width: calc(100% - 10px);
+                box-sizing: border-box;
             }
 
             .reservation-banner h2 {
@@ -130,6 +134,10 @@
             .reservation-banner p {
                 font-size: 16px;
             }
+
+            .reservation-banner .update-time {
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
@@ -146,15 +154,14 @@
     const API_URL = 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/timeslots.json';
 
     /**
-     * 曜日を日本語で取得
+     * 日付を M/D 形式でフォーマット
      */
-    function getDayOfWeekJP(date) {
-        const days = ['日', '月', '火', '水', '木', '金', '土'];
-        return days[date.getDay()];
+    function formatDateMD(date) {
+        return `${date.getMonth() + 1}/${date.getDate()}`;
     }
 
     /**
-     * 日付テキストを計算する関数（曜日付き）
+     * 日付テキストを計算する関数（月/日付き）
      */
     function calculateDayText(updateTime) {
         const now = new Date(updateTime);
@@ -171,7 +178,10 @@
         // その他18:30以降 → 明日
         // 18:30より前 → 本日
         if (dayOfWeek === 3) {
-            return '木曜日';
+            // 水曜日 → 木曜日の日付を計算
+            const thursday = new Date(now);
+            thursday.setDate(thursday.getDate() + 1);
+            return `木曜（${formatDateMD(thursday)}）`;
         }
 
         if (isAfter1830) {
@@ -180,16 +190,19 @@
             }
 
             if (dayOfWeek === 2) {
-                return '木曜日';
+                // 火曜18:30以降 → 木曜日の日付を計算
+                const thursday = new Date(now);
+                thursday.setDate(thursday.getDate() + 2);
+                return `木曜（${formatDateMD(thursday)}）`;
             }
 
-            // 明日の曜日を取得
+            // 明日の日付を取得
             const tomorrow = new Date(now);
             tomorrow.setDate(tomorrow.getDate() + 1);
-            return `明日（${getDayOfWeekJP(tomorrow)}）`;
+            return `明日（${formatDateMD(tomorrow)}）`;
         }
 
-        return `本日（${getDayOfWeekJP(now)}）`;
+        return `本日（${formatDateMD(now)}）`;
     }
 
     /**
