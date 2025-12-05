@@ -498,6 +498,38 @@
     }
 
     /**
+     * 日付から適切な表示テキストを計算（月/日形式）
+     */
+    function calculateDisplayTextWithDate(targetDate) {
+      if (!targetDate) {
+        return '本日';
+      }
+
+      const now = new Date();
+      const currentDate = now.getDate();
+      const currentMonth = now.getMonth() + 1;
+
+      // 対象日が今月か来月かを判定
+      let targetMonth = currentMonth;
+      if (targetDate < currentDate) {
+        // 日付が小さい場合は来月と判断
+        targetMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+      }
+
+      // 本日/明日/次の診療日を判定
+      let displayText;
+      if (targetDate === currentDate) {
+        displayText = '本日';
+      } else if (targetDate === currentDate + 1) {
+        displayText = '明日';
+      } else {
+        displayText = '次の診療日';
+      }
+
+      return `${displayText}（${targetMonth}/${targetDate}）`;
+    }
+
+    /**
      * 両方のデータを更新
      */
     async function updateAll() {
@@ -510,7 +542,7 @@
         const generalData = await fetchTimeslotsData(TIMESLOTS_URLS.general);
         if (generalData) {
           const slotsCount = generalData.slots ? generalData.slots.length : 0;
-          const displayText = generalData.displayText || '本日';
+          const displayText = calculateDisplayTextWithDate(generalData.date);
 
           drawIcon('canvas-general', slotsCount, generalData.status, '#CC6600', '一');
 
@@ -534,7 +566,7 @@
         const shiyaData = await fetchTimeslotsData(TIMESLOTS_URLS.shiya);
         if (shiyaData) {
           const slotsCount = shiyaData.slots ? shiyaData.slots.length : 0;
-          const displayText = shiyaData.displayText || '本日';
+          const displayText = calculateDisplayTextWithDate(shiyaData.date);
 
           drawIcon('canvas-shiya', slotsCount, shiyaData.status, '#006633', '視');
 
