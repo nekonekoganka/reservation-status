@@ -26,9 +26,9 @@
 
         /* 予約可能の時のスタイル */
         .reservation-banner.available {
-            background: #27ae60;
+            background: #0056B3;
             color: white;
-            border: 3px solid #1e8449;
+            border: 3px solid #004085;
         }
 
         /* 予約不可の時のスタイル */
@@ -192,9 +192,9 @@
 
                 banner.className = 'reservation-banner available';
                 banner.innerHTML = `
-                    <h2>✅ ${dayText}の予約</h2>
+                    <h2>🔴 ${dayText}の予約</h2>
                     <div class="timeslots">${timeslotsText}</div>
-                    <p>が空いています</p>
+                    <p>のご予約が可能です</p>
                     <p>クリックして予約ページへ</p>
                     <div class="update-time">${formattedTime}</div>
                 `;
