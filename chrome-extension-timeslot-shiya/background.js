@@ -162,12 +162,20 @@ function createIcon(slotsCount, status) {
 
     // 枠数 > 0 の場合は白背景+濃い緑数字のデザイン
     if (status !== 'error' && slotsCount > 0) {
+      const themeColor = '#006633'; // 濃い緑色（視野予約のテーマカラー）
+      const borderWidth = Math.max(1, Math.round(size * 0.08)); // 枠線の太さ（8%、最小1px）
+
       // 白背景で塗りつぶし
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, size, size);
 
+      // 外枠を描画
+      ctx.strokeStyle = themeColor;
+      ctx.lineWidth = borderWidth;
+      ctx.strokeRect(borderWidth / 2, borderWidth / 2, size - borderWidth, size - borderWidth);
+
       // 濃い緑の太い数字を最大サイズで表示
-      ctx.fillStyle = '#006633'; // 濃い緑色（視野予約のテーマカラー）
+      ctx.fillStyle = themeColor;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
