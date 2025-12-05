@@ -56,18 +56,14 @@
       transform: scale(0.98);
     }
 
-    .card-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: #666;
-      margin-bottom: 8px;
-      text-align: center;
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .icon-wrapper {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 8px;
+      flex-shrink: 0;
     }
 
     canvas {
@@ -75,11 +71,23 @@
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
     }
 
+    .card-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
     .status {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 700;
-      margin-top: 8px;
-      text-align: center;
     }
 
     .status.available {
@@ -95,9 +103,8 @@
     }
 
     .day-text {
-      font-size: 13px;
+      font-size: 14px;
       color: #666;
-      text-align: center;
       margin-top: 4px;
     }
 
@@ -262,12 +269,16 @@
     <div class="cards">
       <!-- 一般予約 -->
       <div class="card" id="card-general" onclick="toggleTimeslots('general')">
-        <div class="card-title">一般予約</div>
-        <div class="icon-wrapper">
-          <canvas id="canvas-general" width="128" height="128"></canvas>
+        <div class="card-header">
+          <div class="icon-wrapper">
+            <canvas id="canvas-general" width="128" height="128"></canvas>
+          </div>
+          <div class="card-info">
+            <div class="card-title">一般予約</div>
+            <div id="status-general" class="status">読み込み中...</div>
+            <div id="day-text-general" class="day-text"></div>
+          </div>
         </div>
-        <div id="status-general" class="status">読み込み中...</div>
-        <div id="day-text-general" class="day-text"></div>
         <div id="expand-general" class="expand-indicator">
           タップして閉じる ▲
         </div>
@@ -282,12 +293,16 @@
 
       <!-- 視野予約 -->
       <div class="card" id="card-shiya" onclick="toggleTimeslots('shiya')">
-        <div class="card-title">視野予約</div>
-        <div class="icon-wrapper">
-          <canvas id="canvas-shiya" width="128" height="128"></canvas>
+        <div class="card-header">
+          <div class="icon-wrapper">
+            <canvas id="canvas-shiya" width="128" height="128"></canvas>
+          </div>
+          <div class="card-info">
+            <div class="card-title">視野予約</div>
+            <div id="status-shiya" class="status">読み込み中...</div>
+            <div id="day-text-shiya" class="day-text"></div>
+          </div>
         </div>
-        <div id="status-shiya" class="status">読み込み中...</div>
-        <div id="day-text-shiya" class="day-text"></div>
         <div id="expand-shiya" class="expand-indicator">
           タップして閉じる ▲
         </div>
