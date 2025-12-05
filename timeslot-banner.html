@@ -71,7 +71,7 @@
             font-weight: bold;
         }
 
-        /* 「…」表示 */
+        /* 「ほか」表示 */
         .reservation-banner.available .timeslot-more {
             color: white;
             font-size: 22px;
@@ -146,7 +146,15 @@
     const API_URL = 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/timeslots.json';
 
     /**
-     * 日付テキストを計算する関数
+     * 曜日を日本語で取得
+     */
+    function getDayOfWeekJP(date) {
+        const days = ['日', '月', '火', '水', '木', '金', '土'];
+        return days[date.getDay()];
+    }
+
+    /**
+     * 日付テキストを計算する関数（曜日付き）
      */
     function calculateDayText(updateTime) {
         const now = new Date(updateTime);
@@ -163,7 +171,7 @@
         // その他18:30以降 → 明日
         // 18:30より前 → 本日
         if (dayOfWeek === 3) {
-            return '木曜';
+            return '木曜日';
         }
 
         if (isAfter1830) {
@@ -172,13 +180,16 @@
             }
 
             if (dayOfWeek === 2) {
-                return '木曜';
+                return '木曜日';
             }
 
-            return '明日';
+            // 明日の曜日を取得
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            return `明日（${getDayOfWeekJP(tomorrow)}）`;
         }
 
-        return '本日';
+        return `本日（${getDayOfWeekJP(now)}）`;
     }
 
     /**
@@ -212,7 +223,7 @@
                 const pillsHtml = displaySlots.map(slot =>
                     `<span class="timeslot-pill">${slot}</span>`
                 ).join('');
-                const moreHtml = data.slots.length > 3 ? '<span class="timeslot-more">…</span>' : '';
+                const moreHtml = data.slots.length > 3 ? '<span class="timeslot-more">ほか</span>' : '';
 
                 banner.className = 'reservation-banner available';
                 banner.innerHTML = `
