@@ -160,14 +160,14 @@ function createIcon(slotsCount, status) {
     const cellSize = size / 2;
     const borderRadius = size * 0.15;
 
-    // 枠数 > 0 の場合は白背景+緑の数字のシンプルなデザイン
+    // 枠数 > 0 の場合は白背景+オレンジの数字のシンプルなデザイン
     if (status !== 'error' && slotsCount > 0) {
       // 白背景で塗りつぶし
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, size, size);
 
-      // 濃い緑色の太い数字を最大サイズで表示
-      ctx.fillStyle = '#2E7D32'; // 濃い緑色
+      // オレンジ色の太い数字を最大サイズで表示
+      ctx.fillStyle = '#F57C00'; // オレンジ色（一般予約のテーマカラー）
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
