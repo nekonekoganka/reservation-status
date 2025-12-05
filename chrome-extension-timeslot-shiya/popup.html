@@ -12,35 +12,29 @@
     }
 
     body {
-      width: 320px;
+      width: 300px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       background: #f8f9fa;
-      padding: 16px;
+      padding: 12px;
     }
 
     .container {
       background: white;
       border-radius: 12px;
-      padding: 20px;
+      padding: 12px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
+    /* ヘッダー: アイコン左、情報右 */
     .header {
-      text-align: center;
-      margin-bottom: 16px;
-    }
-
-    h1 {
-      font-size: 16px;
-      font-weight: 600;
-      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 12px;
       margin-bottom: 12px;
     }
 
     .icon-wrapper {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 16px;
+      flex-shrink: 0;
     }
 
     canvas {
@@ -48,36 +42,23 @@
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     }
 
-    .status-section {
-      text-align: center;
-      margin-bottom: 16px;
+    .info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
-    .status-indicator {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      border-radius: 20px;
+    .title {
       font-size: 14px;
       font-weight: 600;
-      margin-bottom: 12px;
-    }
-
-    .status-indicator.ok {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .status-indicator.error {
-      background: #f8d7da;
-      color: #721c24;
+      color: #666;
+      margin-bottom: 4px;
     }
 
     .status-text {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
-      margin-bottom: 8px;
+      margin-bottom: 2px;
     }
 
     .status-text.available {
@@ -92,91 +73,89 @@
       color: #999;
     }
 
-    .timeslots-section {
-      margin-bottom: 16px;
+    .day-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
     }
 
-    .timeslots-header {
-      font-size: 13px;
-      font-weight: 600;
-      color: #666;
-      margin-bottom: 8px;
-      padding-left: 4px;
+    /* 時間枠リスト */
+    .timeslots-section {
+      margin-bottom: 10px;
     }
 
     .timeslots-list {
       background: #f8f9fa;
       border-radius: 8px;
-      padding: 12px;
-      max-height: 200px;
-      overflow-y: auto;
+      padding: 6px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
     }
 
     .timeslot-item {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 6px 8px;
-      margin-bottom: 4px;
+      justify-content: center;
+      gap: 4px;
+      padding: 6px 4px;
       background: white;
       border-radius: 6px;
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
       color: #333;
-    }
-
-    .timeslot-item:last-child {
-      margin-bottom: 0;
+      border: 1px solid #e0e0e0;
     }
 
     .timeslot-icon {
-      color: #27ae60;
-      font-size: 16px;
+      font-size: 12px;
     }
 
     .no-slots {
+      grid-column: 1 / -1;
       text-align: center;
       color: #999;
       font-size: 13px;
-      padding: 12px;
+      padding: 10px;
     }
 
-    .info-section {
-      background: #f8f9fa;
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 12px;
+    .more-slots {
+      grid-column: 1 / -1;
+      text-align: center;
       font-size: 13px;
+      font-weight: 600;
+      color: #666;
+      padding: 6px;
+      background: #e9ecef;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .more-slots:hover {
+      background: #dee2e6;
+    }
+
+    /* フッター */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .update-info {
+      font-size: 11px;
       color: #666;
     }
 
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 6px;
-    }
-
-    .info-row:last-child {
-      margin-bottom: 0;
-    }
-
-    .info-label {
-      font-weight: 500;
-    }
-
-    .info-value {
-      font-weight: 600;
-      color: #333;
-    }
-
     .refresh-btn {
-      width: 100%;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 14px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
@@ -184,11 +163,7 @@
 
     .refresh-btn:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
-
-    .refresh-btn:active {
-      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
     }
 
     .refresh-btn:disabled {
@@ -198,77 +173,48 @@
 
     .loading {
       display: inline-block;
-      width: 12px;
-      height: 12px;
+      width: 10px;
+      height: 10px;
       border: 2px solid #fff;
       border-radius: 50%;
       border-top-color: transparent;
       animation: spin 0.6s linear infinite;
-      vertical-align: middle;
-      margin-left: 6px;
+      margin-left: 4px;
     }
 
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-
-    /* スクロールバーのスタイル */
-    .timeslots-list::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .timeslots-list::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 3px;
-    }
-
-    .timeslots-list::-webkit-scrollbar-thumb {
-      background: #888;
-      border-radius: 3px;
-    }
-
-    .timeslots-list::-webkit-scrollbar-thumb:hover {
-      background: #555;
-    }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- ヘッダー: アイコン + 情報 -->
     <div class="header">
-      <h1>予約枠数表示（視野）</h1>
-    </div>
-
-    <div class="icon-wrapper">
-      <canvas id="icon-canvas" width="96" height="96"></canvas>
-    </div>
-
-    <div class="status-section">
-      <div id="status-indicator" class="status-indicator ok">
-        <span>✓</span>
-        <span>正常動作中</span>
+      <div class="icon-wrapper">
+        <canvas id="icon-canvas" width="80" height="80"></canvas>
       </div>
-      <div id="status-text" class="status-text">読み込み中...</div>
+      <div class="info">
+        <div class="title">視野予約</div>
+        <div id="status-text" class="status-text">読み込み中...</div>
+        <div id="day-text" class="day-text"></div>
+      </div>
     </div>
 
+    <!-- 時間枠リスト -->
     <div class="timeslots-section" id="timeslots-section" style="display: none;">
-      <div class="timeslots-header">空き時間:</div>
       <div class="timeslots-list" id="timeslots-list">
         <div class="no-slots">データを読み込み中...</div>
       </div>
     </div>
 
-    <div class="info-section">
-      <div class="info-row">
-        <span class="info-label">最終更新:</span>
-        <span id="last-update" class="info-value">--:--</span>
+    <!-- フッター -->
+    <div class="footer">
+      <div class="update-info">
+        <span id="last-update">--:--</span> / 次回 <span id="next-update">--秒</span>
       </div>
-      <div class="info-row">
-        <span class="info-label">次回更新:</span>
-        <span id="next-update" class="info-value">--秒後</span>
-      </div>
+      <button id="refresh-btn" class="refresh-btn">🔄 更新</button>
     </div>
-
-    <button id="refresh-btn" class="refresh-btn">🔄 今すぐ更新</button>
   </div>
 
   <script src="popup.js"></script>

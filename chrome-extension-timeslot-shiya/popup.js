@@ -1,6 +1,8 @@
 // ポップアップのロジック
 
 let countdownInterval = null;
+let showAllSlots = false;
+let currentSlots = [];
 
 // 初期化
 document.addEventListener('DOMContentLoaded', async () => {
@@ -18,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       setTimeout(async () => {
         await loadStatus();
         btn.disabled = false;
-        btn.innerHTML = '🔄 今すぐ更新';
+        btn.innerHTML = '🔄 更新';
       }, 1000);
     });
   });
@@ -76,37 +78,28 @@ async function loadStatus() {
 
     // エラーチェック
     const hasError = data.error || !data.lastUpdate;
-
-    // ステータスインジケーター
-    const indicator = document.getElementById('status-indicator');
-    if (hasError) {
-      indicator.className = 'status-indicator error';
-      indicator.innerHTML = '<span>!</span><span>エラー発生</span>';
-    } else {
-      indicator.className = 'status-indicator ok';
-      indicator.innerHTML = '<span>✓</span><span>正常動作中</span>';
-    }
+    const slotsCount = data.slotsCount || 0;
 
     // ステータステキスト
     const statusText = document.getElementById('status-text');
-    const slotsCount = data.slotsCount || 0;
-
-    // 日付付きの表示テキストを計算
-    const displayText = calculateDisplayTextWithDate(data.date);
-
     if (hasError) {
       statusText.textContent = 'データ取得エラー';
       statusText.className = 'status-text error';
     } else if (slotsCount > 0) {
-      statusText.textContent = `${displayText} 残り${slotsCount}枠`;
+      statusText.textContent = `残り${slotsCount}枠`;
       statusText.className = 'status-text available';
     } else {
-      statusText.textContent = `${displayText} ✕ 満枠`;
+      statusText.textContent = '✕ 満枠';
       statusText.className = 'status-text full';
     }
 
+    // 日付付きの表示テキストを計算
+    const displayText = calculateDisplayTextWithDate(data.date);
+    document.getElementById('day-text').textContent = displayText;
+
     // 時間枠リストを表示
-    displayTimeslots(data.slots || [], slotsCount);
+    currentSlots = data.slots || [];
+    displayTimeslots(currentSlots, slotsCount);
 
     // アイコンを描画
     drawIcon(slotsCount, data.status);
@@ -116,8 +109,7 @@ async function loadStatus() {
       const lastUpdate = new Date(data.lastUpdate);
       const timeStr = lastUpdate.toLocaleTimeString('ja-JP', {
         hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
+        minute: '2-digit'
       });
       document.getElementById('last-update').textContent = timeStr;
     } else {
@@ -129,26 +121,45 @@ async function loadStatus() {
   }
 }
 
+// 時間枠の全表示/省略表示を切り替え
+function toggleShowAllSlots() {
+  showAllSlots = !showAllSlots;
+  displayTimeslots(currentSlots, currentSlots.length);
+}
+
+// グローバルに公開
+window.toggleShowAllSlots = toggleShowAllSlots;
+
 // 時間枠リストを表示
 function displayTimeslots(slots, slotsCount) {
   const timeslotsSection = document.getElementById('timeslots-section');
   const timeslotsList = document.getElementById('timeslots-list');
 
   if (slotsCount > 0 && slots.length > 0) {
-    // 時間枠がある場合
     timeslotsSection.style.display = 'block';
 
-    // リストを生成
-    const html = slots.map(slot => `
+    const maxDisplay = 6;
+    const displaySlots = showAllSlots ? slots : slots.slice(0, maxDisplay);
+    const remainingCount = slots.length - maxDisplay;
+
+    let html = displaySlots.map(slot => `
       <div class="timeslot-item">
         <span class="timeslot-icon">✅</span>
         <span>${slot}</span>
       </div>
     `).join('');
 
+    // 6枠を超える場合
+    if (remainingCount > 0) {
+      if (showAllSlots) {
+        html += `<div class="more-slots" onclick="toggleShowAllSlots()">▲ 閉じる</div>`;
+      } else {
+        html += `<div class="more-slots" onclick="toggleShowAllSlots()">+${remainingCount}枠 ▼</div>`;
+      }
+    }
+
     timeslotsList.innerHTML = html;
   } else {
-    // 時間枠がない場合
     timeslotsSection.style.display = 'block';
     timeslotsList.innerHTML = '<div class="no-slots">空き枠はありません</div>';
   }
@@ -169,7 +180,7 @@ async function updateCountdown() {
     const data = await chrome.storage.local.get(['lastUpdate']);
 
     if (!data.lastUpdate) {
-      document.getElementById('next-update').textContent = '--秒後';
+      document.getElementById('next-update').textContent = '--秒';
       return;
     }
 
@@ -182,114 +193,135 @@ async function updateCountdown() {
       document.getElementById('next-update').textContent = 'まもなく';
     } else {
       const seconds = Math.floor(diff / 1000);
-      document.getElementById('next-update').textContent = `${seconds}秒後`;
+      document.getElementById('next-update').textContent = `${seconds}秒`;
     }
   } catch (error) {
     console.error('[視野予約枠数] カウントダウンエラー:', error);
   }
 }
 
-// Canvas APIで2×2グリッドアイコンを描画
+// Canvas APIでアイコンを描画（予約状況チェッカーと同じスタイル）
 function drawIcon(slotsCount, status) {
   const canvas = document.getElementById('icon-canvas');
   const ctx = canvas.getContext('2d');
-  const size = 96;
-  const cellSize = size / 2;
-  const borderRadius = size * 0.15;
+  const size = 80;
+  const themeColor = '#006633'; // 緑（視野予約のテーマカラー）
 
   // 背景をクリア
   ctx.clearRect(0, 0, size, size);
 
-  // 背景色を決定
-  let bgColor;
-  if (status === 'error') {
-    bgColor = '#FFA500'; // オレンジ（エラー時）
-  } else if (slotsCount > 0) {
-    bgColor = '#27ae60'; // 緑（空きあり）
-  } else {
-    bgColor = '#dc3545'; // 赤（満枠）
-  }
-  const themeColor = '#2E7D32'; // 緑（視野予約のテーマカラー）
+  // 枠数 > 0 の場合は白背景+色枠+テーマカラー数字のデザイン
+  if (status !== 'error' && slotsCount > 0) {
+    const borderWidth = Math.max(1, Math.round(size * 0.08)); // 枠線の太さ（8%、最小1px）
 
-  // 左上3マス（予約状況）
-  ctx.fillStyle = bgColor;
+    // 白背景で塗りつぶし
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, size, size);
 
-  // 左上
-  ctx.beginPath();
-  ctx.moveTo(borderRadius, 0);
-  ctx.lineTo(cellSize, 0);
-  ctx.lineTo(cellSize, cellSize);
-  ctx.lineTo(0, cellSize);
-  ctx.lineTo(0, borderRadius);
-  ctx.arcTo(0, 0, borderRadius, 0, borderRadius);
-  ctx.closePath();
-  ctx.fill();
+    // 外枠を描画
+    ctx.strokeStyle = themeColor;
+    ctx.lineWidth = borderWidth;
+    ctx.strokeRect(borderWidth / 2, borderWidth / 2, size - borderWidth, size - borderWidth);
 
-  // 右上
-  ctx.beginPath();
-  ctx.moveTo(cellSize, 0);
-  ctx.lineTo(size - borderRadius, 0);
-  ctx.arcTo(size, 0, size, borderRadius, borderRadius);
-  ctx.lineTo(size, cellSize);
-  ctx.lineTo(cellSize, cellSize);
-  ctx.closePath();
-  ctx.fill();
+    // テーマカラーの太い数字を最大サイズで表示
+    ctx.fillStyle = themeColor;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
 
-  // 左下
-  ctx.beginPath();
-  ctx.moveTo(0, cellSize);
-  ctx.lineTo(cellSize, cellSize);
-  ctx.lineTo(cellSize, size);
-  ctx.lineTo(borderRadius, size);
-  ctx.arcTo(0, size, 0, size - borderRadius, borderRadius);
-  ctx.lineTo(0, cellSize);
-  ctx.closePath();
-  ctx.fill();
-
-  // 右下1マス（テーマカラー+文字）
-  ctx.fillStyle = themeColor;
-  ctx.beginPath();
-  ctx.moveTo(cellSize, cellSize);
-  ctx.lineTo(size, cellSize);
-  ctx.lineTo(size, size - borderRadius);
-  ctx.arcTo(size, size, size - borderRadius, size, borderRadius);
-  ctx.lineTo(cellSize, size);
-  ctx.lineTo(cellSize, cellSize);
-  ctx.closePath();
-  ctx.fill();
-
-  // 白文字「視」を右下マスに描画
-  ctx.fillStyle = 'white';
-  ctx.font = `bold ${cellSize * 0.7}px sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('視', cellSize + cellSize / 2, cellSize + cellSize / 2);
-
-  // 中央にマークまたは枠数を描画
-  ctx.fillStyle = 'white';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  if (status === 'error') {
-    // エラー：⚠マーク
-    ctx.font = `bold ${size * 0.6}px sans-serif`;
-    ctx.fillText('⚠', size / 2, size / 2);
-  } else if (slotsCount > 0) {
-    // 枠数を太字の白い数字で表示
-    const fontSize = slotsCount >= 10 ? size * 0.5 : size * 0.6;
+    // 数字のサイズ（1桁は95%、2桁は80%）
+    const fontSize = slotsCount >= 10 ? size * 0.8 : size * 0.95;
     ctx.font = `bold ${fontSize}px sans-serif`;
+
+    // 中央に配置
     ctx.fillText(slotsCount.toString(), size / 2, size / 2);
   } else {
-    // 満枠：太いバツ✕（線で描画）
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = size * 0.12;
-    ctx.lineCap = 'round';
+    // 枠数 = 0 またはエラーの場合は2×2グリッドデザイン
+    const cellSize = size / 2;
+    const borderRadius = size * 0.15;
+
+    // 背景色を決定
+    let bgColor;
+    if (status === 'error') {
+      bgColor = '#FFA500'; // オレンジ（エラー時）
+    } else {
+      bgColor = '#dc3545'; // 赤（満枠）
+    }
+
+    // 左上3マス（予約状況）
+    ctx.fillStyle = bgColor;
+
+    // 左上
     ctx.beginPath();
-    ctx.moveTo(size * 0.3, size * 0.3);
-    ctx.lineTo(size * 0.7, size * 0.7);
-    ctx.moveTo(size * 0.7, size * 0.3);
-    ctx.lineTo(size * 0.3, size * 0.7);
-    ctx.stroke();
+    ctx.moveTo(borderRadius, 0);
+    ctx.lineTo(cellSize, 0);
+    ctx.lineTo(cellSize, cellSize);
+    ctx.lineTo(0, cellSize);
+    ctx.lineTo(0, borderRadius);
+    ctx.arcTo(0, 0, borderRadius, 0, borderRadius);
+    ctx.closePath();
+    ctx.fill();
+
+    // 右上
+    ctx.beginPath();
+    ctx.moveTo(cellSize, 0);
+    ctx.lineTo(size - borderRadius, 0);
+    ctx.arcTo(size, 0, size, borderRadius, borderRadius);
+    ctx.lineTo(size, cellSize);
+    ctx.lineTo(cellSize, cellSize);
+    ctx.closePath();
+    ctx.fill();
+
+    // 左下
+    ctx.beginPath();
+    ctx.moveTo(0, cellSize);
+    ctx.lineTo(cellSize, cellSize);
+    ctx.lineTo(cellSize, size);
+    ctx.lineTo(borderRadius, size);
+    ctx.arcTo(0, size, 0, size - borderRadius, borderRadius);
+    ctx.lineTo(0, cellSize);
+    ctx.closePath();
+    ctx.fill();
+
+    // 右下1マス（テーマカラー+文字）
+    ctx.fillStyle = themeColor;
+    ctx.beginPath();
+    ctx.moveTo(cellSize, cellSize);
+    ctx.lineTo(size, cellSize);
+    ctx.lineTo(size, size - borderRadius);
+    ctx.arcTo(size, size, size - borderRadius, size, borderRadius);
+    ctx.lineTo(cellSize, size);
+    ctx.lineTo(cellSize, cellSize);
+    ctx.closePath();
+    ctx.fill();
+
+    // 白文字「視」を右下マスに描画
+    ctx.fillStyle = 'white';
+    ctx.font = `bold ${cellSize * 0.7}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('視', cellSize + cellSize / 2, cellSize + cellSize / 2);
+
+    // 中央にマークを描画
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    if (status === 'error') {
+      // エラー：⚠マーク
+      ctx.fillStyle = 'white';
+      ctx.font = `bold ${size * 0.6}px sans-serif`;
+      ctx.fillText('⚠', size / 2, size / 2);
+    } else {
+      // 満枠：太いバツ✕（線で描画）
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = size * 0.12;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(size * 0.3, size * 0.3);
+      ctx.lineTo(size * 0.7, size * 0.7);
+      ctx.moveTo(size * 0.7, size * 0.3);
+      ctx.lineTo(size * 0.3, size * 0.7);
+      ctx.stroke();
+    }
   }
 }
 
