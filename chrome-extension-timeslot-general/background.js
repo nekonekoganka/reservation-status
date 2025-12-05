@@ -167,7 +167,7 @@ function createIcon(slotsCount, status) {
       ctx.fillRect(0, 0, size, size);
 
       // オレンジ色の太い数字を最大サイズで表示
-      ctx.fillStyle = '#F57C00'; // オレンジ色（一般予約のテーマカラー）
+      ctx.fillStyle = '#CC6600'; // オレンジ色（一般予約のテーマカラー）
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
@@ -184,7 +184,7 @@ function createIcon(slotsCount, status) {
       } else {
         bgColor = '#dc3545'; // 赤（満枠）
       }
-      const themeColor = '#F57C00'; // オレンジ（一般予約のテーマカラー）
+      const themeColor = '#CC6600'; // オレンジ（一般予約のテーマカラー）
 
       // 左上3マス（予約状況）
       ctx.fillStyle = bgColor;
