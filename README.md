@@ -48,8 +48,17 @@
 - **[デバッグページ](https://nekonekoganka.github.io/reservation-status/display-test-combined.html)**
 
 ### 🏷️ バナー表示（ホームページ埋め込み用）
+
+#### 従来版（○/×表示）
 - **[一般予約バナー](https://nekonekoganka.github.io/reservation-status/)**
-- **[視野予約バナー](https://nekonekoganka.github.io/reservation-status/shiya.html)**
+  - シンプルな空きあり/満枠表示
+  - Google Sheetsから取得
+
+#### 時間枠版（NEW！）🆕
+- **[タイムスロットバナー（一般）](https://nekonekoganka.github.io/reservation-status/timeslot-banner.html)**
+  - 残り枠数+具体的な時間枠を表示（例：10:00・11:00・14:00…）
+  - 日付表示付き（例：明日（12/6））
+  - Cloud Storageから取得
 
 ---
 
@@ -81,7 +90,8 @@
 
 ```
 reservation-status/
-├── index.html                  # 一般予約: バナー表示用HTML（ホームページ埋め込み用）
+├── index.html                  # 一般予約: バナー表示用HTML（ホームページ埋め込み用・○/×版）
+├── timeslot-banner.html        # 一般予約: タイムスロットバナー（時間枠表示版）🆕
 ├── display.html                # 一般予約: 全画面ディスプレイ用HTML（レスポンシブ対応・クリニック入口用）🆕
 ├── display-test.html           # 一般予約: デバッグ用テストページ（カスタマイズ機能付き）🆕
 ├── timeslot-display.html       # 一般予約: カレンダーから時間枠を抽出して表示 🆕
@@ -229,15 +239,31 @@ docker-timeslot-checker/README.md
 
 ### バナーをホームページに埋め込み
 
+#### 従来版（○/×表示）
 ```html
 <iframe
   src="https://nekonekoganka.github.io/reservation-status/"
   width="100%"
-  height="250"
+  height="220"
   frameborder="0"
-  style="border:none; margin:10px 0; display:block;">
+  style="border:none; max-width:800px; margin:10px auto; display:block;">
 </iframe>
 ```
+
+#### タイムスロット版（時間枠表示）🆕
+```html
+<iframe
+  src="https://nekonekoganka.github.io/reservation-status/timeslot-banner.html"
+  width="100%"
+  height="220"
+  frameborder="0"
+  style="border:none; max-width:800px; margin:10px auto; display:block;">
+</iframe>
+```
+
+**表示例:**
+- 空き枠あり: 「✅ 明日（12/6）　10:00・11:00・14:00…　が空いています」
+- 満枠: 「😔 本日（12/5）の予約は 満枠です」
 
 ---
 
@@ -386,6 +412,111 @@ const FILE_NAME_SHIYA = 'timeslots-shiya.json';
 ---
 
 ## 🆕 最近のアップデート（技術的な改善履歴）
+
+### 2025年12月5日 - 日付表示の統一と時間枠バナーの追加 🆕
+
+#### 📅 統一的な日付表示の実装
+
+**概要:**
+Chrome拡張機能と予約状況チェッカーに、日付を含む統一的な表示を実装しました。一般予約と視野予約で表示が異なる問題を解決し、「明日（12/6）」のように日付を明示することでユーザーにわかりやすくなりました。
+
+**実装した機能:**
+
+**1. 日付付き表示**
+```
+修正前: "次の診療日 残り5枠" または "明日 ✕ 満枠"
+修正後: "次の診療日（12/9） 残り5枠" または "明日（12/6） ✕ 満枠"
+```
+
+**2. 表示の統一ロジック**
+```javascript
+function calculateDisplayTextWithDate(targetDate) {
+  // dateフィールドから本日/明日/次の診療日を自動判定
+  if (targetDate === currentDate) → "本日（MM/DD）"
+  else if (targetDate === currentDate + 1) → "明日（MM/DD）"
+  else → "次の診療日（MM/DD）"
+}
+```
+
+**3. 問題の解決**
+
+**修正前の問題:**
+```
+一般予約: date=6, displayText="次の診療日"
+視野予約: date=6, displayText="明日"
+→ 同じ日付なのに異なる表示！
+```
+
+**修正後:**
+```
+一般予約: "明日（12/6）"
+視野予約: "明日（12/6）"
+→ dateフィールドから計算するので統一表示！
+```
+
+**変更ファイル:**
+- `chrome-extension-timeslot-general/popup.js` - 日付計算ロジック追加
+- `chrome-extension-timeslot-shiya/popup.js` - 同様の修正
+- `timeslot-status-checker.html` - 一般・視野両方に適用
+
+**改善効果:**
+1. ✅ 一般と視野で表示が統一される
+2. ✅ 日付が明確になり、ユーザーにわかりやすい
+3. ✅ JSONのdisplayTextの不統一が自動修正される
+4. ✅ 月またぎも自動対応（12月31日→1月1日など）
+
+#### 🏷️ タイムスロットバナーの追加
+
+**概要:**
+iframe埋め込み用のタイムスロット版バナーを新規作成しました。具体的な時間枠を表示することで、より詳細な予約情報を提供できます。
+
+**新規作成ファイル:**
+- `timeslot-banner.html` - タイムスロット版iframeバナー
+
+**主な機能:**
+
+**表示内容（空き枠がある場合）:**
+```
+✅ 明日（12/6）
+10:00・11:00・14:00…
+が空いています
+クリックして予約ページへ
+更新：2025/12/05 14:30
+```
+
+**表示内容（満枠の場合）:**
+```
+😔 本日（12/5）の予約は 満枠です
+誠に恐れ入りますが、次の診療日以降で ご予約ください
+クリックして 予約ページへ
+更新：2025/12/05 14:30
+```
+
+**技術仕様:**
+- **データソース**: Cloud Storage JSON (`timeslots.json`)
+- **表示数**: 最大3つの時間枠（それ以上は「…」）
+- **更新頻度**: 1分ごとに自動更新
+- **デザイン**: 従来版index.htmlと同じコンパクトなバナー形式
+- **レスポンシブ**: スマホ・タブレット対応
+
+**iframe埋め込みコード:**
+```html
+<iframe
+  src="https://nekonekoganka.github.io/reservation-status/timeslot-banner.html"
+  width="100%"
+  height="220"
+  frameborder="0"
+  style="border:none; max-width:800px; margin:10px auto; display:block;">
+</iframe>
+```
+
+**改善効果:**
+1. ✅ 具体的な時間枠を表示できる
+2. ✅ 日付表示で対象日が明確
+3. ✅ 従来版と同じサイズで置き換え可能
+4. ✅ Cloud Storageから最新データを取得
+
+---
 
 ### 2025年12月5日 - 時間枠表示システムの大幅拡張 🆕
 
