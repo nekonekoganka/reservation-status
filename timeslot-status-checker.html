@@ -128,24 +128,23 @@
       padding: 8px;
       max-height: 180px;
       overflow-y: auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
     }
 
     .timeslot-item {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 8px;
-      margin-bottom: 4px;
+      justify-content: center;
+      gap: 4px;
+      padding: 6px 4px;
       background: #f8f9fa;
       border-radius: 6px;
       font-size: 13px;
       font-weight: 500;
       color: #333;
       border: 1px solid #e0e0e0;
-    }
-
-    .timeslot-item:last-child {
-      margin-bottom: 0;
     }
 
     .timeslot-icon {
@@ -352,11 +351,18 @@
       // 背景をクリア
       ctx.clearRect(0, 0, size, size);
 
-      // 枠数 > 0 の場合は白背景+テーマカラー数字のデザイン
+      // 枠数 > 0 の場合は白背景+色枠+テーマカラー数字のデザイン
       if (status !== 'error' && slotsCount > 0) {
+        const borderWidth = Math.max(1, Math.round(size * 0.08)); // 枠線の太さ（8%、最小1px）
+
         // 白背景で塗りつぶし
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, size, size);
+
+        // 外枠を描画
+        ctx.strokeStyle = themeColor;
+        ctx.lineWidth = borderWidth;
+        ctx.strokeRect(borderWidth / 2, borderWidth / 2, size - borderWidth, size - borderWidth);
 
         // テーマカラーの太い数字を最大サイズで表示
         ctx.fillStyle = themeColor;
@@ -367,9 +373,8 @@
         const fontSize = slotsCount >= 10 ? size * 0.8 : size * 0.95;
         ctx.font = `bold ${fontSize}px sans-serif`;
 
-        // 視覚的な中央に配置（フォントメトリクスの補正）
-        const offsetY = fontSize * 0.07;
-        ctx.fillText(slotsCount.toString(), size / 2, size / 2 + offsetY);
+        // 視覚的な中央に配置（Webページでは補正なしで中央に）
+        ctx.fillText(slotsCount.toString(), size / 2, size / 2);
       } else {
         // 枠数 = 0 またはエラーの場合は既存のデザイン（2×2グリッド）
         // 背景色を決定
@@ -469,7 +474,7 @@
         // 時間枠がある場合
         const html = slots.map(slot => `
           <div class="timeslot-item">
-            <span class="timeslot-icon">✅</span>
+            <span class="timeslot-icon">🔴</span>
             <span>${slot}</span>
           </div>
         `).join('');

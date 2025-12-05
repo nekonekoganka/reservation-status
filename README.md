@@ -413,6 +413,162 @@ const FILE_NAME_SHIYA = 'timeslots-shiya.json';
 
 ## 🆕 最近のアップデート（技術的な改善履歴）
 
+### 2025年12月5日 - タイムゾーン問題の修正とCloud Run運用改善 🆕
+
+#### 🕐 18:30以降の時間判定が正しく動作しない問題を修正
+
+**問題:**
+一般予約のタイムスロット取得システムで、18:30以降でも「本日」の予約枠を参照してしまう問題が発生していました。視野予約は正常に動作していました。
+
+**症状:**
+- 18:30以降の毎時0〜30分 → 誤って「本日」を参照
+- 18:30以降の毎時31〜59分 → 正しく「翌営業日」を参照
+- 30分周期で動作が変わる不思議な現象
+
+**原因:**
+1. **古いリビジョンがCloud Runに残っていた** - 複数のリビジョンが存在し、一部のリクエストが古いコード（タイムゾーン修正前）に当たっていた
+2. **タイムゾーン処理の環境依存** - `process.env.TZ` や `toLocaleString` がCloud Run環境で不安定だった
+3. **メモリ不足** - 512MBではPuppeteerがメモリ不足でクラッシュし、インスタンスの再起動が発生していた
+
+**修正内容:**
+
+**1. 日本時間取得関数をUTCオフセット方式に変更**
+```javascript
+function getJapanTime() {
+  const now = new Date();
+
+  // 日本時間はUTC+9時間（環境に依存しない確実な方法）
+  const japanOffset = 9 * 60 * 60 * 1000;
+  const japanTime = new Date(now.getTime() + japanOffset);
+
+  // UTCメソッドを使って日本時間の各値を取得
+  const year = japanTime.getUTCFullYear();
+  const month = japanTime.getUTCMonth() + 1;
+  const date = japanTime.getUTCDate();
+  const hour = japanTime.getUTCHours();
+  const minute = japanTime.getUTCMinutes();
+
+  return { year, month, date, dayOfWeek, hour, minute };
+}
+```
+
+**2. Cloud Runのリビジョン整理**
+- 古いリビジョン4つを削除
+- 最新リビジョンに100%トラフィックを割り当て
+
+**3. メモリを1GBに増加**
+```bash
+gcloud run deploy timeslot-checker \
+  --memory 1Gi \
+  --region asia-northeast1
+```
+
+**変更ファイル:**
+- `docker-timeslot-checker/server.js` - getJapanTime()関数を追加
+- `docker-timeslot-checker-shiya/server.js` - 同様の修正
+- `docker-timeslot-checker/Dockerfile` - GPGキー修正を追加
+- `docker-timeslot-checker-shiya/Dockerfile` - 同様の修正
+
+#### 🔑 Google Chrome GPGキーエラーの修正
+
+**問題:**
+`gcloud builds submit` 実行時に以下のエラーが発生：
+```
+E: The repository 'https://dl-ssl.google.com/linux/chrome/deb stable InRelease' is not signed.
+```
+
+**原因:**
+Puppeteerイメージ（ghcr.io/puppeteer/puppeteer:22.0.0）内のGoogle Chrome GPGキーが古くなっていた。
+
+**修正:**
+Dockerfileに以下を追加：
+```dockerfile
+# Google Chrome GPGキーを更新（古いキーが期限切れになる問題を回避）
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
+```
+
+#### 🖼️ Chrome拡張機能アイコンに枠線を追加
+
+**概要:**
+タイムスロット表示用のChrome拡張機能（一般予約・視野予約）のアイコンに、視認性向上のための枠線を追加しました。
+
+**変更内容:**
+- 白背景の外側に8%幅の枠線を追加
+- 一般予約: オレンジ色（#CC6600）
+- 視野予約: 緑色（#006633）
+
+**実装コード:**
+```javascript
+const borderWidth = Math.max(1, Math.round(size * 0.08));
+ctx.strokeStyle = themeColor;
+ctx.lineWidth = borderWidth;
+ctx.strokeRect(borderWidth / 2, borderWidth / 2, size - borderWidth, size - borderWidth);
+```
+
+**変更ファイル:**
+- `chrome-extension-timeslot-general/background.js`
+- `chrome-extension-timeslot-shiya/background.js`
+
+---
+
+### 🛠️ トラブルシューティング：Cloud Run運用のポイント
+
+#### リビジョン管理
+
+Cloud Runは複数のリビジョン（バージョン）を保持できます。古いリビジョンが残っていると、一部のリクエストが古いコードに当たる可能性があります。
+
+**確認方法:**
+```bash
+gcloud run revisions list --service timeslot-checker --region asia-northeast1
+```
+
+**最新リビジョンに100%トラフィックを割り当て:**
+```bash
+gcloud run services update-traffic timeslot-checker --to-latest --region asia-northeast1
+```
+
+**デプロイ後の推奨手順:**
+```bash
+# 1. ビルド
+gcloud builds submit --tag gcr.io/$(gcloud config get-value project)/timeslot-checker
+
+# 2. デプロイ（メモリ1GB指定）
+gcloud run deploy timeslot-checker \
+  --image gcr.io/$(gcloud config get-value project)/timeslot-checker \
+  --region asia-northeast1 \
+  --platform managed \
+  --memory 1Gi
+
+# 3. トラフィックを最新に
+gcloud run services update-traffic timeslot-checker --to-latest --region asia-northeast1
+```
+
+#### メモリ設定
+
+Puppeteerを使用するサービスは、512MBでは不足する場合があります。
+
+**推奨設定:**
+- **最小:** 1GB（`--memory 1Gi`）
+- メモリ不足エラー: `Memory limit of 512 MiB exceeded`
+
+#### タイムゾーン
+
+Cloud Run環境でのタイムゾーン処理は環境依存のため、以下の方式を推奨：
+
+**推奨:** UTCオフセット方式
+```javascript
+const japanOffset = 9 * 60 * 60 * 1000;
+const japanTime = new Date(now.getTime() + japanOffset);
+```
+
+**非推奨:** 環境変数依存
+```javascript
+process.env.TZ = 'Asia/Tokyo'; // 効果が不安定
+```
+
+---
+
 ### 2025年12月5日 - 日付表示の統一と時間枠バナーの追加 🆕
 
 #### 📅 統一的な日付表示の実装
