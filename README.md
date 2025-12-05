@@ -255,7 +255,7 @@ docker-timeslot-checker/README.md
 <iframe
   src="https://nekonekoganka.github.io/reservation-status/timeslot-banner.html"
   width="100%"
-  height="250"
+  height="280"
   frameborder="0"
   scrolling="no"
   style="border:none;">
@@ -263,8 +263,8 @@ docker-timeslot-checker/README.md
 ```
 
 **表示例:**
-- 空き枠あり: 「✅ 明日の予約　10:00・11:00・14:00…　に 空きがございます」
-- 満枠: 「😔 本日の予約は 満枠です」
+- 空き枠あり: 「✅ 本日（12/6）の予約枠　10:00  11:00  14:00  ほか　に 空きがございます」
+- 満枠: 「😔 本日（12/6）の予約は 満枠です」
 
 ---
 
