@@ -177,7 +177,7 @@ function drawIcon(slotsCount, status) {
   } else {
     bgColor = '#dc3545'; // 赤（満枠）
   }
-  const themeColor = '#006633'; // 緑（視野予約のテーマカラー）
+  const themeColor = '#2E7D32'; // 緑（視野予約のテーマカラー）
 
   // 左上3マス（予約状況）
   ctx.fillStyle = bgColor;
