@@ -184,7 +184,7 @@ function createIcon(slotsCount, status) {
       } else {
         bgColor = '#dc3545'; // 赤（満枠）
       }
-      const themeColor = '#CC6600'; // オレンジ（一般予約のテーマカラー）
+      const themeColor = '#F57C00'; // オレンジ（一般予約のテーマカラー）
 
       // 左上3マス（予約状況）
       ctx.fillStyle = bgColor;
