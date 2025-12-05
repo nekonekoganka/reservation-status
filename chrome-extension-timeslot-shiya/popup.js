@@ -31,6 +31,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
+// 日付から適切な表示テキストを計算（月/日形式）
+function calculateDisplayTextWithDate(targetDate) {
+  if (!targetDate) {
+    return '本日';
+  }
+
+  const now = new Date();
+  const currentDate = now.getDate();
+  const currentMonth = now.getMonth() + 1;
+
+  // 対象日が今月か来月かを判定
+  let targetMonth = currentMonth;
+  if (targetDate < currentDate) {
+    // 日付が小さい場合は来月と判断
+    targetMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+  }
+
+  // 本日/明日/次の診療日を判定
+  let displayText;
+  if (targetDate === currentDate) {
+    displayText = '本日';
+  } else if (targetDate === currentDate + 1) {
+    displayText = '明日';
+  } else {
+    displayText = '次の診療日';
+  }
+
+  return `${displayText}（${targetMonth}/${targetDate}）`;
+}
+
 // ステータスを読み込んで表示
 async function loadStatus() {
   try {
@@ -60,7 +90,9 @@ async function loadStatus() {
     // ステータステキスト
     const statusText = document.getElementById('status-text');
     const slotsCount = data.slotsCount || 0;
-    const displayText = data.displayText || '本日';
+
+    // 日付付きの表示テキストを計算
+    const displayText = calculateDisplayTextWithDate(data.date);
 
     if (hasError) {
       statusText.textContent = 'データ取得エラー';
