@@ -255,15 +255,16 @@ docker-timeslot-checker/README.md
 <iframe
   src="https://nekonekoganka.github.io/reservation-status/timeslot-banner.html"
   width="100%"
-  height="220"
+  height="250"
   frameborder="0"
-  style="border:none; max-width:800px; margin:10px auto; display:block;">
+  scrolling="no"
+  style="border:none;">
 </iframe>
 ```
 
 **表示例:**
-- 空き枠あり: 「✅ 明日（12/6）　10:00・11:00・14:00…　が空いています」
-- 満枠: 「😔 本日（12/5）の予約は 満枠です」
+- 空き枠あり: 「✅ 明日の予約　10:00・11:00・14:00…　に 空きがございます」
+- 満枠: 「😔 本日の予約は 満枠です」
 
 ---
 
@@ -633,9 +634,9 @@ iframe埋め込み用のタイムスロット版バナーを新規作成しま�
 
 **表示内容（空き枠がある場合）:**
 ```
-✅ 明日（12/6）
+✅ 明日の予約
 10:00・11:00・14:00…
-が空いています
+に 空きがございます
 クリックして予約ページへ
 更新：2025/12/05 14:30
 ```
