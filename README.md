@@ -236,7 +236,69 @@ const FILE_NAME_SHIYA = 'timeslots-shiya.json';
 
 ## 🆕 最近のアップデート（技術的な改善履歴）
 
-### 2025年12月5日 - タイムゾーン問題の修正とCloud Run運用改善 🆕
+### 2025年12月6日 - 旧システム削除とバナーUI改善 🆕
+
+#### 🗑️ 旧システムの完全削除
+
+**概要:**
+タイムスロット抽出システムへの移行完了に伴い、旧システム（スプレッドシート経由の判定システム）を完全に削除しました。
+
+**削除したCloud Runサービス:**
+- `reservation-checker` - 旧一般予約チェッカー
+- `reservation-checker-shiya` - 旧視野予約チェッカー
+
+**削除したCloud Schedulerジョブ:**
+- `check-reservation` - 旧一般予約の定期実行
+- `check-reservation-shiya` - 旧視野予約の定期実行
+
+**削除したディレクトリ（39ファイル、5,690行）:**
+- `bookmarklet/` - ブックマークレット版チェッカー
+- `docker-automation/` - 旧一般予約Docker自動化
+- `docker-automation-shiya/` - 旧視野予約Docker自動化
+- `chrome-extension/` - 旧Chrome拡張機能（ステータス表示）
+- `chrome-extension-status-indicator/` - 旧ステータス表示拡張機能
+- `chrome-extension-general-indicator/` - 旧一般予約インジケーター
+- `chrome-extension-shiya-indicator/` - 旧視野予約インジケーター
+- `gas/` - Google Apps Script
+
+**効果:**
+- リポジトリがシンプルになり、メンテナンス性が向上
+- Cloud Runの運用コスト削減
+- 新システム（タイムスロット抽出）への完全移行完了
+
+#### 🎨 タイムスロットバナーのUI改善
+
+**概要:**
+`timeslot-banner.html`のUIを大幅に改善し、より見やすく使いやすいデザインに更新しました。
+
+**1. 時間枠の個別ピル表示**
+```
+修正前: 10:00・11:00・14:00…
+修正後: [10:00] [11:00] [14:00] ほか
+```
+- 個別の角丸ボックス（ピル）で時間枠を表示
+- 白背景 + オレンジ枠線（#CC6600）でアクセント
+- 「…」を「ほか」に変更
+
+**2. 日付形式の変更**
+```
+修正前: 本日（土）
+修正後: 本日（12/6）
+```
+- 曜日ではなく月/日形式で表示
+- より具体的で分かりやすい日付表示
+
+**3. モバイル表示の改善**
+- 幅: `calc(100% - 10px)`で画面いっぱいに表示
+- 高さ: iframe埋め込み時280pxで更新時刻まで表示
+- 「ほか」がピルと同じ行に並ぶように修正（`align-items: center`）
+
+**変更ファイル:**
+- `timeslot-banner.html` - ピルデザイン、日付形式、モバイル対応
+
+---
+
+### 2025年12月5日 - タイムゾーン問題の修正とCloud Run運用改善
 
 #### 🕐 18:30以降の時間判定が正しく動作しない問題を修正
 
@@ -392,7 +454,7 @@ process.env.TZ = 'Asia/Tokyo'; // 効果が不安定
 
 ---
 
-### 2025年12月5日 - 日付表示の統一と時間枠バナーの追加 🆕
+### 2025年12月5日 - 日付表示の統一と時間枠バナーの追加
 
 #### 📅 統一的な日付表示の実装
 
@@ -483,9 +545,10 @@ iframe埋め込み用のタイムスロット版バナーを新規作成しま�
 <iframe
   src="https://nekonekoganka.github.io/reservation-status/timeslot-banner.html"
   width="100%"
-  height="220"
+  height="280"
   frameborder="0"
-  style="border:none; max-width:800px; margin:10px auto; display:block;">
+  scrolling="no"
+  style="border:none;">
 </iframe>
 ```
 
@@ -497,7 +560,7 @@ iframe埋め込み用のタイムスロット版バナーを新規作成しま�
 
 ---
 
-### 2025年12月5日 - 時間枠表示システムの大幅拡張 🆕
+### 2025年12月5日 - 時間枠表示システムの大幅拡張
 
 #### 🎯 タイムスロット対応の予約状況チェッカーとChrome拡張機能
 
@@ -621,7 +684,7 @@ function toggleTimeslots(type) {
 
 ---
 
-### 2025年11月27日 - 背景点滅機能の実装と速度調整の改善 🆕
+### 2025年11月27日 - 背景点滅機能の実装と速度調整の改善
 
 #### 💡 通行人訴求に最適化された背景点滅システム
 
