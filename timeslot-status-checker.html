@@ -103,8 +103,9 @@
     }
 
     .day-text {
-      font-size: 14px;
-      color: #666;
+      font-size: 24px;
+      font-weight: 600;
+      color: #333;
       margin-top: 4px;
     }
 
@@ -164,6 +165,27 @@
       color: #999;
       font-size: 13px;
       padding: 15px;
+    }
+
+    .more-slots {
+      grid-column: 1 / -1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: #666;
+      padding: 8px;
+      background: #e9ecef;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .more-slots:hover {
+      background: #dee2e6;
+    }
+
+    .more-slots:active {
+      background: #ced4da;
     }
 
     /* スクロールバーのスタイル */
@@ -335,6 +357,18 @@
       shiya: true
     };
 
+    // 時間枠の全表示状態を管理
+    const showAllSlotsState = {
+      general: false,
+      shiya: false
+    };
+
+    // スロットデータを保存（再描画用）
+    const slotsData = {
+      general: [],
+      shiya: []
+    };
+
     /**
      * 時間枠リストの表示/非表示を切り替え
      */
@@ -479,20 +513,47 @@
     }
 
     /**
+     * 時間枠の全表示/省略表示を切り替え
+     */
+    function toggleShowAllSlots(type, event) {
+      event.stopPropagation(); // カードのクリックイベントを防止
+      showAllSlotsState[type] = !showAllSlotsState[type];
+      renderTimeslots(type, slotsData[type], slotsData[type].length);
+    }
+
+    /**
      * 時間枠リストをHTMLで生成
      */
     function renderTimeslots(type, slots, slotsCount) {
       const listElement = document.getElementById(`timeslots-list-${type}`);
       const expandIndicator = document.getElementById(`expand-${type}`);
 
+      // スロットデータを保存
+      slotsData[type] = slots;
+
       if (slotsCount > 0 && slots.length > 0) {
-        // 時間枠がある場合
-        const html = slots.map(slot => `
+        const maxDisplay = 6;
+        const showAll = showAllSlotsState[type];
+        const displaySlots = showAll ? slots : slots.slice(0, maxDisplay);
+        const remainingCount = slots.length - maxDisplay;
+
+        let html = displaySlots.map(slot => `
           <div class="timeslot-item">
             <span class="timeslot-icon">✅</span>
             <span>${slot}</span>
           </div>
         `).join('');
+
+        // 6枠を超える場合
+        if (remainingCount > 0) {
+          if (showAll) {
+            // 全表示中：「閉じる」ボタンを表示
+            html += `<div class="more-slots" onclick="toggleShowAllSlots('${type}', event)">▲ 閉じる</div>`;
+          } else {
+            // 省略表示中：「+◯枠」ボタンを表示
+            html += `<div class="more-slots" onclick="toggleShowAllSlots('${type}', event)">+${remainingCount}枠 ▼</div>`;
+          }
+        }
 
         listElement.innerHTML = html;
       } else {
