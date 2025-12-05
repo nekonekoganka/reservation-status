@@ -40,20 +40,52 @@ function isNewYearHoliday(date) {
 }
 
 /**
+ * 日本時間を取得する関数（タイムゾーン設定に依存しない）
+ * @returns {Object} {year, month, date, dayOfWeek, hour, minute}
+ */
+function getJapanTime() {
+  const now = new Date();
+  const japanTimeStr = now.toLocaleString('en-US', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+
+  // "MM/DD/YYYY, HH:MM" 形式をパース
+  const [datePart, timePart] = japanTimeStr.split(', ');
+  const [month, date, year] = datePart.split('/').map(Number);
+  const [hour, minute] = timePart.split(':').map(Number);
+
+  // 日本時間のDateオブジェクトを作成して曜日を取得
+  const japanDate = new Date(year, month - 1, date, hour, minute);
+  const dayOfWeek = japanDate.getDay();
+
+  console.log(`日本時間: ${year}/${month}/${date} ${hour}:${minute} (曜日: ${dayOfWeek})`);
+
+  return { year, month, date, dayOfWeek, hour, minute };
+}
+
+/**
  * チェックする日付を計算する関数
  *
  * @returns {Object} {targetDate: number, targetMonth: number, needsNextMonthClick: boolean, displayText: string}
  */
 function calculateTargetDate() {
-  const now = new Date();
-  const dayOfWeek = now.getDay(); // 0=日, 1=月, 2=火, 3=水, 4=木, 5=金, 6=土
-  const hour = now.getHours();
-  const minute = now.getMinutes();
+  // 日本時間を明示的に取得（環境のタイムゾーン設定に依存しない）
+  const japanTime = getJapanTime();
+  const dayOfWeek = japanTime.dayOfWeek; // 0=日, 1=月, 2=火, 3=水, 4=木, 5=金, 6=土
+  const hour = japanTime.hour;
+  const minute = japanTime.minute;
 
   // 18:30以降かチェック
   const isAfter1830 = (hour > 18) || (hour === 18 && minute >= 30);
 
-  let targetDate = new Date(now);
+  // 日本時間ベースでDateオブジェクトを作成
+  let targetDate = new Date(japanTime.year, japanTime.month - 1, japanTime.date);
   let displayText = '本日';
   let needsNextMonthClick = false;
 
@@ -61,8 +93,8 @@ function calculateTargetDate() {
     // 18:30以降の処理
 
     // 月末チェック
-    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const isEndOfMonth = (now.getDate() === lastDayOfMonth);
+    const lastDayOfMonth = new Date(japanTime.year, japanTime.month, 0).getDate();
+    const isEndOfMonth = (japanTime.date === lastDayOfMonth);
 
     if (isEndOfMonth) {
       // 翌月1日に設定
