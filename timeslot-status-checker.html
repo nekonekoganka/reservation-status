@@ -352,14 +352,14 @@
       // 背景をクリア
       ctx.clearRect(0, 0, size, size);
 
-      // 枠数 > 0 の場合はテーマカラー背景+白抜き数字のデザイン
+      // 枠数 > 0 の場合は白背景+テーマカラー数字のデザイン
       if (status !== 'error' && slotsCount > 0) {
-        // テーマカラー背景で塗りつぶし
-        ctx.fillStyle = themeColor;
+        // 白背景で塗りつぶし
+        ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, size, size);
 
-        // 白抜きの太い数字を最大サイズで表示
-        ctx.fillStyle = 'white';
+        // テーマカラーの太い数字を最大サイズで表示
+        ctx.fillStyle = themeColor;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
