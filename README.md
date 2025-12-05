@@ -14,10 +14,6 @@
   - タップで空き時間の詳細リスト表示
   - モバイルフレンドリー
 
-- **[予約状況チェッカー（○/×版）](https://nekonekoganka.github.io/reservation-status/mobile-status.html)**
-  - シンプルな○/×表示
-  - 従来型のチェッカー
-
 ### 🖥️ タイムスロット表示システム（時間枠表示）
 
 #### 一般予約
@@ -49,40 +45,29 @@
 
 ### 🏷️ バナー表示（ホームページ埋め込み用）
 
-#### 従来版（○/×表示）
-- **[一般予約バナー](https://nekonekoganka.github.io/reservation-status/)**
-  - シンプルな空きあり/満枠表示
-  - Google Sheetsから取得
-
-#### 時間枠版（NEW！）🆕
 - **[タイムスロットバナー（一般）](https://nekonekoganka.github.io/reservation-status/timeslot-banner.html)**
-  - 残り枠数+具体的な時間枠を表示（例：10:00・11:00・14:00…）
-  - 日付表示付き（例：明日（12/6））
+  - 残り枠数+具体的な時間枠を表示（例：10:00  11:00  14:00  ほか）
+  - 日付表示付き（例：本日（12/6））
   - Cloud Storageから取得
 
 ---
 
 ## 📌 主な機能
 
-1. **Chrome拡張機能（4種類）**
-   - 予約ページから空き状況を自動判定（従来版）
-   - **予約枠数表示拡張機能** 🆕 - タスクバーに枠数を数字で表示
-   - 予約状況インジケーター（統合版・一般版・視野版）
+1. **Chrome拡張機能（3種類）**
+   - **予約枠数表示拡張機能** - タスクバーに枠数を数字で表示（一般・視野）
    - ディスプレイ自動リロード拡張機能
-2. **Docker自動化システム** - Cloud Runで営業時間に応じて自動実行 🆕
-3. **タイムスロット表示システム** 🆕 - 空き時間枠を詳細に表示
-4. **予約状況チェッカー** 🆕 - モバイル対応、枠数+詳細リスト表示
-5. **Googleスプレッドシート連携** - 判定結果を自動記録
-6. **GitHub Pagesバナー** - ホームページに埋め込み可能なバナー
-7. **全画面ディスプレイ** - レスポンシブ対応・アイコン表示（⭕/😔）・バナー表示・QRコード表示 🆕
-8. **高機能デバッグページ** - 10種類のタブで完全カスタマイズ可能 🆕
+2. **Docker自動化システム** - Cloud Runで自動実行（タイムスロット抽出）
+3. **タイムスロット表示システム** - 空き時間枠を詳細に表示
+4. **予約状況チェッカー** - モバイル対応、枠数+詳細リスト表示
+5. **GitHub Pagesバナー** - ホームページに埋め込み可能なバナー
+6. **全画面ディスプレイ** - レスポンシブ対応・アイコン表示（⭕/😔）・バナー表示・QRコード表示
+7. **高機能デバッグページ** - 10種類のタブで完全カスタマイズ可能
    - テキスト・アイコン・色・サイズ・レイアウト・バナー・QRコード・アニメーション・背景・設定
    - プリセット管理（5スロット）・デフォルト設定保存・エクスポート/インポート
    - フルスクリーンモード・トップバー2段構成・フローティングボタン
-   - **背景点滅機能**: 通行人訴求に最適な3つのモード（明るく/暗く/白フラッシュ）+ 細かい速度調整 🆕
-9. **曜日・時間対応** - 火曜18:30以降は木曜、水曜は木曜をチェック
-10. **自動データ管理** - 20,000行以上の古いデータを自動削除
-11. **iframe対応** - iframe内のカレンダーも正しく検出
+   - **背景点滅機能**: 通行人訴求に最適な3つのモード（明るく/暗く/白フラッシュ）+ 細かい速度調整
+8. **曜日・時間対応** - 火曜18:30以降は木曜、水曜は木曜をチェック
 
 ---
 
@@ -90,167 +75,47 @@
 
 ```
 reservation-status/
-├── index.html                  # 一般予約: バナー表示用HTML（ホームページ埋め込み用・○/×版）
-├── timeslot-banner.html        # 一般予約: タイムスロットバナー（時間枠表示版）🆕
-├── display.html                # 一般予約: 全画面ディスプレイ用HTML（レスポンシブ対応・クリニック入口用）🆕
-├── display-test.html           # 一般予約: デバッグ用テストページ（カスタマイズ機能付き）🆕
-├── timeslot-display.html       # 一般予約: カレンダーから時間枠を抽出して表示 🆕
-├── timeslot-display-test.html  # 一般予約: 時間枠表示のデバッグ・テストページ
-├── shiya.html                  # 視野予約: バナー表示用HTML（ホームページ埋め込み用）🆕
-├── display-shiya.html          # 視野予約: 全画面ディスプレイ用HTML（レスポンシブ対応・クリニック入口用）🆕
-├── display-test-shiya.html     # 視野予約: デバッグ用テストページ（カスタマイズ機能付き）🆕
-├── timeslot-display-shiya.html # 視野予約: カレンダーから時間枠を抽出して表示 🆕
-├── timeslot-display-test-shiya.html # 視野予約: 時間枠表示のデバッグ・テストページ
-├── display-combined.html       # 統合ディスプレイ: 一般予約+視野予約の統合判定表示 🆕
-├── display-test-combined.html  # 統合ディスプレイ: デバッグ用テストページ（高度なカスタマイズ機能付き）🆕
-├── mobile-status.html          # 予約状況チェッカー（○/×版）
-├── timeslot-status-checker.html # 予約状況チェッカー（時間枠対応版）🆕
+├── timeslot-banner.html        # 一般予約: タイムスロットバナー（時間枠表示版）
+├── display.html                # 一般予約: 全画面ディスプレイ用HTML
+├── display-test.html           # 一般予約: デバッグ用テストページ
+├── timeslot-display.html       # 一般予約: 時間枠を抽出して表示
+├── display-shiya.html          # 視野予約: 全画面ディスプレイ用HTML
+├── display-test-shiya.html     # 視野予約: デバッグ用テストページ
+├── timeslot-display-shiya.html # 視野予約: 時間枠を抽出して表示
+├── display-combined.html       # 統合ディスプレイ: 一般+視野の統合判定表示
+├── display-test-combined.html  # 統合ディスプレイ: デバッグ用テストページ
+├── timeslot-status-checker.html # 予約状況チェッカー（時間枠対応版）
 ├── Downloads/                  # バナー用画像ファイル・設定ファイル
-│   ├── vacant_reservation.png  # 予約空きありバナー
-│   ├── full_reservation.png    # 予約満バナー
-│   ├── closed_days.png         # 休診日バナー
-│   ├── QR_fujiminohikari.png   # 一般予約QRコード（左下固定表示）
-│   ├── QR_Field_of_vision_reservation.png   # 視野予約QRコード🆕
-│   └── display-preset.json     # ディスプレイ設定プリセット（色・サイズ・間隔・エフェクト）🆕
 ├── docs/                       # ドキュメント
-│   ├── handover-to-claude-code.md      # システム全体の引き継ぎ資料
-│   ├── implementation-guide-v5.md      # 実装手順
-│   ├── delete-old-rows-guide.md        # データ管理設定（一般予約）
-│   └── delete-old-rows-shiya-guide.md  # データ管理設定（視野予約）🆕
-├── chrome-extension/           # Chrome拡張機能（予約状況チェック）
-│   ├── content.js
-│   ├── manifest.json
-│   ├── google-apps-script.js
-│   ├── README.md
-│   └── ICON_README.md
-├── chrome-extension-auto-reload/  # Chrome拡張機能（ディスプレイ自動リロード）🆕
-│   ├── manifest.json           # Manifest V3設定
-│   ├── background.js           # Service Worker（60秒タイマー）
-│   ├── content.js              # ページリロード処理
-│   └── README.md               # インストール・設定手順
-├── chrome-extension-status-indicator/  # Chrome拡張機能（予約状況インジケーター・統合）🆕
-│   ├── manifest.json           # Manifest V3設定
-│   ├── background.js           # バックグラウンド処理（1分ごと更新）
-│   ├── popup.html              # ポップアップUI
-│   ├── popup.js                # ポップアップロジック
-│   └── README.md               # インストール・使い方
-├── chrome-extension-general-indicator/  # Chrome拡張機能（一般予約インジケーター）🆕
-│   ├── manifest.json           # Manifest V3設定
-│   ├── background.js           # Canvas API動的アイコン生成
-│   ├── popup.html              # ポップアップUI
-│   ├── popup.js                # ポップアップロジック
-│   ├── icons/                  # アイコンフォルダ（動的生成）
-│   └── README.md               # インストール・使い方
-├── chrome-extension-shiya-indicator/  # Chrome拡張機能（視野予約インジケーター）🆕
-│   ├── manifest.json           # Manifest V3設定
-│   ├── background.js           # Canvas API動的アイコン生成
-│   ├── popup.html              # ポップアップUI
-│   ├── popup.js                # ポップアップロジック
-│   ├── icons/                  # アイコンフォルダ（動的生成）
-│   └── README.md               # インストール・使い方
-├── chrome-extension-timeslot-general/  # Chrome拡張機能（一般予約枠数表示）🆕
-│   ├── manifest.json           # Manifest V3設定
-│   ├── background.js           # Cloud Storage JSON取得・枠数表示
-│   ├── popup.html              # ポップアップUI（時間枠詳細リスト）
-│   ├── popup.js                # ポップアップロジック
-│   └── README.md               # インストール・使い方
-├── chrome-extension-timeslot-shiya/    # Chrome拡張機能（視野予約枠数表示）🆕
-│   ├── manifest.json           # Manifest V3設定
-│   ├── background.js           # Cloud Storage JSON取得・枠数表示
-│   ├── popup.html              # ポップアップUI（時間枠詳細リスト）
-│   ├── popup.js                # ポップアップロジック
-│   └── README.md               # インストール・使い方
-├── chrome-web-store/           # Chrome Web Store公開用ファイル 🆕
-│   ├── publishing-guide.md     # 公開手順ガイド
-│   ├── store-listing.md        # ストア掲載情報
-│   ├── privacy-policy.md       # プライバシーポリシー
-│   └── screenshot-guide.md     # スクリーンショットガイド
-├── docker-automation/          # 一般予約: Docker自動化システム 🆕
-│   ├── server.js               # メインコード（Node.js + Puppeteer）
-│   ├── Dockerfile              # Docker設定
-│   ├── package.json            # 依存関係
-│   └── README.md               # 詳細なデプロイ手順
-├── docker-automation-shiya/    # 視野予約: Docker自動化システム 🆕
-│   ├── server.js               # メインコード（Node.js + Puppeteer）
-│   ├── Dockerfile              # Docker設定
-│   ├── package.json            # 依存関係
-│   └── README.md               # 詳細なデプロイ手順
-├── docker-timeslot-checker/    # 一般予約: タイムスロット抽出システム 🆕
-│   ├── server.js               # Puppeteerで時間枠を取得しCloud Storageに保存
-│   ├── Dockerfile              # Docker設定
-│   ├── package.json            # 依存関係
-│   └── README.md               # デプロイ手順
-├── docker-timeslot-checker-shiya/  # 視野予約: タイムスロット抽出システム 🆕
-│   ├── server.js               # Puppeteerで時間枠を取得しCloud Storageに保存
-│   ├── Dockerfile              # Docker設定
-│   ├── package.json            # 依存関係
-│   └── README.md               # デプロイ手順
-├── gas/                        # Google Apps Script
-│   ├── google-apps-script-shiya.js  # 視野予約用GAS 🆕
-│   ├── delete-old-rows-fixed.gs     # 一般予約：古い行削除GAS
-│   └── delete-old-rows-shiya.gs     # 視野予約：古い行削除GAS 🆕
-└── bookmarklet/                # ブックマークレット（スマホ用）
-    └── bookmarklet-v7.md
+│   └── handover-to-claude-code.md  # システム全体の引き継ぎ資料
+├── chrome-extension-auto-reload/   # Chrome拡張機能（ディスプレイ自動リロード）
+├── chrome-extension-timeslot-general/  # Chrome拡張機能（一般予約枠数表示）
+├── chrome-extension-timeslot-shiya/    # Chrome拡張機能（視野予約枠数表示）
+├── chrome-web-store/           # Chrome Web Store公開用ファイル
+├── docker-timeslot-checker/    # 一般予約: タイムスロット抽出システム（Cloud Run）
+└── docker-timeslot-checker-shiya/  # 視野予約: タイムスロット抽出システム（Cloud Run）
 ```
 
 ---
 
 ## 🚀 クイックスタート
 
-このシステムは3つの利用方法があります。目的に応じて選択してください。
+### Docker自動化（完全自動）【おすすめ】
 
-### 方式A: Chrome拡張機能（手動実行）
-
-予約ページでボタンをクリックして手動チェック
-
-```bash
-1. chrome://extensions/ を開く
-2. デベロッパーモードをON
-3. 「パッケージ化されていない拡張機能を読み込む」
-4. chrome-extension フォルダを選択
-```
-
-詳細：[chrome-extension/README.md](chrome-extension/README.md)
-
-### 方式B: Docker自動化（完全自動）🆕 【おすすめ】
-
-Cloud Runで営業時間中1分ごと、営業時間外5分ごとに自動実行
-
-```bash
-# 詳細なセットアップ手順はこちら
-docker-automation/README.md
-docker-timeslot-checker/README.md
-```
+Cloud Runで自動実行（タイムスロット抽出）
 
 - **メリット:** 完全自動、メンテナンス不要
-- **デメリット:** わずかな費用が発生（月20〜80円）
+- **デメリット:** わずかな費用が発生（月20〜40円）
 - **Google Cloudプロジェクト:**
   - プロジェクト番号: 224924651996
   - プロジェクト ID: forward-script-470815-c5
-- 詳細：[docker-automation/README.md](docker-automation/README.md)
-
-### 方式C: ブックマークレット（スマホ用）
-
-スマートフォンから手動実行
-
-詳細：[bookmarklet/bookmarklet-v7.md](bookmarklet/bookmarklet-v7.md)
+- 詳細：[docker-timeslot-checker/README.md](docker-timeslot-checker/README.md)
 
 ---
 
 ### バナーをホームページに埋め込み
 
-#### 従来版（○/×表示）
-```html
-<iframe
-  src="https://nekonekoganka.github.io/reservation-status/"
-  width="100%"
-  height="220"
-  frameborder="0"
-  style="border:none; max-width:800px; margin:10px auto; display:block;">
-</iframe>
-```
-
-#### タイムスロット版（時間枠表示）🆕
+#### タイムスロット版（時間枠表示）
 ```html
 <iframe
   src="https://nekonekoganka.github.io/reservation-status/timeslot-banner.html"
@@ -271,20 +136,17 @@ docker-timeslot-checker/README.md
 ## 📖 ドキュメント
 
 - **[システム全体の説明](docs/handover-to-claude-code.md)** - 完全な引き継ぎ資料
-- **[実装手順](docs/implementation-guide-v5.md)** - セットアップガイド
-- **[データ管理設定](docs/delete-old-rows-guide.md)** - GASの自動削除設定
 
 ---
 
 ## 🔧 技術スタック
 
 - **Frontend:** HTML, CSS, JavaScript
-- **Backend:** Google Apps Script
-- **Data Storage:** Google Spreadsheet, Cloud Storage (JSON) 🆕
+- **Data Storage:** Cloud Storage (JSON)
 - **Hosting:** GitHub Pages
 - **Browser Extension:** Chrome Extension (Manifest V3)
-- **Automation:** Node.js, Puppeteer, Docker 🆕
-- **Cloud Platform:** Google Cloud Run, Cloud Scheduler, Cloud Storage 🆕
+- **Automation:** Node.js, Puppeteer, Docker
+- **Cloud Platform:** Google Cloud Run, Cloud Scheduler, Cloud Storage
   - プロジェクト番号: 224924651996
   - プロジェクト ID: forward-script-470815-c5
 
@@ -292,26 +154,10 @@ docker-timeslot-checker/README.md
 
 ## 📊 動作フロー
 
-### 方式A: Chrome拡張機能（手動）
 ```
-予約ページ
-    ↓
-Chrome拡張機能（手動クリック）
-    ↓
-Google Apps Script
-    ↓
-Googleスプレッドシート
-    ↓
-GitHub Pagesバナー（リアルタイム更新）
-```
-
-### 方式B: Docker自動化（完全自動）🆕
-```
-Cloud Scheduler（1分 or 5分ごと）
+Cloud Scheduler（定期実行）
     ↓
 Cloud Run（Puppeteer）
-    ↓ (空き状況判定)
-Google Apps Script → Googleスプレッドシート
     ↓ (時間枠抽出)
 Cloud Storage（JSON）
     ↓
@@ -340,15 +186,7 @@ GitHub Pages（バナー・ディスプレイ・チェッカー）
 
 ## ⚙️ 設定
 
-### スプレッドシート
-
-```javascript
-const SPREADSHEET_ID = '1RSd9aC5B_-gQ1_j5V1aQcZn1iVw9v8mpmhJ78_8gY80';
-const SHEET_NAME = 'フォームの回答 1';
-const SHEET_NAME_SHIYA = 'フォームの回答_視野予約';
-```
-
-### Cloud Storage（タイムスロット用）🆕
+### Cloud Storage
 
 ```javascript
 const BUCKET_NAME = 'reservation-timeslots-fujiminohikari';
@@ -369,26 +207,10 @@ const FILE_NAME_SHIYA = 'timeslots-shiya.json';
 
 - **火曜18:30以降** → 木曜日をチェック
 - **水曜日（終日）** → 木曜日をチェック
-- **月末18:30以降** → 翌月1日をチェック 🆕
-- **年末年始（12/31〜1/3）** → 営業再開日をチェック 🆕
+- **月末18:30以降** → 翌月1日をチェック
+- **年末年始（12/31〜1/3）** → 営業再開日をチェック
 - **その他18:30以降** → 明日をチェック
 - **18:30より前** → 本日をチェック
-
----
-
-## 🔄 自動データ管理
-
-毎週水曜日 午前3時に、20,000行を超えた古いデータを自動削除します。
-
-設定方法：[docs/delete-old-rows-guide.md](docs/delete-old-rows-guide.md)
-
----
-
-## 📱 対応デバイス
-
-- **PC:** Chrome拡張機能（手動）
-- **スマホ:** ブックマークレット（手動）
-- **自動化:** Docker + Cloud Run（完全自動、デバイス不要）🆕
 
 ---
 
