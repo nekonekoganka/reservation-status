@@ -4,6 +4,10 @@ FROM ghcr.io/puppeteer/puppeteer:22.0.0
 # rootユーザーで作業（ファイルコピーと権限設定のため）
 USER root
 
+# Google Chrome GPGキーを更新（古いキーが期限切れになる問題を回避）
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
+
 # タイムゾーンを設定（root権限が必要）
 ENV TZ=Asia/Tokyo
 RUN apt-get update && \

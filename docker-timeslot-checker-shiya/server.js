@@ -41,28 +41,23 @@ function isNewYearHoliday(date) {
 
 /**
  * 日本時間を取得する関数（タイムゾーン設定に依存しない）
+ * UTCから+9時間のオフセットで計算する堅牢な方法
  * @returns {Object} {year, month, date, dayOfWeek, hour, minute}
  */
 function getJapanTime() {
   const now = new Date();
-  const japanTimeStr = now.toLocaleString('en-US', {
-    timeZone: 'Asia/Tokyo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  });
 
-  // "MM/DD/YYYY, HH:MM" 形式をパース
-  const [datePart, timePart] = japanTimeStr.split(', ');
-  const [month, date, year] = datePart.split('/').map(Number);
-  const [hour, minute] = timePart.split(':').map(Number);
+  // 日本時間はUTC+9時間
+  const japanOffset = 9 * 60 * 60 * 1000; // 9時間をミリ秒に変換
+  const japanTime = new Date(now.getTime() + japanOffset);
 
-  // 日本時間のDateオブジェクトを作成して曜日を取得
-  const japanDate = new Date(year, month - 1, date, hour, minute);
-  const dayOfWeek = japanDate.getDay();
+  // UTCメソッドを使って日本時間の各値を取得
+  const year = japanTime.getUTCFullYear();
+  const month = japanTime.getUTCMonth() + 1; // 1-indexed (1-12)
+  const date = japanTime.getUTCDate();
+  const dayOfWeek = japanTime.getUTCDay();
+  const hour = japanTime.getUTCHours();
+  const minute = japanTime.getUTCMinutes();
 
   console.log(`日本時間: ${year}/${month}/${date} ${hour}:${minute} (曜日: ${dayOfWeek})`);
 
