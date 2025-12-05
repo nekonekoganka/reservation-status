@@ -160,21 +160,24 @@ function createIcon(slotsCount, status) {
     const cellSize = size / 2;
     const borderRadius = size * 0.15;
 
-    // 枠数 > 0 の場合は緑背景+白抜き数字のデザイン
+    // 枠数 > 0 の場合は白背景+濃い緑数字のデザイン
     if (status !== 'error' && slotsCount > 0) {
-      // 緑背景で塗りつぶし
-      ctx.fillStyle = '#006633'; // 濃い緑色（視野予約のテーマカラー）
+      // 白背景で塗りつぶし
+      ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, size, size);
 
-      // 白抜きの太い数字を最大サイズで表示
-      ctx.fillStyle = 'white';
+      // 濃い緑の太い数字を最大サイズで表示
+      ctx.fillStyle = '#006633'; // 濃い緑色（視野予約のテーマカラー）
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
       // 数字のサイズをさらに大きく（1桁は95%、2桁は80%）
       const fontSize = slotsCount >= 10 ? size * 0.8 : size * 0.95;
       ctx.font = `bold ${fontSize}px sans-serif`;
-      ctx.fillText(slotsCount.toString(), size / 2, size / 2);
+
+      // 視覚的な中央に配置（フォントメトリクスの補正）
+      const offsetY = fontSize * 0.07;
+      ctx.fillText(slotsCount.toString(), size / 2, size / 2 + offsetY);
     } else {
       // 枠数 = 0 またはエラーの場合は既存のデザイン（2×2グリッド）
       // 背景色を決定
