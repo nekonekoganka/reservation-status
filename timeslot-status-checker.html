@@ -103,8 +103,9 @@
     }
 
     .day-text {
-      font-size: 14px;
-      color: #666;
+      font-size: 24px;
+      font-weight: 600;
+      color: #333;
       margin-top: 4px;
     }
 
@@ -164,6 +165,17 @@
       color: #999;
       font-size: 13px;
       padding: 15px;
+    }
+
+    .more-slots {
+      grid-column: 1 / -1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: #666;
+      padding: 8px;
+      background: #e9ecef;
+      border-radius: 6px;
     }
 
     /* スクロールバーのスタイル */
@@ -486,13 +498,22 @@
       const expandIndicator = document.getElementById(`expand-${type}`);
 
       if (slotsCount > 0 && slots.length > 0) {
-        // 時間枠がある場合
-        const html = slots.map(slot => `
+        // 時間枠がある場合（最大6枠まで表示）
+        const maxDisplay = 6;
+        const displaySlots = slots.slice(0, maxDisplay);
+        const remainingCount = slots.length - maxDisplay;
+
+        let html = displaySlots.map(slot => `
           <div class="timeslot-item">
             <span class="timeslot-icon">✅</span>
             <span>${slot}</span>
           </div>
         `).join('');
+
+        // 6枠を超える場合は「+◯枠」を表示
+        if (remainingCount > 0) {
+          html += `<div class="more-slots">+${remainingCount}枠</div>`;
+        }
 
         listElement.innerHTML = html;
       } else {
