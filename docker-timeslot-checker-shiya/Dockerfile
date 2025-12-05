@@ -4,6 +4,15 @@ FROM ghcr.io/puppeteer/puppeteer:22.0.0
 # rootユーザーで作業（ファイルコピーと権限設定のため）
 USER root
 
+# タイムゾーンを設定（root権限が必要）
+ENV TZ=Asia/Tokyo
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends tzdata && \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # 作業ディレクトリを作成
 WORKDIR /home/pptruser/app
 
@@ -31,9 +40,6 @@ RUN chown -R pptruser:pptruser /home/pptruser/app
 
 # 実行ユーザーを pptruser に設定
 USER pptruser
-
-# タイムゾーンを Asia/Tokyo に設定
-ENV TZ=Asia/Tokyo
 
 # Cloud Storage バケット名を設定
 ENV BUCKET_NAME=reservation-timeslots-fujiminohikari
