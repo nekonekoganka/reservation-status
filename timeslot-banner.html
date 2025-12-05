@@ -51,22 +51,32 @@
             font-weight: bold;
         }
 
-        /* 時間枠表示 */
+        /* 時間枠コンテナ */
         .reservation-banner .timeslots {
             margin: 10px 0;
-            font-size: 24px;
-            font-weight: bold;
-            line-height: 1.4;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
         }
 
-        /* 予約可能時の時間枠アクセント */
-        .reservation-banner.available .timeslots {
+        /* 個別の時間枠ピル */
+        .reservation-banner.available .timeslot-pill {
             background: white;
             color: #CC6600;
             border: 3px solid #CC6600;
             border-radius: 8px;
-            padding: 10px 15px;
-            display: inline-block;
+            padding: 8px 14px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        /* 「…」表示 */
+        .reservation-banner.available .timeslot-more {
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+            padding: 8px 6px;
         }
 
         /* サブメッセージ */
@@ -108,8 +118,13 @@
                 font-size: 22px;
             }
 
-            .reservation-banner .timeslots {
-                font-size: 20px;
+            .reservation-banner.available .timeslot-pill {
+                font-size: 18px;
+                padding: 6px 10px;
+            }
+
+            .reservation-banner.available .timeslot-more {
+                font-size: 18px;
             }
 
             .reservation-banner p {
@@ -192,18 +207,17 @@
             const hasSlots = data.slots && data.slots.length > 0;
 
             if (hasSlots) {
-                // 時間枠を「・」で区切って表示（最大3つ、それ以上の場合は「…」を追加）
-                let timeslotsText;
-                if (data.slots.length > 3) {
-                    timeslotsText = data.slots.slice(0, 3).join('・') + '…';
-                } else {
-                    timeslotsText = data.slots.join('・');
-                }
+                // 時間枠を個別のピルとして表示（最大3つ、それ以上は「…」）
+                const displaySlots = data.slots.slice(0, 3);
+                const pillsHtml = displaySlots.map(slot =>
+                    `<span class="timeslot-pill">${slot}</span>`
+                ).join('');
+                const moreHtml = data.slots.length > 3 ? '<span class="timeslot-more">…</span>' : '';
 
                 banner.className = 'reservation-banner available';
                 banner.innerHTML = `
                     <h2>✅ ${dayText}の予約枠</h2>
-                    <div class="timeslots">${timeslotsText}</div>
+                    <div class="timeslots">${pillsHtml}${moreHtml}</div>
                     <p><strong>に 空きがございます</strong></p>
                     <p>クリックして予約ページへ</p>
                     <div class="update-time">${formattedTime}</div>
