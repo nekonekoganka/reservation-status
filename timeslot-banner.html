@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>予約時間枠バナー</title>
+    <style>
+        /* バナーのスタイル */
+        .reservation-banner {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        /* ホバー時の効果 */
+        .reservation-banner:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 予約可能の時のスタイル */
+        .reservation-banner.available {
+            background: #27ae60;
+            color: white;
+            border: 3px solid #1e8449;
+        }
+
+        /* 予約不可の時のスタイル */
+        .reservation-banner.unavailable {
+            background: #DC3545;
+            color: white;
+            border: 3px solid #bd2130;
+        }
+
+        /* 読み込み中のスタイル */
+        .reservation-banner.loading {
+            background: #c8d0e7;
+            color: #333;
+        }
+
+        /* メインメッセージ */
+        .reservation-banner h2 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        /* 時間枠表示 */
+        .reservation-banner .timeslots {
+            margin: 10px 0;
+            font-size: 24px;
+            font-weight: bold;
+            line-height: 1.4;
+        }
+
+        /* サブメッセージ */
+        .reservation-banner p {
+            margin: 5px 0;
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        /* 補足メッセージ */
+        .reservation-banner .note {
+            margin: 10px 0;
+            font-size: 14px;
+            opacity: 0.85;
+        }
+
+        /* 更新時刻 */
+        .reservation-banner .update-time {
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        /* エラーメッセージ */
+        .reservation-banner.error {
+            background: #f5f5f5;
+            color: #666;
+            border: 2px dashed #ccc;
+        }
+
+        /* スマホ対応 */
+        @media (max-width: 600px) {
+            .reservation-banner {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .reservation-banner h2 {
+                font-size: 22px;
+            }
+
+            .reservation-banner .timeslots {
+                font-size: 20px;
+            }
+
+            .reservation-banner p {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 予約時間枠バナー -->
+<div id="reservationBanner" class="reservation-banner loading">
+    <h2>読み込み中...</h2>
+    <p>予約時間枠を確認しています</p>
+</div>
+
+<script>
+    // Cloud StorageのURL
+    const API_URL = 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/timeslots.json';
+
+    /**
+     * 日付テキストを計算する関数
+     */
+    function calculateDayText(updateTime) {
+        const now = new Date(updateTime);
+        const dayOfWeek = now.getDay();
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const isAfter1830 = (hour > 18) || (hour === 18 && minute >= 30);
+        const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+        // 📅 日付判定ロジック
+        // 火曜18:30以降 → 木曜日
+        // 水曜日（終日） → 木曜日
+        // 月末18:30以降 → 次の診療日
+        // その他18:30以降 → 明日
+        // 18:30より前 → 本日
+        if (dayOfWeek === 3) {
+            return '木曜';
+        }
+
+        if (isAfter1830) {
+            if (now.getDate() === lastDayOfMonth) {
+                return '次の診療日';
+            }
+
+            if (dayOfWeek === 2) {
+                return '木曜';
+            }
+
+            return '明日';
+        }
+
+        return '本日';
+    }
+
+    /**
+     * 予約時間枠を取得して表示する関数
+     */
+    async function updateTimeslots() {
+        const banner = document.getElementById('reservationBanner');
+
+        try {
+            // JSONデータを取得
+            const response = await fetch(API_URL + '?t=' + Date.now()); // キャッシュ回避
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // 日付テキストを計算
+            const dayText = calculateDayText(data.updatedAt);
+
+            // タイムスタンプをフォーマット
+            const formattedTime = formatTimestamp(data.updatedAt);
+
+            // 時間枠があるかチェック
+            const hasSlots = data.slots && data.slots.length > 0;
+
+            if (hasSlots) {
+                // 時間枠を「・」で区切って表示（最大3つ、それ以上の場合は「…」を追加）
+                let timeslotsText;
+                if (data.slots.length > 3) {
+                    timeslotsText = data.slots.slice(0, 3).join('・') + '…';
+                } else {
+                    timeslotsText = data.slots.join('・');
+                }
+
+                banner.className = 'reservation-banner available';
+                banner.innerHTML = `
+                    <h2>✅ ${dayText}の予約</h2>
+                    <div class="timeslots">${timeslotsText}</div>
+                    <p>が空いています</p>
+                    <p>クリックして予約ページへ</p>
+                    <div class="update-time">${formattedTime}</div>
+                `;
+            } else {
+                // 満枠または休診日の場合
+                let message = '満枠';
+
+                if (data.status === 'closed') {
+                    message = '休診日';
+                }
+
+                banner.className = 'reservation-banner unavailable';
+                banner.innerHTML = `
+                    <h2>😔 ${dayText}の予約は ${message}です</h2>
+                    <p>誠に恐れ入りますが、次の診療日以降で ご予約ください</p>
+                    <p>クリックして 予約ページへ</p>
+                    <div class="update-time">${formattedTime}</div>
+                `;
+            }
+
+        } catch (error) {
+            console.error('エラー:', error);
+            displayError();
+        }
+    }
+
+    /**
+     * タイムスタンプを「更新：YYYY/MM/DD HH:MM」形式にフォーマット
+     */
+    function formatTimestamp(isoString) {
+        const date = new Date(isoString);
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return `更新：${year}/${month}/${day} ${hours}:${minutes}`;
+    }
+
+    /**
+     * エラー表示する関数
+     */
+    function displayError() {
+        const banner = document.getElementById('reservationBanner');
+        banner.className = 'reservation-banner error';
+        banner.innerHTML = `
+            <h2>⚠️ 情報を取得できません</h2>
+            <p>しばらくしてから再度お試しください</p>
+        `;
+    }
+
+    // バナーをクリックしたときの処理
+    document.getElementById('reservationBanner').addEventListener('click', function() {
+        window.open('https://ckreserve.com/clinic/fujiminohikari-ganka', '_blank');
+    });
+
+    // ページ読み込み時に実行
+    updateTimeslots();
+
+    // 1分ごとに自動更新（60000ミリ秒 = 1分）
+    setInterval(updateTimeslots, 60000);
+</script>
+
+</body>
+</html>
