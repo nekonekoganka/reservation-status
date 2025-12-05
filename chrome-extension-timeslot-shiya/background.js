@@ -167,7 +167,7 @@ function createIcon(slotsCount, status) {
       ctx.fillRect(0, 0, size, size);
 
       // 濃い緑色の太い数字を最大サイズで表示
-      ctx.fillStyle = '#2E7D32'; // 濃い緑色
+      ctx.fillStyle = '#006633'; // 濃い緑色
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
@@ -184,7 +184,7 @@ function createIcon(slotsCount, status) {
       } else {
         bgColor = '#dc3545'; // 赤（満枠）
       }
-      const themeColor = '#2E7D32'; // 緑（視野予約のテーマカラー）
+      const themeColor = '#006633'; // 緑（視野予約のテーマカラー）
 
       // 左上3マス（予約状況）
       ctx.fillStyle = bgColor;

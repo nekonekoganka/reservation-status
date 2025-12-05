@@ -509,7 +509,7 @@
           const slotsCount = generalData.slots ? generalData.slots.length : 0;
           const displayText = generalData.displayText || '本日';
 
-          drawIcon('canvas-general', slotsCount, generalData.status, '#F57C00', '一');
+          drawIcon('canvas-general', slotsCount, generalData.status, '#CC6600', '一');
 
           if (slotsCount > 0) {
             document.getElementById('status-general').textContent = `残り${slotsCount}枠`;
@@ -533,7 +533,7 @@
           const slotsCount = shiyaData.slots ? shiyaData.slots.length : 0;
           const displayText = shiyaData.displayText || '本日';
 
-          drawIcon('canvas-shiya', slotsCount, shiyaData.status, '#2E7D32', '視');
+          drawIcon('canvas-shiya', slotsCount, shiyaData.status, '#006633', '視');
 
           if (slotsCount > 0) {
             document.getElementById('status-shiya').textContent = `残り${slotsCount}枠`;
