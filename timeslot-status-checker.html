@@ -159,6 +159,20 @@
       border: 1px solid #e0e0e0;
     }
 
+    /* 午前（14時より前）: 青 */
+    .timeslot-item.am {
+      background: #e8f4fc;
+      border-color: #3498db;
+      color: #3498db;
+    }
+
+    /* 午後（14時以降）: オレンジ */
+    .timeslot-item.pm {
+      background: #fdf2e9;
+      border-color: #e67e22;
+      color: #e67e22;
+    }
+
     .timeslot-icon {
       color: #27ae60;
       font-size: 16px;
@@ -478,7 +492,20 @@
     }
 
     /**
-     * 時間枠リストをHTMLで生成（全て表示）
+     * 時間枠が午前か午後かを判定（14時より前が午前、14時以降が午後）
+     */
+    function getTimeSlotPeriod(slot) {
+      // "09:00" や "15:30" のような形式から時間を抽出
+      const match = slot.match(/^(\d{1,2}):/);
+      if (match) {
+        const hour = parseInt(match[1], 10);
+        return hour < 14 ? 'am' : 'pm';
+      }
+      return '';
+    }
+
+    /**
+     * 時間枠リストをHTMLで生成（全て表示、AM/PM色分け）
      */
     function renderTimeslots(type, slots, slotsCount) {
       const listElement = document.getElementById(`timeslots-list-${type}`);
@@ -488,13 +515,15 @@
       slotsData[type] = slots;
 
       if (slotsCount > 0 && slots.length > 0) {
-        // 全ての時間枠を表示
-        const html = slots.map(slot => `
-          <div class="timeslot-item">
-            <span class="timeslot-icon">✅</span>
-            <span>${slot}</span>
-          </div>
-        `).join('');
+        // 全ての時間枠を表示（AM/PM色分け）
+        const html = slots.map(slot => {
+          const period = getTimeSlotPeriod(slot);
+          return `
+            <div class="timeslot-item ${period}">
+              <span>${slot}</span>
+            </div>
+          `;
+        }).join('');
 
         listElement.innerHTML = html;
         expandIndicator.style.display = 'block';

@@ -1,7 +1,6 @@
 // ポップアップのロジック
 
 let countdownInterval = null;
-let showAllSlots = false;
 let currentSlots = [];
 
 // 初期化
@@ -121,16 +120,18 @@ async function loadStatus() {
   }
 }
 
-// 時間枠の全表示/省略表示を切り替え
-function toggleShowAllSlots() {
-  showAllSlots = !showAllSlots;
-  displayTimeslots(currentSlots, currentSlots.length);
+// 時間枠が午前か午後かを判定（14時より前が午前、14時以降が午後）
+function getTimeSlotPeriod(slot) {
+  // "09:00" や "15:30" のような形式から時間を抽出
+  const match = slot.match(/^(\d{1,2}):/);
+  if (match) {
+    const hour = parseInt(match[1], 10);
+    return hour < 14 ? 'am' : 'pm';
+  }
+  return '';
 }
 
-// グローバルに公開
-window.toggleShowAllSlots = toggleShowAllSlots;
-
-// 時間枠リストを表示
+// 時間枠リストを表示（全枠表示、AM/PM色分け）
 function displayTimeslots(slots, slotsCount) {
   const timeslotsSection = document.getElementById('timeslots-section');
   const timeslotsList = document.getElementById('timeslots-list');
@@ -138,25 +139,15 @@ function displayTimeslots(slots, slotsCount) {
   if (slotsCount > 0 && slots.length > 0) {
     timeslotsSection.style.display = 'block';
 
-    const maxDisplay = 6;
-    const displaySlots = showAllSlots ? slots : slots.slice(0, maxDisplay);
-    const remainingCount = slots.length - maxDisplay;
-
-    let html = displaySlots.map(slot => `
-      <div class="timeslot-item">
-        <span class="timeslot-icon">✅</span>
-        <span>${slot}</span>
-      </div>
-    `).join('');
-
-    // 6枠を超える場合
-    if (remainingCount > 0) {
-      if (showAllSlots) {
-        html += `<div class="more-slots" onclick="toggleShowAllSlots()">▲ 閉じる</div>`;
-      } else {
-        html += `<div class="more-slots" onclick="toggleShowAllSlots()">+${remainingCount}枠 ▼</div>`;
-      }
-    }
+    // 全ての時間枠を表示（AM/PM色分け）
+    const html = slots.map(slot => {
+      const period = getTimeSlotPeriod(slot);
+      return `
+        <div class="timeslot-item ${period}">
+          <span>${slot}</span>
+        </div>
+      `;
+    }).join('');
 
     timeslotsList.innerHTML = html;
   } else {
