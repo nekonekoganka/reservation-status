@@ -218,10 +218,34 @@
     }
 
     /**
+     * 問題の時間帯かどうかをチェックする関数
+     * 19:00〜23:59の毎時0分〜30分の間はバナーを非表示にする
+     */
+    function isProblematicTimeSlot() {
+        const now = new Date();
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+
+        // 19時〜23時台で、0分〜30分の間は問題の時間帯
+        if (hour >= 19 && hour <= 23 && minute >= 0 && minute <= 30) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * 予約時間枠を取得して表示する関数
      */
     async function updateTimeslots() {
         const banner = document.getElementById('reservationBanner');
+
+        // 問題の時間帯はバナーを非表示にする（応急措置）
+        if (isProblematicTimeSlot()) {
+            banner.style.display = 'none';
+            return;
+        } else {
+            banner.style.display = 'block';
+        }
 
         try {
             // JSONデータを取得
