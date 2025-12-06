@@ -236,7 +236,7 @@
                 const pillsHtml = displaySlots.map(slot =>
                     `<span class="timeslot-pill">${slot}</span>`
                 ).join('');
-                const moreHtml = data.slots.length > 3 ? '<span class="timeslot-more">ほか</span>' : '';
+                const moreHtml = data.slots.length > 3 ? '<span class="timeslot-more">ほか</span>' : '<span class="timeslot-more">のみ</span>';
 
                 banner.className = 'reservation-banner available';
                 banner.innerHTML = `
