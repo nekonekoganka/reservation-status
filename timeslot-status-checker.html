@@ -32,10 +32,15 @@
     }
 
     .cards {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 12px;
       margin-bottom: 15px;
+    }
+
+    .card-wrapper {
+      display: flex;
+      flex-direction: column;
     }
 
     .card {
@@ -109,16 +114,17 @@
       margin-top: 4px;
     }
 
-    /* 時間枠リスト（折りたたみ式） */
+    /* 時間枠リスト（カードの下に展開） */
     .timeslots-container {
       max-height: 0;
       overflow: hidden;
-      transition: max-height 0.3s ease-out;
-      margin-top: 8px;
+      transition: max-height 0.5s ease-out;
+      margin-top: 0;
     }
 
     .timeslots-container.expanded {
-      max-height: 250px;
+      max-height: 2000px; /* 十分な高さを確保 */
+      margin-top: 8px;
     }
 
     .timeslots-header {
@@ -134,11 +140,9 @@
       background: white;
       border-radius: 8px;
       padding: 8px;
-      max-height: 180px;
-      overflow-y: auto;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
     }
 
     .timeslot-item {
@@ -165,46 +169,6 @@
       color: #999;
       font-size: 13px;
       padding: 15px;
-    }
-
-    .more-slots {
-      grid-column: 1 / -1;
-      text-align: center;
-      font-size: 18px;
-      font-weight: 600;
-      color: #666;
-      padding: 8px;
-      background: #e9ecef;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .more-slots:hover {
-      background: #dee2e6;
-    }
-
-    .more-slots:active {
-      background: #ced4da;
-    }
-
-    /* スクロールバーのスタイル */
-    .timeslots-list::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .timeslots-list::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 3px;
-    }
-
-    .timeslots-list::-webkit-scrollbar-thumb {
-      background: #888;
-      border-radius: 3px;
-    }
-
-    .timeslots-list::-webkit-scrollbar-thumb:hover {
-      background: #555;
     }
 
     .expand-indicator {
@@ -276,12 +240,15 @@
       }
 
       .cards {
-        grid-template-columns: 1fr;
         gap: 10px;
       }
 
       .card {
         padding: 10px;
+      }
+
+      .timeslots-list {
+        grid-template-columns: repeat(2, 1fr);
       }
     }
   </style>
@@ -290,22 +257,24 @@
   <div class="container">
     <div class="cards">
       <!-- 一般予約 -->
-      <div class="card" id="card-general" onclick="toggleTimeslots('general')">
-        <div class="card-header">
-          <div class="icon-wrapper">
-            <canvas id="canvas-general" width="128" height="128"></canvas>
+      <div class="card-wrapper">
+        <div class="card" id="card-general" onclick="toggleTimeslots('general')">
+          <div class="card-header">
+            <div class="icon-wrapper">
+              <canvas id="canvas-general" width="128" height="128"></canvas>
+            </div>
+            <div class="card-info">
+              <div class="card-title">一般予約</div>
+              <div id="status-general" class="status">読み込み中...</div>
+              <div id="day-text-general" class="day-text"></div>
+            </div>
           </div>
-          <div class="card-info">
-            <div class="card-title">一般予約</div>
-            <div id="status-general" class="status">読み込み中...</div>
-            <div id="day-text-general" class="day-text"></div>
+          <div id="expand-general" class="expand-indicator">
+            タップして閉じる ▲
           </div>
-        </div>
-        <div id="expand-general" class="expand-indicator">
-          タップして閉じる ▲
         </div>
 
-        <!-- 時間枠リスト -->
+        <!-- 時間枠リスト（カードの下に展開） -->
         <div id="timeslots-general" class="timeslots-container expanded">
           <div id="timeslots-list-general" class="timeslots-list">
             <div class="no-slots">データを読み込み中...</div>
@@ -314,22 +283,24 @@
       </div>
 
       <!-- 視野予約 -->
-      <div class="card" id="card-shiya" onclick="toggleTimeslots('shiya')">
-        <div class="card-header">
-          <div class="icon-wrapper">
-            <canvas id="canvas-shiya" width="128" height="128"></canvas>
+      <div class="card-wrapper">
+        <div class="card" id="card-shiya" onclick="toggleTimeslots('shiya')">
+          <div class="card-header">
+            <div class="icon-wrapper">
+              <canvas id="canvas-shiya" width="128" height="128"></canvas>
+            </div>
+            <div class="card-info">
+              <div class="card-title">視野予約</div>
+              <div id="status-shiya" class="status">読み込み中...</div>
+              <div id="day-text-shiya" class="day-text"></div>
+            </div>
           </div>
-          <div class="card-info">
-            <div class="card-title">視野予約</div>
-            <div id="status-shiya" class="status">読み込み中...</div>
-            <div id="day-text-shiya" class="day-text"></div>
+          <div id="expand-shiya" class="expand-indicator">
+            タップして閉じる ▲
           </div>
-        </div>
-        <div id="expand-shiya" class="expand-indicator">
-          タップして閉じる ▲
         </div>
 
-        <!-- 時間枠リスト -->
+        <!-- 時間枠リスト（カードの下に展開） -->
         <div id="timeslots-shiya" class="timeslots-container expanded">
           <div id="timeslots-list-shiya" class="timeslots-list">
             <div class="no-slots">データを読み込み中...</div>
@@ -355,12 +326,6 @@
     const expandedState = {
       general: true,
       shiya: true
-    };
-
-    // 時間枠の全表示状態を管理
-    const showAllSlotsState = {
-      general: false,
-      shiya: false
     };
 
     // スロットデータを保存（再描画用）
@@ -513,16 +478,7 @@
     }
 
     /**
-     * 時間枠の全表示/省略表示を切り替え
-     */
-    function toggleShowAllSlots(type, event) {
-      event.stopPropagation(); // カードのクリックイベントを防止
-      showAllSlotsState[type] = !showAllSlotsState[type];
-      renderTimeslots(type, slotsData[type], slotsData[type].length);
-    }
-
-    /**
-     * 時間枠リストをHTMLで生成
+     * 時間枠リストをHTMLで生成（全て表示）
      */
     function renderTimeslots(type, slots, slotsCount) {
       const listElement = document.getElementById(`timeslots-list-${type}`);
@@ -532,33 +488,20 @@
       slotsData[type] = slots;
 
       if (slotsCount > 0 && slots.length > 0) {
-        const maxDisplay = 6;
-        const showAll = showAllSlotsState[type];
-        const displaySlots = showAll ? slots : slots.slice(0, maxDisplay);
-        const remainingCount = slots.length - maxDisplay;
-
-        let html = displaySlots.map(slot => `
+        // 全ての時間枠を表示
+        const html = slots.map(slot => `
           <div class="timeslot-item">
             <span class="timeslot-icon">✅</span>
             <span>${slot}</span>
           </div>
         `).join('');
 
-        // 6枠を超える場合
-        if (remainingCount > 0) {
-          if (showAll) {
-            // 全表示中：「閉じる」ボタンを表示
-            html += `<div class="more-slots" onclick="toggleShowAllSlots('${type}', event)">▲ 閉じる</div>`;
-          } else {
-            // 省略表示中：「+◯枠」ボタンを表示
-            html += `<div class="more-slots" onclick="toggleShowAllSlots('${type}', event)">+${remainingCount}枠 ▼</div>`;
-          }
-        }
-
         listElement.innerHTML = html;
+        expandIndicator.style.display = 'block';
       } else {
         // 時間枠がない場合は何も表示しない
         listElement.innerHTML = '';
+        expandIndicator.style.display = 'none';
       }
     }
 

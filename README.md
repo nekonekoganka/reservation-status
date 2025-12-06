@@ -129,7 +129,44 @@ Cloud Runで自動実行（タイムスロット抽出）
 
 **表示例:**
 - 空き枠あり: 「✅ 本日（12/6）の予約枠　10:00  11:00  14:00  ほか　に 空きがございます」
-- 満枠: 「😔 本日（12/6）の予約は 満枠です」
+- 満枠: 「😔 本日（12/6）は満枠です」
+
+#### 応急措置版（夜間の誤表示対策）
+
+19〜23時台の0〜30分に発生する日付判定問題を回避するため、該当時間帯はバナーを非表示にします。
+
+```html
+<div id="reservation-banner-container">
+  <iframe
+    src="https://nekonekoganka.github.io/reservation-status/timeslot-banner.html"
+    width="100%"
+    height="280"
+    frameborder="0"
+    scrolling="no"
+    style="border:none;">
+  </iframe>
+</div>
+
+<script>
+function checkAndHideBanner() {
+  var now = new Date();
+  var hour = now.getHours();
+  var minute = now.getMinutes();
+  var container = document.getElementById('reservation-banner-container');
+
+  // 19時〜23時台で、0分〜30分の間は非表示
+  if (hour >= 19 && hour <= 23 && minute >= 0 && minute <= 30) {
+    container.style.display = 'none';
+  } else {
+    container.style.display = 'block';
+  }
+}
+
+// ページ読み込み時と1分ごとにチェック
+checkAndHideBanner();
+setInterval(checkAndHideBanner, 60000);
+</script>
+```
 
 ---
 
