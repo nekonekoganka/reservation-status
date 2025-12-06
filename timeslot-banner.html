@@ -72,9 +72,17 @@
             font-weight: bold;
         }
 
-        /* 「ほか」表示 */
+        /* 「ほか」「のみ」表示 */
         .reservation-banner.available .timeslot-more {
             color: white;
+            font-size: 22px;
+            font-weight: bold;
+            padding: 8px 6px;
+        }
+
+        /* 1〜2枠の時の中央揃え用スペーサー（透明で「のみ」と同じ幅） */
+        .reservation-banner.available .timeslot-spacer {
+            visibility: hidden;
             font-size: 22px;
             font-weight: bold;
             padding: 8px 6px;
@@ -128,6 +136,10 @@
             }
 
             .reservation-banner.available .timeslot-more {
+                font-size: 18px;
+            }
+
+            .reservation-banner.available .timeslot-spacer {
                 font-size: 18px;
             }
 
@@ -236,12 +248,23 @@
                 const pillsHtml = displaySlots.map(slot =>
                     `<span class="timeslot-pill">${slot}</span>`
                 ).join('');
-                const moreHtml = data.slots.length > 3 ? '<span class="timeslot-more">ほか</span>' : '<span class="timeslot-more">のみ</span>';
+
+                // 1〜2枠: 左にスペーサー + 時間枠 + 右に「のみ」で中央揃え
+                // 3枠: 時間枠 + 「のみ」
+                // 4枠以上: 時間枠 + 「ほか」
+                let timeslotsHtml;
+                if (data.slots.length <= 2) {
+                    timeslotsHtml = `<span class="timeslot-spacer">のみ</span>${pillsHtml}<span class="timeslot-more">のみ</span>`;
+                } else if (data.slots.length === 3) {
+                    timeslotsHtml = `${pillsHtml}<span class="timeslot-more">のみ</span>`;
+                } else {
+                    timeslotsHtml = `${pillsHtml}<span class="timeslot-more">ほか</span>`;
+                }
 
                 banner.className = 'reservation-banner available';
                 banner.innerHTML = `
                     <h2>✅ ${dayText}の予約枠</h2>
-                    <div class="timeslots">${pillsHtml}${moreHtml}</div>
+                    <div class="timeslots">${timeslotsHtml}</div>
                     <p><strong>に 空きがございます</strong></p>
                     <p>クリックして予約ページへ</p>
                     <div class="update-time">${formattedTime}</div>
