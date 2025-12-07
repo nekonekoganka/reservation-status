@@ -367,15 +367,16 @@
       to { transform: rotate(360deg); }
     }
 
-    /* PC表示: 2カラムレイアウト */
-    @media (min-width: 601px) {
+    /* 壁掛けモード: 801px以上（vw単位で自動スケール） */
+    @media (min-width: 801px) {
       .container {
-        max-width: 1400px;
+        max-width: 98vw;
+        padding: 1.5vw;
       }
 
       .cards {
         flex-direction: row;
-        gap: 16px;
+        gap: 2vw;
       }
 
       .card-wrapper {
@@ -385,6 +386,8 @@
 
       .card {
         cursor: default;
+        padding: 1.5vw;
+        border-radius: 1.5vw;
       }
 
       .card:hover {
@@ -398,7 +401,7 @@
       /* 時間枠リストを常に表示 */
       .timeslots-container {
         max-height: 2000px !important;
-        margin-top: 8px;
+        margin-top: 1vw;
       }
 
       /* 展開インジケータを非表示 */
@@ -406,121 +409,97 @@
         display: none !important;
       }
 
-      .timeline-label {
-        font-size: 18px;
-        width: 28px;
-      }
-
-      /* 時間枠グリッドを3列に */
-      .timeslots-list {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
-    /* 壁掛けモード: 大画面用（1600px以上） */
-    @media (min-width: 1600px) {
-      .container {
-        max-width: 1800px;
-        padding: 24px;
-      }
-
-      .cards {
-        gap: 32px;
-      }
-
-      .card {
-        padding: 24px;
-        border-radius: 24px;
-      }
-
       /* カードタイトル */
       .card-title {
-        font-size: 28px;
-        margin-bottom: 8px;
+        font-size: 1.8vw;
+        margin-bottom: 0.5vw;
       }
 
       /* ステータス（残り○枠） */
       .status {
-        font-size: 56px;
+        font-size: 3.5vw;
       }
 
       /* 日付テキスト */
       .day-text {
-        font-size: 40px;
-        margin-top: 8px;
+        font-size: 2.5vw;
+        margin-top: 0.5vw;
       }
 
       /* アイコンキャンバス */
       canvas {
-        width: 160px !important;
-        height: 160px !important;
+        width: 10vw !important;
+        height: 10vw !important;
+        min-width: 80px;
+        min-height: 80px;
       }
 
       .card-header {
-        gap: 24px;
+        gap: 1.5vw;
       }
 
       /* タイムラインバー */
       .timeline-container {
-        margin-top: 20px;
-        padding: 12px 8px;
+        margin-top: 1.2vw;
+        padding: 0.8vw 0.5vw;
       }
 
       .timeline-bar {
-        height: 40px;
-        border-radius: 20px;
+        height: 2.5vw;
+        min-height: 24px;
+        border-radius: 1.25vw;
       }
 
       .timeline-dot {
-        width: 24px;
-        height: 24px;
-        border-width: 3px;
+        width: 1.5vw;
+        height: 1.5vw;
+        min-width: 16px;
+        min-height: 16px;
+        border-width: 0.2vw;
       }
 
       .timeline-label {
-        font-size: 28px;
-        width: 36px;
+        font-size: 1.8vw;
+        width: 2.2vw;
+        min-width: 20px;
       }
 
       .timeline-labels {
-        margin-top: 8px;
+        margin-top: 0.5vw;
       }
 
       /* 時間枠リスト */
-      .timeslots-container {
-        margin-top: 16px;
-      }
-
       .timeslots-list {
-        padding: 12px;
-        gap: 12px;
+        padding: 0.8vw;
+        gap: 0.8vw;
         grid-template-columns: repeat(4, 1fr);
       }
 
       .timeslot-item {
-        padding: 16px 12px;
-        font-size: 40px;
-        border-radius: 12px;
+        padding: 1vw 0.8vw;
+        font-size: 2.5vw;
+        border-radius: 0.8vw;
         border-width: 2px;
       }
 
       /* フッター */
       .footer {
-        margin-top: 20px;
+        margin-top: 1.2vw;
       }
 
       .update-time {
-        font-size: 32px;
+        font-size: 2vw;
       }
 
       .refresh-btn {
-        padding: 16px 32px;
-        font-size: 20px;
-        border-radius: 30px;
+        padding: 1vw 2vw;
+        font-size: 1.2vw;
+        border-radius: 2vw;
       }
     }
 
-    @media (max-width: 600px) {
+    /* スマホモード: 800px以下 */
+    @media (max-width: 800px) {
       body {
         padding: 8px;
       }
