@@ -183,6 +183,136 @@
       padding: 15px;
     }
 
+    /* タイムラインバー */
+    .timeline-container {
+      margin-top: 12px;
+      padding: 8px 4px;
+    }
+
+    .timeline-bar {
+      position: relative;
+      height: 24px;
+      background: linear-gradient(to right, #e8f4fc 0%, #e8f4fc 43.75%, #f0f0f0 43.75%, #f0f0f0 62.5%, #fdf2e9 62.5%, #fdf2e9 100%);
+      border-radius: 12px;
+      overflow: visible;
+      border: 1px solid #ddd;
+    }
+
+    .timeline-break {
+      position: absolute;
+      left: 43.75%;
+      width: 18.75%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        45deg,
+        #e0e0e0,
+        #e0e0e0 4px,
+        #f5f5f5 4px,
+        #f5f5f5 8px
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .timeline-break-label {
+      font-size: 10px;
+      color: #999;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .timeline-dot {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      z-index: 2;
+    }
+
+    .timeline-dot.am {
+      background: #3498db;
+    }
+
+    .timeline-dot.pm {
+      background: #e67e22;
+    }
+
+    .timeline-dot.general {
+      background: #CC6600;
+    }
+
+    .timeline-dot.shiya {
+      background: #006633;
+    }
+
+    .timeline-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      padding: 0 2px;
+    }
+
+    .timeline-label {
+      font-size: 10px;
+      color: #999;
+      font-weight: 500;
+      width: 20px;
+      text-align: center;
+    }
+
+    .timeline-label.break {
+      color: #ccc;
+    }
+
+    .timeline-legend {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 8px;
+      font-size: 11px;
+      color: #666;
+    }
+
+    .timeline-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .timeline-legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .timeline-legend-dot.am {
+      background: #e8f4fc;
+      border: 1px solid #3498db;
+    }
+
+    .timeline-legend-dot.pm {
+      background: #fdf2e9;
+      border: 1px solid #e67e22;
+    }
+
+    .timeline-legend-dot.break {
+      background: repeating-linear-gradient(
+        45deg,
+        #e0e0e0,
+        #e0e0e0 2px,
+        #f5f5f5 2px,
+        #f5f5f5 4px
+      );
+      border: 1px solid #ccc;
+    }
+
     .expand-indicator {
       text-align: center;
       font-size: 11px;
@@ -281,6 +411,27 @@
               <div id="day-text-general" class="day-text"></div>
             </div>
           </div>
+          <!-- タイムラインバー -->
+          <div class="timeline-container">
+            <div id="timeline-bar-general" class="timeline-bar">
+              <div class="timeline-break">
+                <span class="timeline-break-label">休</span>
+              </div>
+              <!-- ドットはJSで動的に追加 -->
+            </div>
+            <div class="timeline-labels">
+              <span class="timeline-label">10</span>
+              <span class="timeline-label">11</span>
+              <span class="timeline-label">12</span>
+              <span class="timeline-label">13</span>
+              <span class="timeline-label break">休</span>
+              <span class="timeline-label">15</span>
+              <span class="timeline-label">16</span>
+              <span class="timeline-label">17</span>
+              <span class="timeline-label">18</span>
+            </div>
+          </div>
+
           <div id="expand-general" class="expand-indicator">
             タップして閉じる ▲
           </div>
@@ -307,6 +458,27 @@
               <div id="day-text-shiya" class="day-text"></div>
             </div>
           </div>
+          <!-- タイムラインバー -->
+          <div class="timeline-container">
+            <div id="timeline-bar-shiya" class="timeline-bar">
+              <div class="timeline-break">
+                <span class="timeline-break-label">休</span>
+              </div>
+              <!-- ドットはJSで動的に追加 -->
+            </div>
+            <div class="timeline-labels">
+              <span class="timeline-label">10</span>
+              <span class="timeline-label">11</span>
+              <span class="timeline-label">12</span>
+              <span class="timeline-label">13</span>
+              <span class="timeline-label break">休</span>
+              <span class="timeline-label">15</span>
+              <span class="timeline-label">16</span>
+              <span class="timeline-label">17</span>
+              <span class="timeline-label">18</span>
+            </div>
+          </div>
+
           <div id="expand-shiya" class="expand-indicator">
             タップして閉じる ▲
           </div>
@@ -503,6 +675,65 @@
     }
 
     /**
+     * 時間文字列をタイムライン上の位置（%）に変換
+     * 営業時間: 10:00〜18:00（8時間 = 480分）
+     * 休憩時間: 13:30〜15:00（予約なし）
+     */
+    function timeToPosition(timeStr) {
+      const match = timeStr.match(/^(\d{1,2}):(\d{2})/);
+      if (!match) return null;
+
+      const hour = parseInt(match[1], 10);
+      const minute = parseInt(match[2], 10);
+      const totalMinutes = hour * 60 + minute;
+
+      // 営業開始: 10:00 (600分), 営業終了: 18:00 (1080分)
+      const startMinutes = 10 * 60;  // 600
+      const endMinutes = 18 * 60;    // 1080
+      const totalDuration = endMinutes - startMinutes; // 480分
+
+      // 位置を計算（0〜100%）
+      const position = ((totalMinutes - startMinutes) / totalDuration) * 100;
+
+      // 範囲外は無視
+      if (position < 0 || position > 100) return null;
+
+      return position;
+    }
+
+    /**
+     * タイムラインバーにドットを描画
+     * @param {string} type - 'general' または 'shiya'
+     * @param {string[]} slots - 時間枠の配列（例: ["10:00", "11:30", "15:00"]）
+     * @param {string} themeColor - テーマカラー
+     */
+    function renderTimeline(type, slots, themeColor) {
+      const barElement = document.getElementById(`timeline-bar-${type}`);
+      if (!barElement) return;
+
+      // 既存のドットを削除（休憩ラベルは残す）
+      const existingDots = barElement.querySelectorAll('.timeline-dot');
+      existingDots.forEach(dot => dot.remove());
+
+      // 各時間枠にドットを追加
+      slots.forEach(slot => {
+        const position = timeToPosition(slot);
+        if (position === null) return;
+
+        // 休憩時間帯（13:30〜15:00 = 43.75%〜62.5%）はスキップ
+        // ※実際には休憩時間に予約は入らないはずだが、念のため
+        if (position >= 43.75 && position <= 62.5) return;
+
+        const dot = document.createElement('div');
+        dot.className = `timeline-dot ${type}`;
+        dot.style.left = `${position}%`;
+        dot.style.backgroundColor = themeColor;
+        dot.title = slot; // ホバー時に時間を表示
+        barElement.appendChild(dot);
+      });
+    }
+
+    /**
      * 時間枠リストをHTMLで生成（全て表示、AM/PM色分け）
      */
     function renderTimeslots(type, slots, slotsCount) {
@@ -607,10 +838,12 @@
 
           document.getElementById('day-text-general').textContent = displayText;
           renderTimeslots('general', generalData.slots || [], slotsCount);
+          renderTimeline('general', generalData.slots || [], '#CC6600');
         } else {
           document.getElementById('status-general').textContent = 'エラー';
           document.getElementById('status-general').className = 'status error';
           document.getElementById('day-text-general').textContent = '';
+          renderTimeline('general', [], '#CC6600');
         }
 
         // 視野予約
@@ -631,10 +864,12 @@
 
           document.getElementById('day-text-shiya').textContent = displayText;
           renderTimeslots('shiya', shiyaData.slots || [], slotsCount);
+          renderTimeline('shiya', shiyaData.slots || [], '#006633');
         } else {
           document.getElementById('status-shiya').textContent = 'エラー';
           document.getElementById('status-shiya').className = 'status error';
           document.getElementById('day-text-shiya').textContent = '';
+          renderTimeline('shiya', [], '#006633');
         }
 
         // 更新時刻
