@@ -17,6 +17,7 @@ const PORT = process.env.PORT || 8080;
 const RESERVATION_URL = process.env.RESERVATION_URL || 'https://ckreserve.com/clinic/fujiminohikari-ganka/fujimino';
 const BUCKET_NAME = process.env.BUCKET_NAME || 'reservation-timeslots-fujiminohikari';
 const FILE_NAME = 'timeslots.json';
+const HISTORY_PREFIX = 'history/general'; // 履歴保存先
 
 // タイムゾーンを Asia/Tokyo に設定
 process.env.TZ = 'Asia/Tokyo';
@@ -510,9 +511,70 @@ async function saveTimeslotsToCloudStorage(data) {
 
     console.log(`Cloud Storageに保存しました: gs://${BUCKET_NAME}/${FILE_NAME}`);
     console.log(`公開URL: https://storage.googleapis.com/${BUCKET_NAME}/${FILE_NAME}`);
+
+    // 履歴データも保存
+    await saveHistoryData(data);
+
   } catch (error) {
     console.error('Cloud Storageへの保存に失敗しました:', error.message);
     throw error;
+  }
+}
+
+/**
+ * 履歴データをCloud Storageに保存する関数
+ * 日別のJSONファイルに追記していく
+ */
+async function saveHistoryData(data) {
+  try {
+    const japanTime = getJapanTime();
+    const dateStr = `${japanTime.year}-${String(japanTime.month).padStart(2, '0')}-${String(japanTime.date).padStart(2, '0')}`;
+    const timeStr = `${String(japanTime.hour).padStart(2, '0')}:${String(japanTime.minute).padStart(2, '0')}`;
+
+    const historyFileName = `${HISTORY_PREFIX}/${dateStr}.json`;
+    const historyFile = bucket.file(historyFileName);
+
+    // 新しい履歴エントリ
+    const historyEntry = {
+      time: timeStr,
+      count: data.slots ? data.slots.length : 0,
+      status: data.status,
+      targetDate: data.date
+    };
+
+    let historyData = [];
+
+    // 既存の履歴ファイルがあれば読み込む
+    try {
+      const [exists] = await historyFile.exists();
+      if (exists) {
+        const [content] = await historyFile.download();
+        historyData = JSON.parse(content.toString());
+      }
+    } catch (readError) {
+      console.log('既存の履歴ファイルがないため、新規作成します');
+      historyData = [];
+    }
+
+    // 新しいエントリを追加
+    historyData.push(historyEntry);
+
+    // 履歴ファイルを保存
+    await historyFile.save(JSON.stringify(historyData, null, 2), {
+      contentType: 'application/json',
+      metadata: {
+        cacheControl: 'public, max-age=60',
+      },
+    });
+
+    // ファイルを公開アクセス可能にする
+    await historyFile.makePublic();
+
+    console.log(`履歴データを保存しました: gs://${BUCKET_NAME}/${historyFileName}`);
+
+  } catch (error) {
+    // 履歴保存のエラーはログだけ出して続行（メイン機能を止めない）
+    console.error('履歴データの保存に失敗しました:', error.message);
   }
 }
 
@@ -563,9 +625,10 @@ app.get('/', (req, res) => {
   res.status(200).json({
     service: '予約時間枠表示システム',
     status: 'running',
-    version: '1.0.0',
+    version: '2.0.0',
     bucketName: BUCKET_NAME,
     publicUrl: `https://storage.googleapis.com/${BUCKET_NAME}/${FILE_NAME}`,
+    historyPrefix: HISTORY_PREFIX,
     endpoints: {
       check: '/check - 予約時間枠をチェック',
       health: '/ - ヘルスチェック'
@@ -603,5 +666,6 @@ app.listen(PORT, () => {
   console.log(`予約ページ: ${RESERVATION_URL}`);
   console.log(`Cloud Storage バケット: ${BUCKET_NAME}`);
   console.log(`公開URL: https://storage.googleapis.com/${BUCKET_NAME}/${FILE_NAME}`);
+  console.log(`履歴保存先: ${HISTORY_PREFIX}/YYYY-MM-DD.json`);
   console.log('==============================================\n');
 });
