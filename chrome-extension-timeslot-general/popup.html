@@ -161,38 +161,37 @@
       padding: 10px;
     }
 
-    /* タイムラインバー */
+    /* タイムラインバー（2本構成：午前/午後） */
     .timeline-section {
       margin-bottom: 10px;
     }
 
     .timeline-container {
       padding: 6px 2px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
     .timeline-bar {
       position: relative;
       height: 20px;
-      background: linear-gradient(to right, #e8f4fc 0%, #e8f4fc 43.75%, #f0f0f0 43.75%, #f0f0f0 62.5%, #fdf2e9 62.5%, #fdf2e9 100%);
       border-radius: 10px;
       overflow: visible;
       border: 1px solid #ddd;
     }
 
-    .timeline-break {
-      position: absolute;
-      left: 43.75%;
-      width: 18.75%;
-      height: 100%;
-      background: repeating-linear-gradient(
-        45deg,
-        #e0e0e0,
-        #e0e0e0 3px,
-        #f5f5f5 3px,
-        #f5f5f5 6px
-      );
+    .timeline-bar-am {
+      background: #e8f4fc;
+      border-color: #3498db;
     }
 
+    .timeline-bar-pm {
+      background: #fdf2e9;
+      border-color: #e67e22;
+    }
+
+    /* ドット: 白抜き（テーマカラーの太い枠線 + 白い中心） */
     .timeline-dot {
       position: absolute;
       top: 50%;
@@ -200,8 +199,8 @@
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background: #CC6600;
-      border: 2px solid white;
+      background: white;
+      border: 2px solid #CC6600;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       z-index: 2;
     }
@@ -290,19 +289,24 @@
       </a>
     </div>
 
-    <!-- タイムラインバー -->
+    <!-- タイムラインバー（2本構成：午前/午後） -->
     <div class="timeline-section" id="timeline-section" style="display: none;">
       <div class="timeline-container">
-        <div id="timeline-bar" class="timeline-bar">
-          <div class="timeline-break"></div>
+        <!-- 午前バー -->
+        <div id="timeline-bar-am" class="timeline-bar timeline-bar-am">
           <!-- ドットはJSで動的に追加 -->
         </div>
-        <div class="timeline-labels" id="timeline-labels">
+        <div class="timeline-labels" id="timeline-labels-am">
           <span class="timeline-label">10</span>
           <span class="timeline-label">11</span>
           <span class="timeline-label">12</span>
           <span class="timeline-label">13</span>
-          <span class="timeline-label">14</span>
+        </div>
+        <!-- 午後バー -->
+        <div id="timeline-bar-pm" class="timeline-bar timeline-bar-pm">
+          <!-- ドットはJSで動的に追加 -->
+        </div>
+        <div class="timeline-labels" id="timeline-labels-pm">
           <span class="timeline-label">15</span>
           <span class="timeline-label">16</span>
           <span class="timeline-label">17</span>
