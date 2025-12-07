@@ -279,6 +279,27 @@ border: 3px solid [テーマカラー];
 
 ---
 
+### 2025年12月7日 - 旧スプレッドシートシステムのファイル削除
+
+**概要:**
+旧スプレッドシート経由の予約判定システムで使用していたファイルを完全に削除しました。
+
+**削除したHTMLファイル（9件）:**
+- `index.html`, `shiya.html` - 旧バナー
+- `mobile-status.html` - 旧モバイルチェッカー
+- `display.html`, `display-shiya.html`, `display-combined.html` - 旧全画面ディスプレイ
+- `display-test.html`, `display-test-shiya.html`, `display-test-combined.html` - 旧デバッグページ
+
+**削除したその他ファイル（6件）:**
+- `Downloads/20251109.txt` - 旧GASコード
+- `Downloads/display-preset.json` - 旧デバッグページ用プリセット
+- `docs/delete-old-rows-guide.md`, `docs/delete-old-rows-shiya-guide.md` - 旧スプレッドシート用ガイド
+- `docs/implementation-guide-v5.md` - 旧v5システム実装ガイド
+
+**効果:** 15ファイル、17,171行を削減
+
+---
+
 ### 2025年12月6日 - 予約状況チェッカー2モード構成
 
 **概要:**
