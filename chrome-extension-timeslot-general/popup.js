@@ -140,24 +140,57 @@ function getTimeSlotPeriod(slot) {
   return '';
 }
 
-// 18:00より後のスロットがあるか判定
-function hasLateSlots(slots) {
-  if (!slots || slots.length === 0) return false;
-  for (const slot of slots) {
+// スロットを午前/午後に分類
+function splitSlots(slots) {
+  if (!slots || slots.length === 0) {
+    return { amSlots: [], pmSlots: [] };
+  }
+  const amSlots = slots.filter(slot => {
+    const hour = parseInt(slot.split(':')[0], 10);
+    return hour < 15;
+  });
+  const pmSlots = slots.filter(slot => {
+    const hour = parseInt(slot.split(':')[0], 10);
+    return hour >= 15;
+  });
+  return { amSlots, pmSlots };
+}
+
+// 午前スロットに13時以降があるか判定
+function hasLateAmSlots(amSlots) {
+  if (!amSlots || amSlots.length === 0) return false;
+  return amSlots.some(slot => {
+    const hour = parseInt(slot.split(':')[0], 10);
+    return hour >= 13;
+  });
+}
+
+// 午後スロットに18:00より後があるか判定
+function hasLatePmSlots(pmSlots) {
+  if (!pmSlots || pmSlots.length === 0) return false;
+  return pmSlots.some(slot => {
     const match = slot.match(/^(\d{1,2}):(\d{2})/);
     if (match) {
       const hour = parseInt(match[1], 10);
       const minute = parseInt(match[2], 10);
-      if (hour > 18 || (hour === 18 && minute > 0)) {
-        return true;
-      }
+      return hour > 18 || (hour === 18 && minute > 0);
     }
-  }
-  return false;
+    return false;
+  });
 }
 
-// 時間文字列をタイムライン上の位置（%）に変換
-function timeToPosition(timeStr, endMinutes = 18 * 60) {
+// 午前バーの終了時刻を決定（分）
+function getAmEndMinutes(amSlots) {
+  return hasLateAmSlots(amSlots) ? 14 * 60 : 13 * 60;
+}
+
+// 午後バーの終了時刻を決定（分）
+function getPmEndMinutes(pmSlots) {
+  return hasLatePmSlots(pmSlots) ? 18 * 60 + 30 : 18 * 60;
+}
+
+// 時間文字列を午前バー上の位置（%）に変換
+function timeToPositionAm(timeStr, endMinutes) {
   const match = timeStr.match(/^(\d{1,2}):(\d{2})/);
   if (!match) return null;
   const hour = parseInt(match[1], 10);
@@ -170,22 +203,48 @@ function timeToPosition(timeStr, endMinutes = 18 * 60) {
   return position;
 }
 
-// タイムラインバーのスタイルを更新（18:30対応）
-function updateTimelineStyle(extended) {
-  const barElement = document.getElementById('timeline-bar');
-  const labelsElement = document.getElementById('timeline-labels');
-  const breakElement = barElement.querySelector('.timeline-break');
+// 時間文字列を午後バー上の位置（%）に変換
+function timeToPositionPm(timeStr, endMinutes) {
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  const hour = parseInt(match[1], 10);
+  const minute = parseInt(match[2], 10);
+  const totalMinutes = hour * 60 + minute;
+  const startMinutes = 15 * 60;
+  const totalDuration = endMinutes - startMinutes;
+  const position = ((totalMinutes - startMinutes) / totalDuration) * 100;
+  if (position < 0 || position > 100) return null;
+  return position;
+}
 
+// 午前バーのラベルを更新
+function updateAmLabels(extended) {
+  const labelsElement = document.getElementById('timeline-labels-am');
+  if (!labelsElement) return;
   if (extended) {
-    barElement.style.background = 'linear-gradient(to right, #e8f4fc 0%, #e8f4fc 41.18%, #f0f0f0 41.18%, #f0f0f0 58.82%, #fdf2e9 58.82%, #fdf2e9 100%)';
-    breakElement.style.left = '41.18%';
-    breakElement.style.width = '17.64%';
     labelsElement.innerHTML = `
       <span class="timeline-label">10</span>
       <span class="timeline-label">11</span>
       <span class="timeline-label">12</span>
       <span class="timeline-label">13</span>
       <span class="timeline-label">14</span>
+    `;
+  } else {
+    labelsElement.innerHTML = `
+      <span class="timeline-label">10</span>
+      <span class="timeline-label">11</span>
+      <span class="timeline-label">12</span>
+      <span class="timeline-label">13</span>
+    `;
+  }
+}
+
+// 午後バーのラベルを更新
+function updatePmLabels(extended) {
+  const labelsElement = document.getElementById('timeline-labels-pm');
+  if (!labelsElement) return;
+  if (extended) {
+    labelsElement.innerHTML = `
       <span class="timeline-label">15</span>
       <span class="timeline-label">16</span>
       <span class="timeline-label">17</span>
@@ -193,15 +252,7 @@ function updateTimelineStyle(extended) {
       <span class="timeline-label" style="font-size: 8px;">:30</span>
     `;
   } else {
-    barElement.style.background = 'linear-gradient(to right, #e8f4fc 0%, #e8f4fc 43.75%, #f0f0f0 43.75%, #f0f0f0 62.5%, #fdf2e9 62.5%, #fdf2e9 100%)';
-    breakElement.style.left = '43.75%';
-    breakElement.style.width = '18.75%';
     labelsElement.innerHTML = `
-      <span class="timeline-label">10</span>
-      <span class="timeline-label">11</span>
-      <span class="timeline-label">12</span>
-      <span class="timeline-label">13</span>
-      <span class="timeline-label">14</span>
       <span class="timeline-label">15</span>
       <span class="timeline-label">16</span>
       <span class="timeline-label">17</span>
@@ -210,11 +261,12 @@ function updateTimelineStyle(extended) {
   }
 }
 
-// タイムラインバーにドットを描画
+// タイムラインバー（2本：午前/午後）にドットを描画
 function renderTimeline(slots) {
   const timelineSection = document.getElementById('timeline-section');
-  const barElement = document.getElementById('timeline-bar');
-  if (!barElement) return;
+  const amBarElement = document.getElementById('timeline-bar-am');
+  const pmBarElement = document.getElementById('timeline-bar-pm');
+  if (!amBarElement || !pmBarElement) return;
 
   // スロットがある場合のみ表示
   if (!slots || slots.length === 0) {
@@ -223,28 +275,41 @@ function renderTimeline(slots) {
   }
   timelineSection.style.display = 'block';
 
-  const extended = hasLateSlots(slots);
-  const endMinutes = extended ? 18 * 60 + 30 : 18 * 60;
-  updateTimelineStyle(extended);
+  // スロットを午前/午後に分類
+  const { amSlots, pmSlots } = splitSlots(slots);
 
-  const breakStart = timeToPosition('13:30', endMinutes);
-  const breakEnd = timeToPosition('15:00', endMinutes);
+  // 午前/午後それぞれの終了時刻を決定
+  const amEndMinutes = getAmEndMinutes(amSlots);
+  const pmEndMinutes = getPmEndMinutes(pmSlots);
+
+  // ラベルを更新
+  updateAmLabels(amEndMinutes > 13 * 60);
+  updatePmLabels(pmEndMinutes > 18 * 60);
 
   // 既存のドットを削除
-  const existingDots = barElement.querySelectorAll('.timeline-dot');
-  existingDots.forEach(dot => dot.remove());
+  amBarElement.querySelectorAll('.timeline-dot').forEach(dot => dot.remove());
+  pmBarElement.querySelectorAll('.timeline-dot').forEach(dot => dot.remove());
 
-  // 各時間枠にドットを追加
-  slots.forEach(slot => {
-    const position = timeToPosition(slot, endMinutes);
+  // 午前バーにドットを追加
+  amSlots.forEach(slot => {
+    const position = timeToPositionAm(slot, amEndMinutes);
     if (position === null) return;
-    if (position >= breakStart && position <= breakEnd) return;
-
     const dot = document.createElement('div');
     dot.className = 'timeline-dot';
     dot.style.left = `${position}%`;
     dot.title = slot;
-    barElement.appendChild(dot);
+    amBarElement.appendChild(dot);
+  });
+
+  // 午後バーにドットを追加
+  pmSlots.forEach(slot => {
+    const position = timeToPositionPm(slot, pmEndMinutes);
+    if (position === null) return;
+    const dot = document.createElement('div');
+    dot.className = 'timeline-dot';
+    dot.style.left = `${position}%`;
+    dot.title = slot;
+    pmBarElement.appendChild(dot);
   });
 }
 
