@@ -140,10 +140,121 @@ function getTimeSlotPeriod(slot) {
   return '';
 }
 
+// 18:00より後のスロットがあるか判定
+function hasLateSlots(slots) {
+  if (!slots || slots.length === 0) return false;
+  for (const slot of slots) {
+    const match = slot.match(/^(\d{1,2}):(\d{2})/);
+    if (match) {
+      const hour = parseInt(match[1], 10);
+      const minute = parseInt(match[2], 10);
+      if (hour > 18 || (hour === 18 && minute > 0)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// 時間文字列をタイムライン上の位置（%）に変換
+function timeToPosition(timeStr, endMinutes = 18 * 60) {
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  const hour = parseInt(match[1], 10);
+  const minute = parseInt(match[2], 10);
+  const totalMinutes = hour * 60 + minute;
+  const startMinutes = 10 * 60;
+  const totalDuration = endMinutes - startMinutes;
+  const position = ((totalMinutes - startMinutes) / totalDuration) * 100;
+  if (position < 0 || position > 100) return null;
+  return position;
+}
+
+// タイムラインバーのスタイルを更新（18:30対応）
+function updateTimelineStyle(extended) {
+  const barElement = document.getElementById('timeline-bar');
+  const labelsElement = document.getElementById('timeline-labels');
+  const breakElement = barElement.querySelector('.timeline-break');
+
+  if (extended) {
+    barElement.style.background = 'linear-gradient(to right, #e8f4fc 0%, #e8f4fc 41.18%, #f0f0f0 41.18%, #f0f0f0 58.82%, #fdf2e9 58.82%, #fdf2e9 100%)';
+    breakElement.style.left = '41.18%';
+    breakElement.style.width = '17.64%';
+    labelsElement.innerHTML = `
+      <span class="timeline-label">10</span>
+      <span class="timeline-label">11</span>
+      <span class="timeline-label">12</span>
+      <span class="timeline-label">13</span>
+      <span class="timeline-label">14</span>
+      <span class="timeline-label">15</span>
+      <span class="timeline-label">16</span>
+      <span class="timeline-label">17</span>
+      <span class="timeline-label">18</span>
+      <span class="timeline-label" style="font-size: 8px;">:30</span>
+    `;
+  } else {
+    barElement.style.background = 'linear-gradient(to right, #e8f4fc 0%, #e8f4fc 43.75%, #f0f0f0 43.75%, #f0f0f0 62.5%, #fdf2e9 62.5%, #fdf2e9 100%)';
+    breakElement.style.left = '43.75%';
+    breakElement.style.width = '18.75%';
+    labelsElement.innerHTML = `
+      <span class="timeline-label">10</span>
+      <span class="timeline-label">11</span>
+      <span class="timeline-label">12</span>
+      <span class="timeline-label">13</span>
+      <span class="timeline-label">14</span>
+      <span class="timeline-label">15</span>
+      <span class="timeline-label">16</span>
+      <span class="timeline-label">17</span>
+      <span class="timeline-label">18</span>
+    `;
+  }
+}
+
+// タイムラインバーにドットを描画
+function renderTimeline(slots) {
+  const timelineSection = document.getElementById('timeline-section');
+  const barElement = document.getElementById('timeline-bar');
+  if (!barElement) return;
+
+  // スロットがある場合のみ表示
+  if (!slots || slots.length === 0) {
+    timelineSection.style.display = 'none';
+    return;
+  }
+  timelineSection.style.display = 'block';
+
+  const extended = hasLateSlots(slots);
+  const endMinutes = extended ? 18 * 60 + 30 : 18 * 60;
+  updateTimelineStyle(extended);
+
+  const breakStart = timeToPosition('13:30', endMinutes);
+  const breakEnd = timeToPosition('15:00', endMinutes);
+
+  // 既存のドットを削除
+  const existingDots = barElement.querySelectorAll('.timeline-dot');
+  existingDots.forEach(dot => dot.remove());
+
+  // 各時間枠にドットを追加
+  slots.forEach(slot => {
+    const position = timeToPosition(slot, endMinutes);
+    if (position === null) return;
+    if (position >= breakStart && position <= breakEnd) return;
+
+    const dot = document.createElement('div');
+    dot.className = 'timeline-dot';
+    dot.style.left = `${position}%`;
+    dot.title = slot;
+    barElement.appendChild(dot);
+  });
+}
+
 // 時間枠リストを表示（全枠表示、AM/PM色分け）
 function displayTimeslots(slots, slotsCount) {
   const timeslotsSection = document.getElementById('timeslots-section');
   const timeslotsList = document.getElementById('timeslots-list');
+
+  // タイムラインバーを描画
+  renderTimeline(slots);
 
   if (slotsCount > 0 && slots.length > 0) {
     timeslotsSection.style.display = 'block';
