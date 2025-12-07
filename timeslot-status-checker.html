@@ -467,17 +467,22 @@
         grid-template-columns: repeat(2, 1fr);
       }
 
-      /* スマホでドットを小さく */
+      /* スマホでドットを大きく（1.5倍） */
       .timeline-dot {
-        width: 12px;
-        height: 12px;
-        border-width: 2px;
+        width: 18px;
+        height: 18px;
+        border-width: 3px;
       }
 
-      /* スマホで時間ラベルを少し小さく */
+      /* スマホで時間ラベルを大きく（1.5倍） */
       .timeline-label {
-        font-size: 11px;
-        width: 18px;
+        font-size: 17px;
+        width: 27px;
+      }
+
+      /* バー高さもドットに合わせて拡大 */
+      .timeline-bar {
+        height: 28px;
       }
     }
   </style>
