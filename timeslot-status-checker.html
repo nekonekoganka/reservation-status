@@ -261,14 +261,10 @@
 
     .timeline-label {
       font-size: 10px;
-      color: #999;
-      font-weight: 500;
+      color: #333;
+      font-weight: 600;
       width: 20px;
       text-align: center;
-    }
-
-    .timeline-label.break {
-      color: #ccc;
     }
 
     .timeline-legend {
@@ -316,10 +312,9 @@
     .expand-indicator {
       text-align: center;
       font-size: 11px;
-      color: #999;
-      margin-top: 6px;
+      color: #666;
+      margin-top: 8px;
       font-weight: 500;
-      display: none;
     }
 
     .footer {
@@ -414,9 +409,7 @@
           <!-- タイムラインバー -->
           <div class="timeline-container">
             <div id="timeline-bar-general" class="timeline-bar">
-              <div class="timeline-break">
-                <span class="timeline-break-label">休</span>
-              </div>
+              <div class="timeline-break"></div>
               <!-- ドットはJSで動的に追加 -->
             </div>
             <div class="timeline-labels">
@@ -424,7 +417,7 @@
               <span class="timeline-label">11</span>
               <span class="timeline-label">12</span>
               <span class="timeline-label">13</span>
-              <span class="timeline-label break">休</span>
+              <span class="timeline-label"></span>
               <span class="timeline-label">15</span>
               <span class="timeline-label">16</span>
               <span class="timeline-label">17</span>
@@ -433,12 +426,12 @@
           </div>
 
           <div id="expand-general" class="expand-indicator">
-            タップして閉じる ▲
+            ▼ 詳細を表示
           </div>
         </div>
 
         <!-- 時間枠リスト（カードの下に展開） -->
-        <div id="timeslots-general" class="timeslots-container expanded">
+        <div id="timeslots-general" class="timeslots-container">
           <div id="timeslots-list-general" class="timeslots-list">
             <div class="no-slots">データを読み込み中...</div>
           </div>
@@ -461,9 +454,7 @@
           <!-- タイムラインバー -->
           <div class="timeline-container">
             <div id="timeline-bar-shiya" class="timeline-bar">
-              <div class="timeline-break">
-                <span class="timeline-break-label">休</span>
-              </div>
+              <div class="timeline-break"></div>
               <!-- ドットはJSで動的に追加 -->
             </div>
             <div class="timeline-labels">
@@ -471,7 +462,7 @@
               <span class="timeline-label">11</span>
               <span class="timeline-label">12</span>
               <span class="timeline-label">13</span>
-              <span class="timeline-label break">休</span>
+              <span class="timeline-label"></span>
               <span class="timeline-label">15</span>
               <span class="timeline-label">16</span>
               <span class="timeline-label">17</span>
@@ -480,12 +471,12 @@
           </div>
 
           <div id="expand-shiya" class="expand-indicator">
-            タップして閉じる ▲
+            ▼ 詳細を表示
           </div>
         </div>
 
         <!-- 時間枠リスト（カードの下に展開） -->
-        <div id="timeslots-shiya" class="timeslots-container expanded">
+        <div id="timeslots-shiya" class="timeslots-container">
           <div id="timeslots-list-shiya" class="timeslots-list">
             <div class="no-slots">データを読み込み中...</div>
           </div>
@@ -506,10 +497,10 @@
       shiya: 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/timeslots-shiya.json'
     };
 
-    // 展開状態を管理（初期状態で展開）
+    // 展開状態を管理（初期状態で折りたたみ）
     const expandedState = {
-      general: true,
-      shiya: true
+      general: false,
+      shiya: false
     };
 
     // スロットデータを保存（再描画用）
@@ -529,10 +520,10 @@
 
       if (expandedState[type]) {
         container.classList.add('expanded');
-        indicator.textContent = 'タップして閉じる ▲';
+        indicator.textContent = '▲ 閉じる';
       } else {
         container.classList.remove('expanded');
-        indicator.textContent = 'タップして詳細を表示 ▼';
+        indicator.textContent = '▼ 詳細を表示';
       }
     }
 
