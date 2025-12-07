@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>デバッグ - 玄関モニター - 予約状況</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            background: #1a1a2e;
+            overflow: hidden;
+        }
+
+        /* レイアウトコンテナ */
+        .layout-container {
+            position: relative;
+            height: calc(100vh - 70px);
+            width: 100vw;
+            margin-top: 70px;
+            overflow: hidden;
+        }
+
+        body.panel-hidden .layout-container {
+            height: 100vh;
+            margin-top: 0;
+        }
+
+        /* プレビューラッパー */
+        .preview-wrapper {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* プレビューコンテナ（縦型モニター比率） */
+        .preview-container {
+            width: auto;
+            height: 100%;
+            aspect-ratio: 9 / 16;
+            position: relative;
+            background: #1a1a2e;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* メインディスプレイエリア */
+        .display-area {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* QRコード - 左上固定 */
+        .qr-code {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+
+        .qr-code img {
+            width: 120px;
+            height: 120px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 日付ヘッダー */
+        .date-header {
+            text-align: center;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-top: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* カードコンテナ */
+        .cards-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            justify-content: center;
+            padding: 0 10px;
+        }
+
+        /* 予約カード */
+        .reservation-card {
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .reservation-card.available {
+            background: var(--available-color, #2E7D32);
+            border: 3px solid #1B5E20;
+        }
+
+        .reservation-card.unavailable {
+            background: var(--unavailable-color, #DC3545);
+            border: 3px solid #bd2130;
+        }
+
+        .reservation-card.loading {
+            background: #6c757d;
+            border: 3px solid #5a6268;
+        }
+
+        /* カードタイトル */
+        .card-title {
+            font-size: var(--card-title-size, 20px);
+            font-weight: bold;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        /* ステータス表示 */
+        .card-status {
+            font-size: var(--card-status-size, 24px);
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        /* 時間枠コンテナ */
+        .timeslots {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        /* 時間枠ピル */
+        .timeslot-pill {
+            background: white;
+            color: #CC6600;
+            border: 2px solid #CC6600;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: var(--timeslot-size, 16px);
+            font-weight: bold;
+        }
+
+        /* 「のみ」「他」表示 */
+        .timeslot-more {
+            color: white;
+            font-size: var(--timeslot-size, 16px);
+            font-weight: bold;
+            padding: 8px 6px;
+        }
+
+        /* スペーサー */
+        .timeslot-spacer {
+            visibility: hidden;
+            font-size: var(--timeslot-size, 16px);
+            font-weight: bold;
+            padding: 8px 6px;
+        }
+
+        /* カードメッセージ */
+        .card-message {
+            font-size: var(--card-message-size, 18px);
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        /* サブメッセージ */
+        .card-submessage {
+            font-size: var(--card-submessage-size, 14px);
+            margin-top: 8px;
+            opacity: 0.9;
+        }
+
+        /* 案内テキスト */
+        .guide-text {
+            text-align: center;
+            color: white;
+            font-size: var(--guide-text-size, 18px);
+            font-weight: bold;
+            margin: 15px 0;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 更新時刻 */
+        .update-time {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: var(--update-time-size, 14px);
+            padding-bottom: 10px;
+        }
+
+        /* トップコントロールバー */
+        .top-control-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #34495E;
+            padding: 10px 20px;
+            z-index: 10001;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        body.panel-hidden .top-control-bar {
+            display: none;
+        }
+
+        .top-control-bar button {
+            padding: 8px 16px;
+            background: #546E7A;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .top-control-bar button:hover {
+            background: #607D8B;
+        }
+
+        .top-control-bar button.active {
+            background: #2196F3;
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+        }
+
+        .top-control-bar .separator {
+            width: 2px;
+            background: #546E7A;
+            margin: 0 10px;
+            height: 30px;
+        }
+
+        .control-label {
+            color: #aaa;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+
+        /* デバッグパネル */
+        .debug-panel {
+            position: fixed;
+            top: 70px;
+            right: 0;
+            width: min(45%, 500px);
+            height: calc(100vh - 70px);
+            background: rgba(44, 62, 80, 0.97);
+            color: white;
+            padding: 15px;
+            overflow-y: auto;
+            font-size: 14px;
+            z-index: 10000;
+            transition: transform 0.3s ease;
+        }
+
+        .debug-panel.hidden {
+            transform: translateX(100%);
+        }
+
+        body.panel-hidden .debug-panel {
+            display: none;
+        }
+
+        /* タブナビゲーション */
+        .debug-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .debug-tab {
+            background: #34495E;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            border-radius: 5px 5px 0 0;
+            transition: background 0.3s;
+        }
+
+        .debug-tab:hover {
+            background: #415a77;
+        }
+
+        .debug-tab.active {
+            background: #3498DB;
+        }
+
+        .debug-tab-content {
+            display: none;
+        }
+
+        .debug-tab-content.active {
+            display: block;
+        }
+
+        /* デバッグセクション */
+        .debug-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #3d566e;
+        }
+
+        .debug-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #FFC107;
+        }
+
+        .debug-section button {
+            padding: 6px 12px;
+            margin: 3px;
+            background: #546E7A;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .debug-section button:hover {
+            background: #607D8B;
+        }
+
+        .debug-section button.active {
+            background: #2196F3;
+        }
+
+        /* カスタマイズ入力 */
+        .customize-input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #555;
+            border-radius: 5px;
+            font-size: 14px;
+            background: #34495E;
+            color: white;
+        }
+
+        /* カラーピッカー */
+        .color-picker-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0;
+        }
+
+        .color-picker-group input[type="color"] {
+            width: 50px;
+            height: 35px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* スライダー */
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0;
+        }
+
+        .slider-group input[type="range"] {
+            flex: 1;
+        }
+
+        .slider-group .value {
+            min-width: 50px;
+            text-align: right;
+        }
+
+        /* アイコンセレクター */
+        .icon-selector {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .icon-selector button {
+            font-size: 24px;
+            padding: 8px;
+            background: #34495E;
+            border: 2px solid #555;
+        }
+
+        .icon-selector button.selected {
+            border-color: #3498DB;
+            background: #3498DB;
+        }
+
+        /* プリセットボタン */
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .preset-buttons button {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        /* エクスポート/インポート */
+        .export-import {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .export-import button {
+            flex: 1;
+        }
+
+        /* トグルボタン（Fキー用） */
+        .toggle-hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 10002;
+        }
+
+        body.panel-hidden .toggle-hint {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- トップコントロールバー -->
+    <div class="top-control-bar">
+        <span class="control-label">一般:</span>
+        <button id="btnGeneralAvailable" class="active" onclick="setGeneralStatus(true)">空きあり</button>
+        <button id="btnGeneralFull" onclick="setGeneralStatus(false)">満枠</button>
+
+        <div class="separator"></div>
+
+        <span class="control-label">視野:</span>
+        <button id="btnShiyaAvailable" class="active" onclick="setShiyaStatus(true)">空きあり</button>
+        <button id="btnShiyaFull" onclick="setShiyaStatus(false)">満枠</button>
+
+        <div class="separator"></div>
+
+        <button onclick="toggleDebugPanel()">📋 パネル</button>
+        <button onclick="toggleFullscreen()">⛶ 全画面</button>
+        <button onclick="resetAll()">🔄 リセット</button>
+    </div>
+
+    <!-- デバッグパネル -->
+    <div id="debugPanel" class="debug-panel">
+        <div class="debug-tabs">
+            <button class="debug-tab active" onclick="switchTab('time')">⏰ 時間</button>
+            <button class="debug-tab" onclick="switchTab('text')">📝 テキスト</button>
+            <button class="debug-tab" onclick="switchTab('design')">🎨 デザイン</button>
+            <button class="debug-tab" onclick="switchTab('size')">📏 サイズ</button>
+            <button class="debug-tab" onclick="switchTab('qrcode')">📱 QR</button>
+            <button class="debug-tab" onclick="switchTab('presets')">💾 設定</button>
+        </div>
+
+        <!-- 時間タブ -->
+        <div id="tab-time" class="debug-tab-content active">
+            <div class="debug-section">
+                <label>⏰ 時間帯:</label>
+                <button onclick="setTestTime(9, 0)">営業前 (9:00)</button>
+                <button onclick="setTestTime(10, 0)">営業中 (10:00)</button>
+                <button onclick="setTestTime(14, 0)">昼休み (14:00)</button>
+                <button onclick="setTestTime(18, 45)">18:30以降</button>
+                <button onclick="setTestTime(19, 0)">営業外 (19:00)</button>
+            </div>
+
+            <div class="debug-section">
+                <label>📅 曜日:</label>
+                <button onclick="setDayOfWeek(0)">日</button>
+                <button onclick="setDayOfWeek(1)">月</button>
+                <button onclick="setDayOfWeek(2)">火</button>
+                <button onclick="setDayOfWeek(3)">水</button>
+                <button onclick="setDayOfWeek(4)">木</button>
+                <button onclick="setDayOfWeek(5)">金</button>
+                <button onclick="setDayOfWeek(6)">土</button>
+            </div>
+
+            <div class="debug-section">
+                <label>🕐 カスタム時刻:</label>
+                <input type="time" id="timeInput" value="14:00" class="customize-input" style="width: auto;">
+                <button onclick="applyCustomTime()">適用</button>
+                <button onclick="resetToCurrentTime()">現在時刻</button>
+            </div>
+
+            <div class="debug-section">
+                <label>🎰 時間枠数（テスト）:</label>
+                <button onclick="setSlotCount('general', 0)">0枠</button>
+                <button onclick="setSlotCount('general', 1)">1枠</button>
+                <button onclick="setSlotCount('general', 3)">3枠</button>
+                <button onclick="setSlotCount('general', 4)">4枠</button>
+                <button onclick="setSlotCount('general', 6)">6枠</button>
+            </div>
+        </div>
+
+        <!-- テキストタブ -->
+        <div id="tab-text" class="debug-tab-content">
+            <div class="debug-section">
+                <label>一般予約タイトル:</label>
+                <input type="text" class="customize-input" id="generalTitle" value="一般予約" oninput="applyCustomizations()">
+            </div>
+
+            <div class="debug-section">
+                <label>視野予約タイトル:</label>
+                <input type="text" class="customize-input" id="shiyaTitle" value="視野検査予約" oninput="applyCustomizations()">
+            </div>
+
+            <div class="debug-section">
+                <label>空きありメッセージ:</label>
+                <input type="text" class="customize-input" id="availableMsg" value="に 空きがございます" oninput="applyCustomizations()">
+            </div>
+
+            <div class="debug-section">
+                <label>満枠メッセージ:</label>
+                <input type="text" class="customize-input" id="fullMsg" value="次の診療日以降でご予約ください" oninput="applyCustomizations()">
+            </div>
+
+            <div class="debug-section">
+                <label>案内テキスト:</label>
+                <input type="text" class="customize-input" id="guideText" value="受付窓口またはWEBでご予約出来ます" oninput="applyCustomizations()">
+            </div>
+        </div>
+
+        <!-- デザインタブ -->
+        <div id="tab-design" class="debug-tab-content">
+            <div class="debug-section">
+                <label>空きありアイコン:</label>
+                <div class="icon-selector">
+                    <button onclick="selectIcon('available', '✅')">✅</button>
+                    <button onclick="selectIcon('available', '⭕')">⭕</button>
+                    <button onclick="selectIcon('available', '🟢')">🟢</button>
+                    <button onclick="selectIcon('available', '😊')">😊</button>
+                    <button onclick="selectIcon('available', '👍')">👍</button>
+                </div>
+                <input type="text" class="customize-input" id="availableIcon" value="✅" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
+            </div>
+
+            <div class="debug-section">
+                <label>満枠アイコン:</label>
+                <div class="icon-selector">
+                    <button onclick="selectIcon('full', '😔')">😔</button>
+                    <button onclick="selectIcon('full', '❌')">❌</button>
+                    <button onclick="selectIcon('full', '🙇')">🙇</button>
+                    <button onclick="selectIcon('full', '⛔')">⛔</button>
+                    <button onclick="selectIcon('full', '🚫')">🚫</button>
+                </div>
+                <input type="text" class="customize-input" id="fullIcon" value="😔" style="width: 80px; text-align: center;" oninput="applyCustomizations()">
+            </div>
+
+            <div class="debug-section">
+                <label>背景色:</label>
+                <div class="color-picker-group">
+                    <span>空きあり:</span>
+                    <input type="color" id="availableColor" value="#2E7D32" oninput="applyCustomizations()">
+                    <span id="availableColorValue">#2E7D32</span>
+                </div>
+                <div class="color-picker-group">
+                    <span>満枠:</span>
+                    <input type="color" id="unavailableColor" value="#DC3545" oninput="applyCustomizations()">
+                    <span id="unavailableColorValue">#DC3545</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- サイズタブ -->
+        <div id="tab-size" class="debug-tab-content">
+            <div class="debug-section">
+                <label>日付ヘッダー:</label>
+                <div class="slider-group">
+                    <input type="range" id="dateHeaderSize" min="20" max="60" value="28" oninput="applySize()">
+                    <span class="value" id="dateHeaderSizeValue">28px</span>
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <label>カードタイトル:</label>
+                <div class="slider-group">
+                    <input type="range" id="cardTitleSize" min="14" max="40" value="20" oninput="applySize()">
+                    <span class="value" id="cardTitleSizeValue">20px</span>
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <label>ステータス:</label>
+                <div class="slider-group">
+                    <input type="range" id="cardStatusSize" min="18" max="50" value="24" oninput="applySize()">
+                    <span class="value" id="cardStatusSizeValue">24px</span>
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <label>時間枠:</label>
+                <div class="slider-group">
+                    <input type="range" id="timeslotSize" min="12" max="36" value="16" oninput="applySize()">
+                    <span class="value" id="timeslotSizeValue">16px</span>
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <label>カードメッセージ:</label>
+                <div class="slider-group">
+                    <input type="range" id="cardMessageSize" min="12" max="30" value="18" oninput="applySize()">
+                    <span class="value" id="cardMessageSizeValue">18px</span>
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <label>案内テキスト:</label>
+                <div class="slider-group">
+                    <input type="range" id="guideTextSize" min="14" max="36" value="18" oninput="applySize()">
+                    <span class="value" id="guideTextSizeValue">18px</span>
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <label>更新時刻:</label>
+                <div class="slider-group">
+                    <input type="range" id="updateTimeSize" min="10" max="24" value="14" oninput="applySize()">
+                    <span class="value" id="updateTimeSizeValue">14px</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- QRコードタブ -->
+        <div id="tab-qrcode" class="debug-tab-content">
+            <div class="debug-section">
+                <label>QRコード表示:</label>
+                <button id="btnQrOn" class="active" onclick="toggleQR(true)">ON</button>
+                <button id="btnQrOff" onclick="toggleQR(false)">OFF</button>
+            </div>
+
+            <div class="debug-section">
+                <label>QRコードサイズ:</label>
+                <div class="slider-group">
+                    <input type="range" id="qrSize" min="80" max="300" value="120" oninput="applyQRSize()">
+                    <span class="value" id="qrSizeValue">120px</span>
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <label>QRコード位置:</label>
+                <button onclick="setQRPosition('top-left')">左上</button>
+                <button onclick="setQRPosition('top-right')">右上</button>
+                <button onclick="setQRPosition('bottom-left')">左下</button>
+                <button onclick="setQRPosition('bottom-right')">右下</button>
+            </div>
+        </div>
+
+        <!-- 設定タブ -->
+        <div id="tab-presets" class="debug-tab-content">
+            <div class="debug-section">
+                <label>プリセット:</label>
+                <div class="preset-buttons">
+                    <button onclick="loadPreset('default')">デフォルト</button>
+                    <button onclick="loadPreset('large')">大きめ</button>
+                    <button onclick="loadPreset('compact')">コンパクト</button>
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <label>設定のエクスポート/インポート:</label>
+                <div class="export-import">
+                    <button onclick="exportSettings()">📤 エクスポート</button>
+                    <button onclick="document.getElementById('importFile').click()">📥 インポート</button>
+                </div>
+                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importSettings(event)">
+            </div>
+
+            <div class="debug-section">
+                <label>本番用コード生成:</label>
+                <button onclick="generateProductionCode()">📋 コードをコピー</button>
+                <p style="font-size: 12px; opacity: 0.7; margin-top: 8px;">
+                    現在の設定を反映したentrance-display.htmlのスタイルをクリップボードにコピーします
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- メインレイアウト -->
+    <div class="layout-container">
+        <div class="preview-wrapper">
+            <div class="preview-container">
+                <div class="display-area">
+                    <div class="container">
+                        <!-- QRコード -->
+                        <div class="qr-code" id="qrCode">
+                            <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード">
+                        </div>
+
+                        <!-- 日付ヘッダー -->
+                        <div class="date-header" id="dateHeader">本日（12/7）</div>
+
+                        <!-- カードコンテナ -->
+                        <div class="cards-container">
+                            <!-- 一般予約カード -->
+                            <div class="reservation-card available" id="generalCard">
+                                <div class="card-title" id="generalTitleDisplay">一般予約</div>
+                                <div class="card-status" id="generalStatus">✅ 空きあり</div>
+                                <div class="timeslots" id="generalTimeslots">
+                                    <span class="timeslot-spacer">のみ</span>
+                                    <span class="timeslot-pill">9:00</span>
+                                    <span class="timeslot-pill">9:30</span>
+                                    <span class="timeslot-pill">10:00</span>
+                                    <span class="timeslot-more">のみ</span>
+                                </div>
+                                <div class="card-message" id="generalMessage">に 空きがございます</div>
+                            </div>
+
+                            <!-- 視野予約カード -->
+                            <div class="reservation-card available" id="shiyaCard">
+                                <div class="card-title" id="shiyaTitleDisplay">視野検査予約</div>
+                                <div class="card-status" id="shiyaStatus">✅ 空きあり</div>
+                                <div class="timeslots" id="shiyaTimeslots">
+                                    <span class="timeslot-spacer">のみ</span>
+                                    <span class="timeslot-pill">14:00</span>
+                                    <span class="timeslot-pill">15:00</span>
+                                    <span class="timeslot-more">のみ</span>
+                                </div>
+                                <div class="card-message" id="shiyaMessage">に 空きがございます</div>
+                            </div>
+                        </div>
+
+                        <!-- 案内テキスト -->
+                        <div class="guide-text" id="guideTextDisplay">受付窓口またはWEBでご予約出来ます</div>
+
+                        <!-- 更新時刻 -->
+                        <div class="update-time" id="updateTime">更新：2024/12/07 09:15</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- トグルヒント -->
+    <div class="toggle-hint">Fキーでパネル表示/非表示</div>
+
+    <script>
+        // 設定オブジェクト
+        let CONFIG = {
+            generalTitle: '一般予約',
+            shiyaTitle: '視野検査予約',
+            availableMsg: 'に 空きがございます',
+            fullMsg: '次の診療日以降でご予約ください',
+            guideText: '受付窓口またはWEBでご予約出来ます',
+            availableIcon: '✅',
+            fullIcon: '😔',
+            availableColor: '#2E7D32',
+            unavailableColor: '#DC3545',
+            dateHeaderSize: 28,
+            cardTitleSize: 20,
+            cardStatusSize: 24,
+            timeslotSize: 16,
+            cardMessageSize: 18,
+            cardSubmessageSize: 14,
+            guideTextSize: 18,
+            updateTimeSize: 14,
+            qrEnabled: true,
+            qrSize: 120,
+            qrPosition: 'top-left'
+        };
+
+        // テスト用の状態
+        let testState = {
+            generalAvailable: true,
+            shiyaAvailable: true,
+            generalSlots: ['9:00', '9:30', '10:00'],
+            shiyaSlots: ['14:00', '15:00'],
+            testTime: null,
+            testDayOfWeek: null
+        };
+
+        // タブ切り替え
+        function switchTab(tabName) {
+            document.querySelectorAll('.debug-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.debug-tab-content').forEach(content => content.classList.remove('active'));
+
+            document.querySelector(`.debug-tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        // デバッグパネルトグル
+        function toggleDebugPanel() {
+            document.getElementById('debugPanel').classList.toggle('hidden');
+        }
+
+        // 全画面トグル
+        function toggleFullscreen() {
+            document.body.classList.toggle('panel-hidden');
+        }
+
+        // Fキーでパネルトグル
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'f' || e.key === 'F') {
+                toggleFullscreen();
+            }
+        });
+
+        // 一般予約ステータス設定
+        function setGeneralStatus(available) {
+            testState.generalAvailable = available;
+            document.getElementById('btnGeneralAvailable').classList.toggle('active', available);
+            document.getElementById('btnGeneralFull').classList.toggle('active', !available);
+            updateDisplay();
+        }
+
+        // 視野予約ステータス設定
+        function setShiyaStatus(available) {
+            testState.shiyaAvailable = available;
+            document.getElementById('btnShiyaAvailable').classList.toggle('active', available);
+            document.getElementById('btnShiyaFull').classList.toggle('active', !available);
+            updateDisplay();
+        }
+
+        // テスト時間設定
+        function setTestTime(hour, minute) {
+            testState.testTime = { hour, minute };
+            updateDateHeader();
+        }
+
+        // 曜日設定
+        function setDayOfWeek(day) {
+            testState.testDayOfWeek = day;
+            updateDateHeader();
+        }
+
+        // カスタム時間適用
+        function applyCustomTime() {
+            const timeInput = document.getElementById('timeInput').value;
+            const [hour, minute] = timeInput.split(':').map(Number);
+            setTestTime(hour, minute);
+        }
+
+        // 現在時刻にリセット
+        function resetToCurrentTime() {
+            testState.testTime = null;
+            testState.testDayOfWeek = null;
+            updateDateHeader();
+        }
+
+        // 時間枠数設定
+        function setSlotCount(type, count) {
+            const slots = [];
+            const times = ['9:00', '9:30', '10:00', '10:30', '11:00', '11:30', '14:00', '15:00'];
+            for (let i = 0; i < count && i < times.length; i++) {
+                slots.push(times[i]);
+            }
+
+            if (type === 'general') {
+                testState.generalSlots = slots;
+                testState.generalAvailable = count > 0;
+                document.getElementById('btnGeneralAvailable').classList.toggle('active', count > 0);
+                document.getElementById('btnGeneralFull').classList.toggle('active', count === 0);
+            } else {
+                testState.shiyaSlots = slots;
+                testState.shiyaAvailable = count > 0;
+                document.getElementById('btnShiyaAvailable').classList.toggle('active', count > 0);
+                document.getElementById('btnShiyaFull').classList.toggle('active', count === 0);
+            }
+            updateDisplay();
+        }
+
+        // 日付ヘッダー更新
+        function updateDateHeader() {
+            const now = new Date();
+
+            if (testState.testTime) {
+                now.setHours(testState.testTime.hour, testState.testTime.minute);
+            }
+
+            if (testState.testDayOfWeek !== null) {
+                const diff = testState.testDayOfWeek - now.getDay();
+                now.setDate(now.getDate() + diff);
+            }
+
+            const dayText = calculateDayText(now);
+            document.getElementById('dateHeader').textContent = dayText;
+        }
+
+        // 日付テキスト計算
+        function calculateDayText(now) {
+            const dayOfWeek = now.getDay();
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+            const isAfter1830 = (hour > 18) || (hour === 18 && minute >= 30);
+
+            const formatDateMD = (date) => `${date.getMonth() + 1}/${date.getDate()}`;
+
+            if (dayOfWeek === 3) {
+                const thursday = new Date(now);
+                thursday.setDate(thursday.getDate() + 1);
+                return `木曜（${formatDateMD(thursday)}）`;
+            }
+
+            if (isAfter1830) {
+                const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                if (now.getDate() === lastDayOfMonth) {
+                    return '次の診療日';
+                }
+
+                if (dayOfWeek === 2) {
+                    const thursday = new Date(now);
+                    thursday.setDate(thursday.getDate() + 2);
+                    return `木曜（${formatDateMD(thursday)}）`;
+                }
+
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                return `明日（${formatDateMD(tomorrow)}）`;
+            }
+
+            return `本日（${formatDateMD(now)}）`;
+        }
+
+        // 時間枠HTML生成
+        function generateTimeslotsHtml(slots) {
+            if (!slots || slots.length === 0) return '';
+
+            const displaySlots = slots.slice(0, 4);
+            const pillsHtml = displaySlots.map(slot =>
+                `<span class="timeslot-pill">${slot}</span>`
+            ).join('');
+
+            if (slots.length <= 3) {
+                return `<span class="timeslot-spacer">のみ</span>${pillsHtml}<span class="timeslot-more">のみ</span>`;
+            } else if (slots.length === 4) {
+                return `${pillsHtml}<span class="timeslot-more">のみ</span>`;
+            } else {
+                return `${pillsHtml}<span class="timeslot-more">他</span>`;
+            }
+        }
+
+        // 表示更新
+        function updateDisplay() {
+            const generalCard = document.getElementById('generalCard');
+            const shiyaCard = document.getElementById('shiyaCard');
+
+            // 一般予約
+            if (testState.generalAvailable && testState.generalSlots.length > 0) {
+                generalCard.className = 'reservation-card available';
+                document.getElementById('generalStatus').textContent = `${CONFIG.availableIcon} 空きあり`;
+                document.getElementById('generalTimeslots').innerHTML = generateTimeslotsHtml(testState.generalSlots);
+                document.getElementById('generalTimeslots').style.display = 'flex';
+                document.getElementById('generalMessage').textContent = CONFIG.availableMsg;
+                document.getElementById('generalMessage').style.display = 'block';
+            } else {
+                generalCard.className = 'reservation-card unavailable';
+                document.getElementById('generalStatus').textContent = `${CONFIG.fullIcon} 満枠です`;
+                document.getElementById('generalTimeslots').style.display = 'none';
+                document.getElementById('generalMessage').textContent = CONFIG.fullMsg;
+                document.getElementById('generalMessage').style.display = 'block';
+            }
+
+            // 視野予約
+            if (testState.shiyaAvailable && testState.shiyaSlots.length > 0) {
+                shiyaCard.className = 'reservation-card available';
+                document.getElementById('shiyaStatus').textContent = `${CONFIG.availableIcon} 空きあり`;
+                document.getElementById('shiyaTimeslots').innerHTML = generateTimeslotsHtml(testState.shiyaSlots);
+                document.getElementById('shiyaTimeslots').style.display = 'flex';
+                document.getElementById('shiyaMessage').textContent = CONFIG.availableMsg;
+                document.getElementById('shiyaMessage').style.display = 'block';
+            } else {
+                shiyaCard.className = 'reservation-card unavailable';
+                document.getElementById('shiyaStatus').textContent = `${CONFIG.fullIcon} 満枠です`;
+                document.getElementById('shiyaTimeslots').style.display = 'none';
+                document.getElementById('shiyaMessage').textContent = CONFIG.fullMsg;
+                document.getElementById('shiyaMessage').style.display = 'block';
+            }
+
+            applyColors();
+        }
+
+        // カスタマイズ適用
+        function applyCustomizations() {
+            CONFIG.generalTitle = document.getElementById('generalTitle').value;
+            CONFIG.shiyaTitle = document.getElementById('shiyaTitle').value;
+            CONFIG.availableMsg = document.getElementById('availableMsg').value;
+            CONFIG.fullMsg = document.getElementById('fullMsg').value;
+            CONFIG.guideText = document.getElementById('guideText').value;
+            CONFIG.availableIcon = document.getElementById('availableIcon').value;
+            CONFIG.fullIcon = document.getElementById('fullIcon').value;
+            CONFIG.availableColor = document.getElementById('availableColor').value;
+            CONFIG.unavailableColor = document.getElementById('unavailableColor').value;
+
+            document.getElementById('availableColorValue').textContent = CONFIG.availableColor;
+            document.getElementById('unavailableColorValue').textContent = CONFIG.unavailableColor;
+
+            document.getElementById('generalTitleDisplay').textContent = CONFIG.generalTitle;
+            document.getElementById('shiyaTitleDisplay').textContent = CONFIG.shiyaTitle;
+            document.getElementById('guideTextDisplay').textContent = CONFIG.guideText;
+
+            updateDisplay();
+        }
+
+        // 色適用
+        function applyColors() {
+            document.documentElement.style.setProperty('--available-color', CONFIG.availableColor);
+            document.documentElement.style.setProperty('--unavailable-color', CONFIG.unavailableColor);
+        }
+
+        // アイコン選択
+        function selectIcon(type, icon) {
+            if (type === 'available') {
+                document.getElementById('availableIcon').value = icon;
+            } else {
+                document.getElementById('fullIcon').value = icon;
+            }
+            applyCustomizations();
+        }
+
+        // サイズ適用
+        function applySize() {
+            const sizes = {
+                dateHeaderSize: document.getElementById('dateHeaderSize').value,
+                cardTitleSize: document.getElementById('cardTitleSize').value,
+                cardStatusSize: document.getElementById('cardStatusSize').value,
+                timeslotSize: document.getElementById('timeslotSize').value,
+                cardMessageSize: document.getElementById('cardMessageSize').value,
+                guideTextSize: document.getElementById('guideTextSize').value,
+                updateTimeSize: document.getElementById('updateTimeSize').value
+            };
+
+            Object.keys(sizes).forEach(key => {
+                CONFIG[key] = parseInt(sizes[key]);
+                document.getElementById(`${key}Value`).textContent = `${sizes[key]}px`;
+            });
+
+            document.getElementById('dateHeader').style.fontSize = `${sizes.dateHeaderSize}px`;
+            document.documentElement.style.setProperty('--card-title-size', `${sizes.cardTitleSize}px`);
+            document.documentElement.style.setProperty('--card-status-size', `${sizes.cardStatusSize}px`);
+            document.documentElement.style.setProperty('--timeslot-size', `${sizes.timeslotSize}px`);
+            document.documentElement.style.setProperty('--card-message-size', `${sizes.cardMessageSize}px`);
+            document.documentElement.style.setProperty('--guide-text-size', `${sizes.guideTextSize}px`);
+            document.documentElement.style.setProperty('--update-time-size', `${sizes.updateTimeSize}px`);
+        }
+
+        // QRコードトグル
+        function toggleQR(enabled) {
+            CONFIG.qrEnabled = enabled;
+            document.getElementById('qrCode').style.display = enabled ? 'block' : 'none';
+            document.getElementById('btnQrOn').classList.toggle('active', enabled);
+            document.getElementById('btnQrOff').classList.toggle('active', !enabled);
+        }
+
+        // QRサイズ適用
+        function applyQRSize() {
+            const size = document.getElementById('qrSize').value;
+            CONFIG.qrSize = parseInt(size);
+            document.getElementById('qrSizeValue').textContent = `${size}px`;
+
+            const qrImg = document.querySelector('.qr-code img');
+            qrImg.style.width = `${size}px`;
+            qrImg.style.height = `${size}px`;
+        }
+
+        // QR位置設定
+        function setQRPosition(position) {
+            CONFIG.qrPosition = position;
+            const qrCode = document.getElementById('qrCode');
+
+            qrCode.style.top = position.includes('top') ? '20px' : 'auto';
+            qrCode.style.bottom = position.includes('bottom') ? '20px' : 'auto';
+            qrCode.style.left = position.includes('left') ? '20px' : 'auto';
+            qrCode.style.right = position.includes('right') ? '20px' : 'auto';
+        }
+
+        // プリセット読み込み
+        function loadPreset(preset) {
+            const presets = {
+                default: {
+                    dateHeaderSize: 28, cardTitleSize: 20, cardStatusSize: 24,
+                    timeslotSize: 16, cardMessageSize: 18, guideTextSize: 18, updateTimeSize: 14,
+                    qrSize: 120, availableColor: '#2E7D32', unavailableColor: '#DC3545'
+                },
+                large: {
+                    dateHeaderSize: 42, cardTitleSize: 32, cardStatusSize: 36,
+                    timeslotSize: 28, cardMessageSize: 30, guideTextSize: 32, updateTimeSize: 20,
+                    qrSize: 250, availableColor: '#2E7D32', unavailableColor: '#DC3545'
+                },
+                compact: {
+                    dateHeaderSize: 22, cardTitleSize: 16, cardStatusSize: 20,
+                    timeslotSize: 14, cardMessageSize: 14, guideTextSize: 16, updateTimeSize: 12,
+                    qrSize: 100, availableColor: '#2E7D32', unavailableColor: '#DC3545'
+                }
+            };
+
+            const p = presets[preset];
+            if (!p) return;
+
+            document.getElementById('dateHeaderSize').value = p.dateHeaderSize;
+            document.getElementById('cardTitleSize').value = p.cardTitleSize;
+            document.getElementById('cardStatusSize').value = p.cardStatusSize;
+            document.getElementById('timeslotSize').value = p.timeslotSize;
+            document.getElementById('cardMessageSize').value = p.cardMessageSize;
+            document.getElementById('guideTextSize').value = p.guideTextSize;
+            document.getElementById('updateTimeSize').value = p.updateTimeSize;
+            document.getElementById('qrSize').value = p.qrSize;
+            document.getElementById('availableColor').value = p.availableColor;
+            document.getElementById('unavailableColor').value = p.unavailableColor;
+
+            applySize();
+            applyQRSize();
+            applyCustomizations();
+        }
+
+        // 設定エクスポート
+        function exportSettings() {
+            const data = JSON.stringify(CONFIG, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'entrance-display-settings.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 設定インポート
+        function importSettings(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    Object.assign(CONFIG, imported);
+
+                    // UIに反映
+                    document.getElementById('generalTitle').value = CONFIG.generalTitle;
+                    document.getElementById('shiyaTitle').value = CONFIG.shiyaTitle;
+                    document.getElementById('availableMsg').value = CONFIG.availableMsg;
+                    document.getElementById('fullMsg').value = CONFIG.fullMsg;
+                    document.getElementById('guideText').value = CONFIG.guideText;
+                    document.getElementById('availableIcon').value = CONFIG.availableIcon;
+                    document.getElementById('fullIcon').value = CONFIG.fullIcon;
+                    document.getElementById('availableColor').value = CONFIG.availableColor;
+                    document.getElementById('unavailableColor').value = CONFIG.unavailableColor;
+                    document.getElementById('dateHeaderSize').value = CONFIG.dateHeaderSize;
+                    document.getElementById('cardTitleSize').value = CONFIG.cardTitleSize;
+                    document.getElementById('cardStatusSize').value = CONFIG.cardStatusSize;
+                    document.getElementById('timeslotSize').value = CONFIG.timeslotSize;
+                    document.getElementById('cardMessageSize').value = CONFIG.cardMessageSize;
+                    document.getElementById('guideTextSize').value = CONFIG.guideTextSize;
+                    document.getElementById('updateTimeSize').value = CONFIG.updateTimeSize;
+                    document.getElementById('qrSize').value = CONFIG.qrSize;
+
+                    applySize();
+                    applyQRSize();
+                    applyCustomizations();
+
+                    alert('設定をインポートしました');
+                } catch (error) {
+                    alert('設定ファイルの読み込みに失敗しました');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // 本番用コード生成
+        function generateProductionCode() {
+            const css = `
+/* 本番用カスタムスタイル - entrance-display.html に追加 */
+:root {
+    --available-color: ${CONFIG.availableColor};
+    --unavailable-color: ${CONFIG.unavailableColor};
+}
+.date-header { font-size: ${CONFIG.dateHeaderSize}px; }
+.card-title { font-size: ${CONFIG.cardTitleSize}px; }
+.card-status { font-size: ${CONFIG.cardStatusSize}px; }
+.timeslot-pill, .timeslot-more, .timeslot-spacer { font-size: ${CONFIG.timeslotSize}px; }
+.card-message { font-size: ${CONFIG.cardMessageSize}px; }
+.guide-text { font-size: ${CONFIG.guideTextSize}px; }
+.update-time { font-size: ${CONFIG.updateTimeSize}px; }
+.qr-code img { width: ${CONFIG.qrSize}px; height: ${CONFIG.qrSize}px; }
+.reservation-card.available { background: ${CONFIG.availableColor}; }
+.reservation-card.unavailable { background: ${CONFIG.unavailableColor}; }
+`;
+            navigator.clipboard.writeText(css).then(() => {
+                alert('スタイルコードをクリップボードにコピーしました');
+            });
+        }
+
+        // リセット
+        function resetAll() {
+            testState = {
+                generalAvailable: true,
+                shiyaAvailable: true,
+                generalSlots: ['9:00', '9:30', '10:00'],
+                shiyaSlots: ['14:00', '15:00'],
+                testTime: null,
+                testDayOfWeek: null
+            };
+            loadPreset('default');
+            setGeneralStatus(true);
+            setShiyaStatus(true);
+            resetToCurrentTime();
+        }
+
+        // 初期化
+        updateDisplay();
+        updateDateHeader();
+        applySize();
+    </script>
+</body>
+</html>

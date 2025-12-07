@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>玄関モニター - 予約状況</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            position: relative;
+        }
+
+        /* QRコード - 左上固定 */
+        .qr-code {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            z-index: 100;
+        }
+
+        .qr-code img {
+            width: 250px;
+            height: 250px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 日付ヘッダー */
+        .date-header {
+            text-align: center;
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            padding-top: 20px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* カードコンテナ */
+        .cards-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            justify-content: center;
+            padding: 0 20px;
+        }
+
+        /* 予約カード */
+        .reservation-card {
+            border-radius: 20px;
+            padding: 35px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .reservation-card.available {
+            background: #2E7D32;
+            border: 4px solid #1B5E20;
+        }
+
+        .reservation-card.unavailable {
+            background: #DC3545;
+            border: 4px solid #bd2130;
+        }
+
+        .reservation-card.loading {
+            background: #6c757d;
+            border: 4px solid #5a6268;
+        }
+
+        /* カードタイトル */
+        .card-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        /* ステータス表示 */
+        .card-status {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        /* 時間枠コンテナ */
+        .timeslots {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        /* 時間枠ピル */
+        .timeslot-pill {
+            background: white;
+            color: #CC6600;
+            border: 3px solid #CC6600;
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        /* 「のみ」「他」表示 */
+        .timeslot-more {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            padding: 12px 10px;
+        }
+
+        /* スペーサー（中央揃え用） */
+        .timeslot-spacer {
+            visibility: hidden;
+            font-size: 28px;
+            font-weight: bold;
+            padding: 12px 10px;
+        }
+
+        /* カードメッセージ */
+        .card-message {
+            font-size: 30px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        /* サブメッセージ */
+        .card-submessage {
+            font-size: 24px;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+
+        /* 案内テキスト */
+        .guide-text {
+            text-align: center;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            margin: 30px 0;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 更新時刻 */
+        .update-time {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 24px;
+            padding-bottom: 20px;
+        }
+
+        /* エラー表示 */
+        .error-card {
+            background: #6c757d;
+            border: 4px solid #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- QRコード -->
+        <div class="qr-code">
+            <img src="Downloads/QR_fujiminohikari.png" alt="予約QRコード">
+        </div>
+
+        <!-- 日付ヘッダー -->
+        <div class="date-header" id="dateHeader">読み込み中...</div>
+
+        <!-- カードコンテナ -->
+        <div class="cards-container">
+            <!-- 一般予約カード -->
+            <div class="reservation-card loading" id="generalCard">
+                <div class="card-title">一般予約</div>
+                <div class="card-status">読み込み中...</div>
+            </div>
+
+            <!-- 視野予約カード -->
+            <div class="reservation-card loading" id="shiyaCard">
+                <div class="card-title">視野検査予約</div>
+                <div class="card-status">読み込み中...</div>
+            </div>
+        </div>
+
+        <!-- 案内テキスト -->
+        <div class="guide-text">受付窓口またはWEBでご予約出来ます</div>
+
+        <!-- 更新時刻 -->
+        <div class="update-time" id="updateTime"></div>
+    </div>
+
+    <script>
+        // Cloud StorageのURL
+        const GENERAL_API_URL = 'https://storage.googleapis.com/fujimino-ophthalmology-reservations/timeslots.json';
+        const SHIYA_API_URL = 'https://storage.googleapis.com/fujimino-ophthalmology-reservations/shiya-timeslots.json';
+
+        /**
+         * 日付を M/D 形式でフォーマット
+         */
+        function formatDateMD(date) {
+            return `${date.getMonth() + 1}/${date.getDate()}`;
+        }
+
+        /**
+         * 曜日を取得
+         */
+        function getDayOfWeekText(date) {
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            return days[date.getDay()];
+        }
+
+        /**
+         * 日付テキストを計算する関数
+         */
+        function calculateDayText(updateTime) {
+            const now = new Date(updateTime);
+            const dayOfWeek = now.getDay();
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+            const isAfter1830 = (hour > 18) || (hour === 18 && minute >= 30);
+            const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+            if (dayOfWeek === 3) {
+                const thursday = new Date(now);
+                thursday.setDate(thursday.getDate() + 1);
+                return `木曜（${formatDateMD(thursday)}）`;
+            }
+
+            if (isAfter1830) {
+                if (now.getDate() === lastDayOfMonth) {
+                    return '次の診療日';
+                }
+
+                if (dayOfWeek === 2) {
+                    const thursday = new Date(now);
+                    thursday.setDate(thursday.getDate() + 2);
+                    return `木曜（${formatDateMD(thursday)}）`;
+                }
+
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                return `明日（${formatDateMD(tomorrow)}）`;
+            }
+
+            return `本日（${formatDateMD(now)}）`;
+        }
+
+        /**
+         * タイムスタンプをフォーマット
+         */
+        function formatTimestamp(isoString) {
+            const date = new Date(isoString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `更新：${year}/${month}/${day} ${hours}:${minutes}`;
+        }
+
+        /**
+         * 時間枠のHTMLを生成
+         */
+        function generateTimeslotsHtml(slots) {
+            if (!slots || slots.length === 0) {
+                return '';
+            }
+
+            const displaySlots = slots.slice(0, 4);
+            const pillsHtml = displaySlots.map(slot =>
+                `<span class="timeslot-pill">${slot}</span>`
+            ).join('');
+
+            if (slots.length <= 3) {
+                // 1〜3枠: スペーサー + 時間枠 + 「のみ」
+                return `<span class="timeslot-spacer">のみ</span>${pillsHtml}<span class="timeslot-more">のみ</span>`;
+            } else if (slots.length === 4) {
+                // 4枠: 時間枠 + 「のみ」
+                return `${pillsHtml}<span class="timeslot-more">のみ</span>`;
+            } else {
+                // 5枠以上: 時間枠 + 「他」
+                return `${pillsHtml}<span class="timeslot-more">他</span>`;
+            }
+        }
+
+        /**
+         * カードを更新
+         */
+        function updateCard(cardId, data, title) {
+            const card = document.getElementById(cardId);
+            const hasSlots = data.slots && data.slots.length > 0;
+
+            if (hasSlots) {
+                const timeslotsHtml = generateTimeslotsHtml(data.slots);
+                card.className = 'reservation-card available';
+                card.innerHTML = `
+                    <div class="card-title">${title}</div>
+                    <div class="card-status">✅ 空きあり</div>
+                    <div class="timeslots">${timeslotsHtml}</div>
+                    <div class="card-message">に 空きがございます</div>
+                `;
+            } else {
+                let statusText = '😔 満枠です';
+                let submessage = '次の診療日以降でご予約ください';
+
+                if (data.status === 'closed') {
+                    statusText = '😔 休診日です';
+                }
+
+                card.className = 'reservation-card unavailable';
+                card.innerHTML = `
+                    <div class="card-title">${title}</div>
+                    <div class="card-status">${statusText}</div>
+                    <div class="card-submessage">${submessage}</div>
+                `;
+            }
+        }
+
+        /**
+         * エラー表示
+         */
+        function showCardError(cardId, title) {
+            const card = document.getElementById(cardId);
+            card.className = 'reservation-card error-card';
+            card.innerHTML = `
+                <div class="card-title">${title}</div>
+                <div class="card-status">⚠️ 取得エラー</div>
+                <div class="card-submessage">しばらくお待ちください</div>
+            `;
+        }
+
+        /**
+         * データを取得して表示を更新
+         */
+        async function updateDisplay() {
+            let latestUpdateTime = null;
+
+            // 一般予約データを取得
+            try {
+                const generalResponse = await fetch(GENERAL_API_URL + '?t=' + Date.now());
+                if (generalResponse.ok) {
+                    const generalData = await generalResponse.json();
+                    updateCard('generalCard', generalData, '一般予約');
+                    latestUpdateTime = generalData.updatedAt;
+                } else {
+                    showCardError('generalCard', '一般予約');
+                }
+            } catch (error) {
+                console.error('一般予約データ取得エラー:', error);
+                showCardError('generalCard', '一般予約');
+            }
+
+            // 視野予約データを取得
+            try {
+                const shiyaResponse = await fetch(SHIYA_API_URL + '?t=' + Date.now());
+                if (shiyaResponse.ok) {
+                    const shiyaData = await shiyaResponse.json();
+                    updateCard('shiyaCard', shiyaData, '視野検査予約');
+                    if (!latestUpdateTime) {
+                        latestUpdateTime = shiyaData.updatedAt;
+                    }
+                } else {
+                    showCardError('shiyaCard', '視野検査予約');
+                }
+            } catch (error) {
+                console.error('視野予約データ取得エラー:', error);
+                showCardError('shiyaCard', '視野検査予約');
+            }
+
+            // 日付ヘッダーを更新
+            if (latestUpdateTime) {
+                const dayText = calculateDayText(latestUpdateTime);
+                document.getElementById('dateHeader').textContent = dayText;
+                document.getElementById('updateTime').textContent = formatTimestamp(latestUpdateTime);
+            } else {
+                document.getElementById('dateHeader').textContent = '本日';
+                document.getElementById('updateTime').textContent = '更新：--';
+            }
+        }
+
+        // 初回実行
+        updateDisplay();
+
+        // 1分ごとに自動更新
+        setInterval(updateDisplay, 60000);
+    </script>
+</body>
+</html>
