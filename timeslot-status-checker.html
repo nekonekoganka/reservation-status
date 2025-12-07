@@ -260,10 +260,10 @@
     }
 
     .timeline-label {
-      font-size: 10px;
+      font-size: 12px;
       color: #333;
-      font-weight: 600;
-      width: 20px;
+      font-weight: 700;
+      width: 22px;
       text-align: center;
     }
 
@@ -387,6 +387,12 @@
       .timeslots-list {
         grid-template-columns: repeat(2, 1fr);
       }
+
+      /* スマホでドットを小さく */
+      .timeline-dot {
+        width: 12px;
+        height: 12px;
+      }
     }
   </style>
 </head>
@@ -412,12 +418,12 @@
               <div class="timeline-break"></div>
               <!-- ドットはJSで動的に追加 -->
             </div>
-            <div class="timeline-labels">
+            <div class="timeline-labels" id="timeline-labels-general">
               <span class="timeline-label">10</span>
               <span class="timeline-label">11</span>
               <span class="timeline-label">12</span>
               <span class="timeline-label">13</span>
-              <span class="timeline-label"></span>
+              <span class="timeline-label">14</span>
               <span class="timeline-label">15</span>
               <span class="timeline-label">16</span>
               <span class="timeline-label">17</span>
@@ -457,12 +463,12 @@
               <div class="timeline-break"></div>
               <!-- ドットはJSで動的に追加 -->
             </div>
-            <div class="timeline-labels">
+            <div class="timeline-labels" id="timeline-labels-shiya">
               <span class="timeline-label">10</span>
               <span class="timeline-label">11</span>
               <span class="timeline-label">12</span>
               <span class="timeline-label">13</span>
-              <span class="timeline-label"></span>
+              <span class="timeline-label">14</span>
               <span class="timeline-label">15</span>
               <span class="timeline-label">16</span>
               <span class="timeline-label">17</span>
@@ -667,10 +673,12 @@
 
     /**
      * 時間文字列をタイムライン上の位置（%）に変換
-     * 営業時間: 10:00〜18:00（8時間 = 480分）
+     * 営業時間: 10:00〜18:00（通常）または10:00〜18:30（拡張時）
      * 休憩時間: 13:30〜15:00（予約なし）
+     * @param {string} timeStr - 時間文字列（例: "10:00"）
+     * @param {number} endMinutes - 終了時間（分）。デフォルトは18:00（1080分）
      */
-    function timeToPosition(timeStr) {
+    function timeToPosition(timeStr, endMinutes = 18 * 60) {
       const match = timeStr.match(/^(\d{1,2}):(\d{2})/);
       if (!match) return null;
 
@@ -678,10 +686,9 @@
       const minute = parseInt(match[2], 10);
       const totalMinutes = hour * 60 + minute;
 
-      // 営業開始: 10:00 (600分), 営業終了: 18:00 (1080分)
+      // 営業開始: 10:00 (600分)
       const startMinutes = 10 * 60;  // 600
-      const endMinutes = 18 * 60;    // 1080
-      const totalDuration = endMinutes - startMinutes; // 480分
+      const totalDuration = endMinutes - startMinutes;
 
       // 位置を計算（0〜100%）
       const position = ((totalMinutes - startMinutes) / totalDuration) * 100;
@@ -690,6 +697,82 @@
       if (position < 0 || position > 100) return null;
 
       return position;
+    }
+
+    /**
+     * スロットの中で最も遅い時間が18:00より後かどうかを判定
+     * @param {string[]} slots - 時間枠の配列
+     * @returns {boolean} 18:00より後のスロットがあるかどうか
+     */
+    function hasLateSlots(slots) {
+      if (!slots || slots.length === 0) return false;
+
+      for (const slot of slots) {
+        const match = slot.match(/^(\d{1,2}):(\d{2})/);
+        if (match) {
+          const hour = parseInt(match[1], 10);
+          const minute = parseInt(match[2], 10);
+          if (hour > 18 || (hour === 18 && minute > 0)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    /**
+     * タイムラインバーのスタイルを更新（18:30対応）
+     * @param {string} type - 'general' または 'shiya'
+     * @param {boolean} extended - 18:30まで拡張するかどうか
+     */
+    function updateTimelineStyle(type, extended) {
+      const barElement = document.getElementById(`timeline-bar-${type}`);
+      const labelsElement = document.getElementById(`timeline-labels-${type}`);
+      const breakElement = barElement.querySelector('.timeline-break');
+
+      if (extended) {
+        // 10:00〜18:30 = 8.5時間 = 510分
+        // 休憩開始: 13:30 = 210分後 = 210/510 = 41.18%
+        // 休憩終了: 15:00 = 300分後 = 300/510 = 58.82%
+        // 休憩幅: 58.82% - 41.18% = 17.64%
+        barElement.style.background = 'linear-gradient(to right, #e8f4fc 0%, #e8f4fc 41.18%, #f0f0f0 41.18%, #f0f0f0 58.82%, #fdf2e9 58.82%, #fdf2e9 100%)';
+        breakElement.style.left = '41.18%';
+        breakElement.style.width = '17.64%';
+
+        // ラベルを更新（18:30を追加）
+        labelsElement.innerHTML = `
+          <span class="timeline-label">10</span>
+          <span class="timeline-label">11</span>
+          <span class="timeline-label">12</span>
+          <span class="timeline-label">13</span>
+          <span class="timeline-label">14</span>
+          <span class="timeline-label">15</span>
+          <span class="timeline-label">16</span>
+          <span class="timeline-label">17</span>
+          <span class="timeline-label">18</span>
+          <span class="timeline-label" style="font-size: 10px;">:30</span>
+        `;
+      } else {
+        // 通常時: 10:00〜18:00 = 8時間 = 480分
+        // 休憩開始: 13:30 = 210分後 = 210/480 = 43.75%
+        // 休憩終了: 15:00 = 300分後 = 300/480 = 62.5%
+        barElement.style.background = 'linear-gradient(to right, #e8f4fc 0%, #e8f4fc 43.75%, #f0f0f0 43.75%, #f0f0f0 62.5%, #fdf2e9 62.5%, #fdf2e9 100%)';
+        breakElement.style.left = '43.75%';
+        breakElement.style.width = '18.75%';
+
+        // ラベルを通常に戻す
+        labelsElement.innerHTML = `
+          <span class="timeline-label">10</span>
+          <span class="timeline-label">11</span>
+          <span class="timeline-label">12</span>
+          <span class="timeline-label">13</span>
+          <span class="timeline-label">14</span>
+          <span class="timeline-label">15</span>
+          <span class="timeline-label">16</span>
+          <span class="timeline-label">17</span>
+          <span class="timeline-label">18</span>
+        `;
+      }
     }
 
     /**
@@ -702,18 +785,29 @@
       const barElement = document.getElementById(`timeline-bar-${type}`);
       if (!barElement) return;
 
+      // 18:00より後のスロットがあるか判定
+      const extended = hasLateSlots(slots);
+      const endMinutes = extended ? 18 * 60 + 30 : 18 * 60;
+
+      // タイムラインのスタイルを更新
+      updateTimelineStyle(type, extended);
+
+      // 休憩時間帯の位置を計算
+      const breakStart = timeToPosition('13:30', endMinutes);
+      const breakEnd = timeToPosition('15:00', endMinutes);
+
       // 既存のドットを削除（休憩ラベルは残す）
       const existingDots = barElement.querySelectorAll('.timeline-dot');
       existingDots.forEach(dot => dot.remove());
 
       // 各時間枠にドットを追加
       slots.forEach(slot => {
-        const position = timeToPosition(slot);
+        const position = timeToPosition(slot, endMinutes);
         if (position === null) return;
 
-        // 休憩時間帯（13:30〜15:00 = 43.75%〜62.5%）はスキップ
+        // 休憩時間帯はスキップ
         // ※実際には休憩時間に予約は入らないはずだが、念のため
-        if (position >= 43.75 && position <= 62.5) return;
+        if (position >= breakStart && position <= breakEnd) return;
 
         const dot = document.createElement('div');
         dot.className = `timeline-dot ${type}`;
