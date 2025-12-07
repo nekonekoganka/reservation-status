@@ -1,0 +1,36 @@
+# 環境変数・機密情報
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+credentials.json
+service-account.json
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Android
+android-reservation-status/.gradle/
+android-reservation-status/app/build/
+android-reservation-status/build/
+android-reservation-status/local.properties
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ログ
+*.log
+logs/
