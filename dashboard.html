@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>予約傾向ダッシュボード</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .control-group input, .control-group select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .control-group input:focus, .control-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .preset-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .preset-btn {
+            padding: 8px 15px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .preset-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .stat-card .icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .stat-card .label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .stat-card.general { border-top: 4px solid #4CAF50; }
+        .stat-card.shiya { border-top: 4px solid #2196F3; }
+        .stat-card.total { border-top: 4px solid #FF9800; }
+        .stat-card.trend { border-top: 4px solid #9C27B0; }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 650px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .chart-card h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: #666;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f0f0f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .no-data {
+            text-align: center;
+            color: #999;
+            padding: 50px;
+            font-size: 1.1em;
+        }
+
+        .data-info {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .data-info h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th, .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .legend-inline {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        .legend-color.general { background: #4CAF50; }
+        .legend-color.shiya { background: #2196F3; }
+
+        footer {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            margin-top: 30px;
+            font-size: 0.9em;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 予約傾向ダッシュボード</h1>
+            <p>一般予約・視野予約の傾向を分析</p>
+        </header>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>期間:</label>
+                <input type="date" id="startDate">
+                <span>〜</span>
+                <input type="date" id="endDate">
+            </div>
+
+            <div class="preset-btns">
+                <button class="preset-btn" data-days="7">1週間</button>
+                <button class="preset-btn active" data-days="30">1ヶ月</button>
+                <button class="preset-btn" data-days="90">3ヶ月</button>
+                <button class="preset-btn" data-days="365">1年</button>
+            </div>
+
+            <button class="btn" id="loadBtn" onclick="loadData()">
+                📥 データ読み込み
+            </button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card general">
+                <div class="icon">🏥</div>
+                <div class="value" id="statGeneralAvg">--</div>
+                <div class="label">一般予約 平均空き枠数</div>
+            </div>
+            <div class="stat-card shiya">
+                <div class="icon">👁️</div>
+                <div class="value" id="statShiyaAvg">--</div>
+                <div class="label">視野予約 平均空き枠数</div>
+            </div>
+            <div class="stat-card total">
+                <div class="icon">📈</div>
+                <div class="value" id="statTotalRecords">--</div>
+                <div class="label">総データ件数</div>
+            </div>
+            <div class="stat-card trend">
+                <div class="icon">📅</div>
+                <div class="value" id="statBusiestDay">--</div>
+                <div class="label">最も混雑する曜日</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>📅 曜日別の平均空き枠数</h3>
+                <div class="legend-inline">
+                    <div class="legend-item"><div class="legend-color general"></div>一般予約</div>
+                    <div class="legend-item"><div class="legend-color shiya"></div>視野予約</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="dayOfWeekChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>⏰ 時間帯別の平均空き枠数</h3>
+                <div class="legend-inline">
+                    <div class="legend-item"><div class="legend-color general"></div>一般予約</div>
+                    <div class="legend-item"><div class="legend-color shiya"></div>視野予約</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>📈 日別推移（一般予約）</h3>
+                <div class="chart-container">
+                    <canvas id="dailyGeneralChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>📈 日別推移（視野予約）</h3>
+                <div class="chart-container">
+                    <canvas id="dailyShiyaChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-info">
+            <h3>📋 最新データ一覧</h3>
+            <div id="recentDataContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span>データを読み込んでください</span>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>ふじみの眼科 予約傾向ダッシュボード v1.0</p>
+            <p>データは1分ごとに更新されます（Cloud Run稼働時）</p>
+        </footer>
+    </div>
+
+    <script>
+        // Cloud Storage のベースURL
+        const STORAGE_BASE = 'https://storage.googleapis.com/fujimino-ophthalmology-reservations';
+        const GENERAL_HISTORY = `${STORAGE_BASE}/history/general`;
+        const SHIYA_HISTORY = `${STORAGE_BASE}/history/shiya`;
+
+        // チャートインスタンス
+        let dayOfWeekChart = null;
+        let hourlyChart = null;
+        let dailyGeneralChart = null;
+        let dailyShiyaChart = null;
+
+        // データ格納
+        let generalData = [];
+        let shiyaData = [];
+
+        // 曜日名
+        const DAY_NAMES = ['日', '月', '火', '水', '木', '金', '土'];
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            // デフォルトの日付範囲を設定（過去30日）
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - 30);
+
+            document.getElementById('endDate').value = formatDate(endDate);
+            document.getElementById('startDate').value = formatDate(startDate);
+
+            // プリセットボタンのイベント
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    const days = parseInt(btn.dataset.days);
+                    const end = new Date();
+                    const start = new Date();
+                    start.setDate(start.getDate() - days);
+
+                    document.getElementById('endDate').value = formatDate(end);
+                    document.getElementById('startDate').value = formatDate(start);
+                });
+            });
+
+            // 初回データ読み込み
+            loadData();
+        });
+
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        async function fetchDateData(baseUrl, dateStr) {
+            try {
+                const url = `${baseUrl}/${dateStr}.json?t=${Date.now()}`;
+                const response = await fetch(url);
+                if (!response.ok) {
+                    return null;
+                }
+                const data = await response.json();
+                return data.map(entry => ({
+                    ...entry,
+                    date: dateStr
+                }));
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function loadData() {
+            const loadBtn = document.getElementById('loadBtn');
+            loadBtn.disabled = true;
+            loadBtn.textContent = '読み込み中...';
+
+            const startDateStr = document.getElementById('startDate').value;
+            const endDateStr = document.getElementById('endDate').value;
+
+            if (!startDateStr || !endDateStr) {
+                showError('開始日と終了日を指定してください');
+                loadBtn.disabled = false;
+                loadBtn.textContent = '📥 データ読み込み';
+                return;
+            }
+
+            const startDate = new Date(startDateStr);
+            const endDate = new Date(endDateStr);
+
+            if (startDate > endDate) {
+                showError('開始日は終了日より前に設定してください');
+                loadBtn.disabled = false;
+                loadBtn.textContent = '📥 データ読み込み';
+                return;
+            }
+
+            // 日付リストを生成
+            const dateList = [];
+            const currentDate = new Date(startDate);
+            while (currentDate <= endDate) {
+                dateList.push(formatDate(currentDate));
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            // 並列でデータ取得
+            const generalPromises = dateList.map(d => fetchDateData(GENERAL_HISTORY, d));
+            const shiyaPromises = dateList.map(d => fetchDateData(SHIYA_HISTORY, d));
+
+            try {
+                const [generalResults, shiyaResults] = await Promise.all([
+                    Promise.all(generalPromises),
+                    Promise.all(shiyaPromises)
+                ]);
+
+                generalData = generalResults.filter(d => d !== null).flat();
+                shiyaData = shiyaResults.filter(d => d !== null).flat();
+
+                if (generalData.length === 0 && shiyaData.length === 0) {
+                    showError('選択期間にデータがありません。Cloud Runがデータを記録し始めるまでお待ちください。');
+                } else {
+                    updateStats();
+                    updateCharts();
+                    updateRecentData();
+                }
+            } catch (e) {
+                showError('データの読み込みに失敗しました: ' + e.message);
+            }
+
+            loadBtn.disabled = false;
+            loadBtn.textContent = '📥 データ読み込み';
+        }
+
+        function updateStats() {
+            // 一般予約の平均
+            if (generalData.length > 0) {
+                const avg = generalData.reduce((sum, d) => sum + d.count, 0) / generalData.length;
+                document.getElementById('statGeneralAvg').textContent = avg.toFixed(1);
+            }
+
+            // 視野予約の平均
+            if (shiyaData.length > 0) {
+                const avg = shiyaData.reduce((sum, d) => sum + d.count, 0) / shiyaData.length;
+                document.getElementById('statShiyaAvg').textContent = avg.toFixed(1);
+            }
+
+            // 総データ件数
+            const total = generalData.length + shiyaData.length;
+            document.getElementById('statTotalRecords').textContent = total.toLocaleString();
+
+            // 最も混雑する曜日（空き枠が少ない）
+            const dayStats = {};
+            DAY_NAMES.forEach((_, i) => {
+                dayStats[i] = { total: 0, count: 0 };
+            });
+
+            [...generalData, ...shiyaData].forEach(d => {
+                const date = new Date(d.date);
+                const day = date.getDay();
+                dayStats[day].total += d.count;
+                dayStats[day].count++;
+            });
+
+            let busiestDay = 0;
+            let lowestAvg = Infinity;
+            Object.entries(dayStats).forEach(([day, stat]) => {
+                if (stat.count > 0) {
+                    const avg = stat.total / stat.count;
+                    if (avg < lowestAvg) {
+                        lowestAvg = avg;
+                        busiestDay = parseInt(day);
+                    }
+                }
+            });
+
+            document.getElementById('statBusiestDay').textContent = DAY_NAMES[busiestDay] + '曜日';
+        }
+
+        function updateCharts() {
+            updateDayOfWeekChart();
+            updateHourlyChart();
+            updateDailyCharts();
+        }
+
+        function updateDayOfWeekChart() {
+            const generalByDay = {};
+            const shiyaByDay = {};
+
+            DAY_NAMES.forEach((_, i) => {
+                generalByDay[i] = { total: 0, count: 0 };
+                shiyaByDay[i] = { total: 0, count: 0 };
+            });
+
+            generalData.forEach(d => {
+                const day = new Date(d.date).getDay();
+                generalByDay[day].total += d.count;
+                generalByDay[day].count++;
+            });
+
+            shiyaData.forEach(d => {
+                const day = new Date(d.date).getDay();
+                shiyaByDay[day].total += d.count;
+                shiyaByDay[day].count++;
+            });
+
+            const generalAvgs = DAY_NAMES.map((_, i) =>
+                generalByDay[i].count > 0 ? generalByDay[i].total / generalByDay[i].count : 0
+            );
+            const shiyaAvgs = DAY_NAMES.map((_, i) =>
+                shiyaByDay[i].count > 0 ? shiyaByDay[i].total / shiyaByDay[i].count : 0
+            );
+
+            const ctx = document.getElementById('dayOfWeekChart').getContext('2d');
+
+            if (dayOfWeekChart) {
+                dayOfWeekChart.destroy();
+            }
+
+            dayOfWeekChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: DAY_NAMES.map(d => d + '曜'),
+                    datasets: [
+                        {
+                            label: '一般予約',
+                            data: generalAvgs,
+                            backgroundColor: 'rgba(76, 175, 80, 0.7)',
+                            borderColor: 'rgba(76, 175, 80, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '視野予約',
+                            data: shiyaAvgs,
+                            backgroundColor: 'rgba(33, 150, 243, 0.7)',
+                            borderColor: 'rgba(33, 150, 243, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '平均空き枠数'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateHourlyChart() {
+            const hours = [];
+            for (let i = 8; i <= 18; i++) {
+                hours.push(i);
+            }
+
+            const generalByHour = {};
+            const shiyaByHour = {};
+
+            hours.forEach(h => {
+                generalByHour[h] = { total: 0, count: 0 };
+                shiyaByHour[h] = { total: 0, count: 0 };
+            });
+
+            generalData.forEach(d => {
+                if (d.time) {
+                    const hour = parseInt(d.time.split(':')[0]);
+                    if (generalByHour[hour]) {
+                        generalByHour[hour].total += d.count;
+                        generalByHour[hour].count++;
+                    }
+                }
+            });
+
+            shiyaData.forEach(d => {
+                if (d.time) {
+                    const hour = parseInt(d.time.split(':')[0]);
+                    if (shiyaByHour[hour]) {
+                        shiyaByHour[hour].total += d.count;
+                        shiyaByHour[hour].count++;
+                    }
+                }
+            });
+
+            const generalAvgs = hours.map(h =>
+                generalByHour[h].count > 0 ? generalByHour[h].total / generalByHour[h].count : 0
+            );
+            const shiyaAvgs = hours.map(h =>
+                shiyaByHour[h].count > 0 ? shiyaByHour[h].total / shiyaByHour[h].count : 0
+            );
+
+            const ctx = document.getElementById('hourlyChart').getContext('2d');
+
+            if (hourlyChart) {
+                hourlyChart.destroy();
+            }
+
+            hourlyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: hours.map(h => h + '時'),
+                    datasets: [
+                        {
+                            label: '一般予約',
+                            data: generalAvgs,
+                            borderColor: 'rgba(76, 175, 80, 1)',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: '視野予約',
+                            data: shiyaAvgs,
+                            borderColor: 'rgba(33, 150, 243, 1)',
+                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '平均空き枠数'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateDailyCharts() {
+            // 日別にデータを集計
+            const generalByDate = {};
+            const shiyaByDate = {};
+
+            generalData.forEach(d => {
+                if (!generalByDate[d.date]) {
+                    generalByDate[d.date] = { total: 0, count: 0 };
+                }
+                generalByDate[d.date].total += d.count;
+                generalByDate[d.date].count++;
+            });
+
+            shiyaData.forEach(d => {
+                if (!shiyaByDate[d.date]) {
+                    shiyaByDate[d.date] = { total: 0, count: 0 };
+                }
+                shiyaByDate[d.date].total += d.count;
+                shiyaByDate[d.date].count++;
+            });
+
+            // ソートされた日付リスト
+            const allDates = [...new Set([
+                ...Object.keys(generalByDate),
+                ...Object.keys(shiyaByDate)
+            ])].sort();
+
+            // 一般予約チャート
+            const generalCtx = document.getElementById('dailyGeneralChart').getContext('2d');
+            if (dailyGeneralChart) {
+                dailyGeneralChart.destroy();
+            }
+
+            dailyGeneralChart = new Chart(generalCtx, {
+                type: 'line',
+                data: {
+                    labels: allDates,
+                    datasets: [{
+                        label: '平均空き枠数',
+                        data: allDates.map(date =>
+                            generalByDate[date]
+                                ? generalByDate[date].total / generalByDate[date].count
+                                : null
+                        ),
+                        borderColor: 'rgba(76, 175, 80, 1)',
+                        backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                        fill: true,
+                        tension: 0.2,
+                        spanGaps: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxTicksLimit: 10
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '平均空き枠数'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 視野予約チャート
+            const shiyaCtx = document.getElementById('dailyShiyaChart').getContext('2d');
+            if (dailyShiyaChart) {
+                dailyShiyaChart.destroy();
+            }
+
+            dailyShiyaChart = new Chart(shiyaCtx, {
+                type: 'line',
+                data: {
+                    labels: allDates,
+                    datasets: [{
+                        label: '平均空き枠数',
+                        data: allDates.map(date =>
+                            shiyaByDate[date]
+                                ? shiyaByDate[date].total / shiyaByDate[date].count
+                                : null
+                        ),
+                        borderColor: 'rgba(33, 150, 243, 1)',
+                        backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                        fill: true,
+                        tension: 0.2,
+                        spanGaps: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxTicksLimit: 10
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '平均空き枠数'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateRecentData() {
+            const container = document.getElementById('recentDataContainer');
+
+            // 最新20件を表示
+            const allData = [
+                ...generalData.map(d => ({ ...d, type: '一般' })),
+                ...shiyaData.map(d => ({ ...d, type: '視野' }))
+            ].sort((a, b) => {
+                const dateCompare = b.date.localeCompare(a.date);
+                if (dateCompare !== 0) return dateCompare;
+                return (b.time || '').localeCompare(a.time || '');
+            }).slice(0, 20);
+
+            if (allData.length === 0) {
+                container.innerHTML = '<div class="no-data">データがありません</div>';
+                return;
+            }
+
+            let html = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>日付</th>
+                            <th>時刻</th>
+                            <th>種別</th>
+                            <th>空き枠数</th>
+                            <th>ステータス</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            allData.forEach(d => {
+                const typeColor = d.type === '一般' ? '#4CAF50' : '#2196F3';
+                html += `
+                    <tr>
+                        <td>${d.date}</td>
+                        <td>${d.time || '-'}</td>
+                        <td><span style="color: ${typeColor}; font-weight: 600;">${d.type}</span></td>
+                        <td>${d.count}</td>
+                        <td>${d.status || '-'}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
