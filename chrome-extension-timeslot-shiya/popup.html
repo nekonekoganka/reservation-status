@@ -31,10 +31,40 @@
       align-items: center;
       gap: 12px;
       margin-bottom: 12px;
+      position: relative;
     }
 
     .icon-wrapper {
       flex-shrink: 0;
+    }
+
+    .checker-link {
+      position: absolute;
+      top: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #666;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .checker-link:hover {
+      background: #006633;
+      border-color: #006633;
+      color: white;
+    }
+
+    .checker-link-icon {
+      font-size: 12px;
     }
 
     canvas {
@@ -194,6 +224,10 @@
         <div id="status-text" class="status-text">読み込み中...</div>
         <div id="day-text" class="day-text"></div>
       </div>
+      <a id="checker-link" class="checker-link" href="#" title="予約状況チェッカーを開く">
+        <span class="checker-link-icon">📊</span>
+        <span>チェッカーへ移動</span>
+      </a>
     </div>
 
     <!-- 時間枠リスト -->
