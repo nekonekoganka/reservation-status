@@ -367,11 +367,53 @@
       to { transform: rotate(360deg); }
     }
 
-    /* PC表示: 時間ラベルを大きく */
+    /* PC表示: 2カラムレイアウト */
     @media (min-width: 601px) {
+      .container {
+        max-width: 900px;
+      }
+
+      .cards {
+        flex-direction: row;
+        gap: 16px;
+      }
+
+      .card-wrapper {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .card {
+        cursor: default;
+      }
+
+      .card:hover {
+        transform: none;
+      }
+
+      .card:active {
+        transform: none;
+      }
+
+      /* 時間枠リストを常に表示 */
+      .timeslots-container {
+        max-height: 2000px !important;
+        margin-top: 8px;
+      }
+
+      /* 展開インジケータを非表示 */
+      .expand-indicator {
+        display: none !important;
+      }
+
       .timeline-label {
         font-size: 18px;
         width: 28px;
+      }
+
+      /* 時間枠グリッドを2列に */
+      .timeslots-list {
+        grid-template-columns: repeat(2, 1fr);
       }
     }
 
