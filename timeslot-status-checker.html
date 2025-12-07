@@ -417,6 +417,109 @@
       }
     }
 
+    /* 壁掛けモード: 大画面用（1600px以上） */
+    @media (min-width: 1600px) {
+      .container {
+        max-width: 1800px;
+        padding: 24px;
+      }
+
+      .cards {
+        gap: 32px;
+      }
+
+      .card {
+        padding: 24px;
+        border-radius: 24px;
+      }
+
+      /* カードタイトル */
+      .card-title {
+        font-size: 28px;
+        margin-bottom: 8px;
+      }
+
+      /* ステータス（残り○枠） */
+      .status {
+        font-size: 56px;
+      }
+
+      /* 日付テキスト */
+      .day-text {
+        font-size: 40px;
+        margin-top: 8px;
+      }
+
+      /* アイコンキャンバス */
+      canvas {
+        width: 160px !important;
+        height: 160px !important;
+      }
+
+      .card-header {
+        gap: 24px;
+      }
+
+      /* タイムラインバー */
+      .timeline-container {
+        margin-top: 20px;
+        padding: 12px 8px;
+      }
+
+      .timeline-bar {
+        height: 40px;
+        border-radius: 20px;
+      }
+
+      .timeline-dot {
+        width: 24px;
+        height: 24px;
+        border-width: 3px;
+      }
+
+      .timeline-label {
+        font-size: 28px;
+        width: 36px;
+      }
+
+      .timeline-labels {
+        margin-top: 8px;
+      }
+
+      /* 時間枠リスト */
+      .timeslots-container {
+        margin-top: 16px;
+      }
+
+      .timeslots-list {
+        padding: 12px;
+        gap: 12px;
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .timeslot-item {
+        padding: 16px 12px;
+        font-size: 40px;
+        border-radius: 12px;
+        border-width: 2px;
+      }
+
+      /* フッター */
+      .footer {
+        margin-top: 20px;
+      }
+
+      .update-time {
+        font-size: 32px;
+      }
+
+      .refresh-btn {
+        padding: 16px 32px;
+        font-size: 20px;
+        border-radius: 30px;
+      }
+    }
+
     @media (max-width: 600px) {
       body {
         padding: 8px;
