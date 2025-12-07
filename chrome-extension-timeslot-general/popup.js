@@ -3,10 +3,19 @@
 let countdownInterval = null;
 let currentSlots = [];
 
+// 予約状況チェッカーのURL
+const CHECKER_URL = 'https://nekonekoganka.github.io/reservation-status/timeslot-status-checker.html';
+
 // 初期化
 document.addEventListener('DOMContentLoaded', async () => {
   await loadStatus();
   startCountdown();
+
+  // チェッカーへのリンク
+  document.getElementById('checker-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: CHECKER_URL });
+  });
 
   // 更新ボタン
   document.getElementById('refresh-btn').addEventListener('click', async () => {
