@@ -8,45 +8,31 @@
 
 ## 🔗 クイックリンク集
 
-### 📱 予約状況チェッカー
-- **[予約状況チェッカー（時間枠対応版）](https://nekonekoganka.github.io/reservation-status/timeslot-status-checker.html)** 🆕
-  - 一般予約と視野予約の枠数を数字で表示
+### 📱 予約状況チェッカー（メイン）
+- **[予約状況チェッカー](https://nekonekoganka.github.io/reservation-status/timeslot-status-checker.html)** ⭐推奨
+  - 一般予約と視野予約を1画面で確認
+  - **スマホモード**（800px以下）: コンパクトなカード表示
+  - **壁掛けモード**（801px以上）: vw単位で自動スケール、クリニック入口用
+  - 2本構成タイムラインバー（午前10〜13時/午後15〜18時）
+  - 空き枠を白抜きドット○で可視化
   - タップで空き時間の詳細リスト表示
-  - モバイルフレンドリー
 
-### 🖥️ タイムスロット表示システム（時間枠表示）
+### 🖥️ タイムスロット表示（iframe埋め込み用）
 
 #### 一般予約
-- **[タイムスロット表示（一般）](https://nekonekoganka.github.io/reservation-status/timeslot-display.html)** 🆕
+- **[タイムスロット表示（一般）](https://nekonekoganka.github.io/reservation-status/timeslot-display.html)**
   - 空き時間枠を「・」区切りで表示
   - デバッグパネルで表示数をカスタマイズ可能（Dキー）
-- **[デバッグページ](https://nekonekoganka.github.io/reservation-status/timeslot-display-test.html)**
 
 #### 視野予約
-- **[タイムスロット表示（視野）](https://nekonekoganka.github.io/reservation-status/timeslot-display-shiya.html)** 🆕
+- **[タイムスロット表示（視野）](https://nekonekoganka.github.io/reservation-status/timeslot-display-shiya.html)**
   - 視野予約の空き時間枠を表示
   - デバッグパネルで表示数をカスタマイズ可能（Dキー）
-- **[デバッグページ](https://nekonekoganka.github.io/reservation-status/timeslot-display-test-shiya.html)**
-
-### 📊 全画面ディスプレイ（クリニック入口用）
-
-#### 一般予約
-- **[全画面ディスプレイ（一般）](https://nekonekoganka.github.io/reservation-status/display.html)**
-- **[デバッグページ](https://nekonekoganka.github.io/reservation-status/display-test.html)**
-
-#### 視野予約
-- **[全画面ディスプレイ（視野）](https://nekonekoganka.github.io/reservation-status/display-shiya.html)**
-- **[デバッグページ](https://nekonekoganka.github.io/reservation-status/display-test-shiya.html)**
-
-#### 統合ディスプレイ
-- **[全画面ディスプレイ（統合）](https://nekonekoganka.github.io/reservation-status/display-combined.html)**
-  - 一般予約+視野予約の統合判定
-- **[デバッグページ](https://nekonekoganka.github.io/reservation-status/display-test-combined.html)**
 
 ### 🏷️ バナー表示（ホームページ埋め込み用）
 
 - **[タイムスロットバナー（一般）](https://nekonekoganka.github.io/reservation-status/timeslot-banner.html)**
-  - 残り枠数+具体的な時間枠を表示（例：10:00  11:00  14:00  ほか）
+  - 残り枠数+具体的な時間枠を表示（例：[10:00] [11:00] [14:00] ほか）
   - 日付表示付き（例：本日（12/6））
   - Cloud Storageから取得
 
@@ -54,20 +40,17 @@
 
 ## 📌 主な機能
 
-1. **Chrome拡張機能（3種類）**
+1. **予約状況チェッカー（メイン）** - スマホ/壁掛けの2モード対応
+   - 2本構成タイムラインバー（午前/午後）
+   - 白抜きドットで空き枠を可視化
+   - 動的ラベル拡張（13時台/18時台の枠がある場合）
+2. **Chrome拡張機能（3種類）**
    - **予約枠数表示拡張機能** - タスクバーに枠数を数字で表示（一般・視野）
    - ディスプレイ自動リロード拡張機能
-2. **Docker自動化システム** - Cloud Runで自動実行（タイムスロット抽出）
-3. **タイムスロット表示システム** - 空き時間枠を詳細に表示
-4. **予約状況チェッカー** - モバイル対応、枠数+詳細リスト表示
+3. **Docker自動化システム** - Cloud Runで自動実行（タイムスロット抽出）
+4. **タイムスロット表示システム** - 空き時間枠を詳細に表示（iframe埋め込み用）
 5. **GitHub Pagesバナー** - ホームページに埋め込み可能なバナー
-6. **全画面ディスプレイ** - レスポンシブ対応・アイコン表示（⭕/😔）・バナー表示・QRコード表示
-7. **高機能デバッグページ** - 10種類のタブで完全カスタマイズ可能
-   - テキスト・アイコン・色・サイズ・レイアウト・バナー・QRコード・アニメーション・背景・設定
-   - プリセット管理（5スロット）・デフォルト設定保存・エクスポート/インポート
-   - フルスクリーンモード・トップバー2段構成・フローティングボタン
-   - **背景点滅機能**: 通行人訴求に最適な3つのモード（明るく/暗く/白フラッシュ）+ 細かい速度調整
-8. **曜日・時間対応** - 火曜18:30以降は木曜、水曜は木曜をチェック
+6. **曜日・時間対応** - 火曜18:30以降は木曜、水曜は木曜をチェック
 
 ---
 
@@ -75,25 +58,19 @@
 
 ```
 reservation-status/
-├── timeslot-banner.html        # 一般予約: タイムスロットバナー（時間枠表示版）
-├── display.html                # 一般予約: 全画面ディスプレイ用HTML
-├── display-test.html           # 一般予約: デバッグ用テストページ
-├── timeslot-display.html       # 一般予約: 時間枠を抽出して表示
-├── display-shiya.html          # 視野予約: 全画面ディスプレイ用HTML
-├── display-test-shiya.html     # 視野予約: デバッグ用テストページ
-├── timeslot-display-shiya.html # 視野予約: 時間枠を抽出して表示
-├── display-combined.html       # 統合ディスプレイ: 一般+視野の統合判定表示
-├── display-test-combined.html  # 統合ディスプレイ: デバッグ用テストページ
-├── timeslot-status-checker.html # 予約状況チェッカー（時間枠対応版）
-├── Downloads/                  # バナー用画像ファイル・設定ファイル
-├── docs/                       # ドキュメント
-│   └── handover-to-claude-code.md  # システム全体の引き継ぎ資料
-├── chrome-extension-auto-reload/   # Chrome拡張機能（ディスプレイ自動リロード）
+├── timeslot-status-checker.html    # ⭐メイン: 予約状況チェッカー（スマホ/壁掛け2モード）
+├── timeslot-banner.html            # バナー: タイムスロット表示（iframe埋め込み用）
+├── timeslot-display.html           # 一般予約: 時間枠を抽出して表示
+├── timeslot-display-shiya.html     # 視野予約: 時間枠を抽出して表示
 ├── chrome-extension-timeslot-general/  # Chrome拡張機能（一般予約枠数表示）
 ├── chrome-extension-timeslot-shiya/    # Chrome拡張機能（視野予約枠数表示）
+├── chrome-extension-auto-reload/   # Chrome拡張機能（ディスプレイ自動リロード）
 ├── chrome-web-store/           # Chrome Web Store公開用ファイル
 ├── docker-timeslot-checker/    # 一般予約: タイムスロット抽出システム（Cloud Run）
-└── docker-timeslot-checker-shiya/  # 視野予約: タイムスロット抽出システム（Cloud Run）
+├── docker-timeslot-checker-shiya/  # 視野予約: タイムスロット抽出システム（Cloud Run）
+├── docs/                       # ドキュメント
+│   └── handover-to-claude-code.md  # システム全体の引き継ぎ資料
+└── Downloads/                  # バナー用画像ファイル・設定ファイル
 ```
 
 ---
@@ -213,12 +190,6 @@ GitHub Pages（バナー・ディスプレイ・チェッカー）
 - **祝日:** 営業しています
 - **年末年始休業:** 12月31日〜1月3日
 
-### 全画面ディスプレイのバナー表示
-
-- **営業時間前:** 8:00-9:59（営業日のみ）「🕐 10時に窓口が開きます　お待ち下さい」
-- **昼休み:** 13:30-14:59（営業日のみ）「🕐 昼休み中　午後３時より診療再開」
-- **水曜日:** バナー表示なし（休診日）
-
 ---
 
 ## ⚙️ 設定
@@ -273,7 +244,58 @@ const FILE_NAME_SHIYA = 'timeslots-shiya.json';
 
 ## 🆕 最近のアップデート（技術的な改善履歴）
 
-### 2025年12月6日 - 旧システム削除とバナーUI改善 🆕
+### 2025年12月7日 - タイムラインバー2本構成と白抜きドット 🆕
+
+#### 📊 タイムラインバーの大幅改善
+
+**概要:**
+予約状況チェッカーとChrome拡張機能のタイムラインバーを、より見やすい2本構成（午前/午後）に変更し、ドットを白抜きスタイルに統一しました。
+
+**1. 2本構成タイムラインバー**
+```
+午前バー: 10:00〜13:00（13時台の枠があれば14:00まで拡張）
+午後バー: 15:00〜18:00（18時台の枠があれば18:30まで拡張）
+```
+- 午前は青系（#e8f4fc）、午後はオレンジ系（#fdf2e9）の背景
+- 動的ラベル拡張機能で遅い時間帯も対応
+
+**2. 白抜きドット**
+```css
+background: white;
+border: 3px solid [テーマカラー];
+```
+- 白い中心＋太いテーマカラー枠線
+- 「空きがある」ことを視覚的に表現
+- 一般予約: オレンジ（#CC6600）、視野予約: 緑（#006633）
+
+**3. 適用範囲**
+- `timeslot-status-checker.html` - メインの予約状況チェッカー
+- Chrome拡張機能（一般・視野）のポップアップ
+
+**変更ファイル:**
+- `timeslot-status-checker.html`
+- `chrome-extension-timeslot-general/popup.html`, `popup.js`
+- `chrome-extension-timeslot-shiya/popup.html`, `popup.js`
+
+---
+
+### 2025年12月6日 - 予約状況チェッカー2モード構成
+
+**概要:**
+予約状況チェッカーを、スマホモード（800px以下）と壁掛けモード（801px以上）の2モード構成に簡素化しました。これにより、旧来の全画面ディスプレイ（display.html等）は不要になりました。
+
+**スマホモード（800px以下）:**
+- max-width: 700pxのコンパクトなカード表示
+- タップで詳細リスト展開
+
+**壁掛けモード（801px以上）:**
+- vw単位で自動スケール
+- クリニック入口のディスプレイに最適
+- 2カラムレイアウト（一般/視野を横並び）
+
+---
+
+### 2025年12月6日 - 旧システム削除とバナーUI改善
 
 #### 🗑️ 旧システムの完全削除
 
