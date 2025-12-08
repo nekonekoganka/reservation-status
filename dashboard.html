@@ -729,17 +729,17 @@
                 const slotData = {};
                 const detailedSlotData = {};
 
-                // サマリー用（7つの時間帯）
+                // サマリー用（7つの時間帯）- 制限なしで最も近いデータを採用
                 TIME_SLOTS.forEach(slot => {
-                    const count = findClosestCount(entries, targetDate, slot);
+                    const count = findClosestCount(entries, targetDate, slot, false);
                     if (count !== null) {
                         slotData[slot.label] = count;
                     }
                 });
 
-                // 詳細グラフ用（10分刻み）
+                // 詳細グラフ用（10分刻み）- 10分以内のデータのみ採用
                 DETAILED_TIME_SLOTS.forEach(slot => {
-                    const count = findClosestCount(entries, targetDate, slot);
+                    const count = findClosestCount(entries, targetDate, slot, true);
                     if (count !== null) {
                         detailedSlotData[slot.label] = count;
                     }
@@ -760,7 +760,8 @@
         }
 
         // 指定した時間帯に最も近いデータを探す
-        function findClosestCount(entries, targetDate, slot) {
+        // strictMode=true: 10分以内のデータのみ採用、false: 最も近いデータを採用
+        function findClosestCount(entries, targetDate, slot, strictMode = false) {
             const targetMinutes = slot.hour * 60 + slot.minute;
 
             if (slot.prevDay) {
@@ -777,8 +778,8 @@
                     candidates.sort((a, b) =>
                         Math.abs(a.minutes - targetMinutes) - Math.abs(b.minutes - targetMinutes)
                     );
-                    // 10分以内のデータのみ採用
-                    if (Math.abs(candidates[0].minutes - targetMinutes) <= 10) {
+                    // strictModeの場合は10分以内のデータのみ採用
+                    if (!strictMode || Math.abs(candidates[0].minutes - targetMinutes) <= 10) {
                         return candidates[0].count;
                     }
                 }
@@ -790,8 +791,8 @@
                     candidates.sort((a, b) =>
                         Math.abs(a.minutes - targetMinutes) - Math.abs(b.minutes - targetMinutes)
                     );
-                    // 10分以内のデータのみ採用
-                    if (Math.abs(candidates[0].minutes - targetMinutes) <= 10) {
+                    // strictModeの場合は10分以内のデータのみ採用
+                    if (!strictMode || Math.abs(candidates[0].minutes - targetMinutes) <= 10) {
                         return candidates[0].count;
                     }
                 }
