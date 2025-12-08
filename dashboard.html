@@ -611,6 +611,18 @@
                 </div>
             </div>
 
+            <div class="control-group">
+                <label>満枠判定:</label>
+                <select id="fullThreshold" onchange="updateFullThreshold()">
+                    <option value="0">0枠（完全満枠）</option>
+                    <option value="1">1枠以下</option>
+                    <option value="2" selected>2枠以下</option>
+                    <option value="3">3枠以下</option>
+                    <option value="5">5枠以下</option>
+                </select>
+                <span class="help-icon" onclick="openHelpModal('fullThreshold')">?<span class="tooltip">「満枠」とみなす基準</span></span>
+            </div>
+
             <button class="btn" id="loadBtn" onclick="loadData()">
                 📥 データ読み込み
             </button>
@@ -759,12 +771,35 @@
         // 現在選択中の種別
         let currentType = 'general';
 
+        // 満枠判定の閾値（この枠数以下を「満枠」とみなす）
+        let fullThreshold = parseInt(localStorage.getItem('fullThreshold') || '2');
+
         // チャートインスタンス
         let dailyProgressChart = null;
         let monthlyChart = null;
 
         // データ格納
         let rawData = [];
+
+        // ページ読み込み時に設定を復元
+        document.addEventListener('DOMContentLoaded', () => {
+            const select = document.getElementById('fullThreshold');
+            if (select) {
+                select.value = fullThreshold.toString();
+            }
+        });
+
+        // 満枠閾値の更新
+        function updateFullThreshold() {
+            const select = document.getElementById('fullThreshold');
+            fullThreshold = parseInt(select.value);
+            localStorage.setItem('fullThreshold', fullThreshold.toString());
+
+            // データがあれば再描画
+            if (Object.keys(processedData).length > 0) {
+                updateAllCharts();
+            }
+        }
         let processedData = {};
 
         // 種別切り替え
@@ -1377,7 +1412,7 @@
                     const stat = tableData[slot.label][dayIndex];
                     if (stat.count > 0) {
                         const avg = Math.round(stat.total / stat.count);
-                        const className = avg <= 2 ? 'warning' : '';
+                        const className = avg <= fullThreshold ? 'warning' : '';
                         html += `<td class="${className}">${avg}枠</td>`;
                     } else {
                         html += `<td>-</td>`;
@@ -1562,7 +1597,8 @@
 
                     <h3>赤字の意味</h3>
                     <div class="tip">
-                        <span style="color:#c62828;font-weight:bold;">赤字（2枠以下）</span>は混雑している状態です。この時間帯×曜日は予約が取りにくい傾向があります。
+                        <span style="color:#c62828;font-weight:bold;">赤字</span>は「満枠判定」の設定値以下の状態です。この時間帯×曜日は予約が取りにくい傾向があります。<br>
+                        ※判定基準は上部の「満枠判定」設定で変更できます。
                     </div>
                 `
             },
@@ -1588,6 +1624,33 @@
 
                     <h3>活用方法</h3>
                     <p>個別の日の状況を確認したい場合に使います。「先週の月曜はどうだったか？」などの振り返りに便利です。</p>
+                `
+            },
+            fullThreshold: {
+                title: '⚙️ 満枠判定の設定',
+                content: `
+                    <h3>この設定について</h3>
+                    <p>「満枠」とみなす空き枠数の<strong>閾値（しきい値）</strong>を設定します。</p>
+
+                    <h3>選択肢の違い</h3>
+                    <ul>
+                        <li><strong>0枠（完全満枠）</strong> - 空き枠がゼロの状態のみを「満枠」と判定</li>
+                        <li><strong>1枠以下</strong> - 残り1枠も「ほぼ満枠」として扱う</li>
+                        <li><strong>2枠以下</strong> - 残り2枠以下を「実質満枠」として扱う（初期値）</li>
+                        <li><strong>3枠以下</strong> - やや余裕を持った判定</li>
+                        <li><strong>5枠以下</strong> - 「混雑気味」の閾値として使用</li>
+                    </ul>
+
+                    <h3>なぜ「2枠以下」が初期値？</h3>
+                    <div class="tip">
+                        残り1〜2枠だと、希望する時間帯の枠ではないことが多く、患者さんから見れば「予約が取れない」状態と同じです。<br>
+                        また、直前キャンセルで空く枠は1〜2枠程度のため、それを除いた「実質的な満枠」を捉えています。
+                    </div>
+
+                    <h3>活用方法</h3>
+                    <p>貴院の運用に合わせて調整してください。この設定は今後追加予定の「満枠到達時刻」などの指標にも使用されます。</p>
+
+                    <p><strong>※</strong> 設定はブラウザに保存され、次回アクセス時も維持されます。</p>
                 `
             }
         };
