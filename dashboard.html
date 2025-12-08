@@ -611,6 +611,18 @@
                 </div>
             </div>
 
+            <div class="control-group">
+                <label>満枠判定:</label>
+                <select id="fullThreshold" onchange="updateFullThreshold()">
+                    <option value="0">0枠（完全満枠）</option>
+                    <option value="1">1枠以下</option>
+                    <option value="2" selected>2枠以下</option>
+                    <option value="3">3枠以下</option>
+                    <option value="5">5枠以下</option>
+                </select>
+                <span class="help-icon" onclick="openHelpModal('fullThreshold')">?<span class="tooltip">「満枠」とみなす基準</span></span>
+            </div>
+
             <button class="btn" id="loadBtn" onclick="loadData()">
                 📥 データ読み込み
             </button>
@@ -759,12 +771,35 @@
         // 現在選択中の種別
         let currentType = 'general';
 
+        // 満枠判定の閾値（この枠数以下を「満枠」とみなす）
+        let fullThreshold = parseInt(localStorage.getItem('fullThreshold') || '2');
+
         // チャートインスタンス
         let dailyProgressChart = null;
         let monthlyChart = null;
 
         // データ格納
         let rawData = [];
+
+        // ページ読み込み時に設定を復元
+        document.addEventListener('DOMContentLoaded', () => {
+            const select = document.getElementById('fullThreshold');
+            if (select) {
+                select.value = fullThreshold.toString();
+            }
+        });
+
+        // 満枠閾値の更新
+        function updateFullThreshold() {
+            const select = document.getElementById('fullThreshold');
+            fullThreshold = parseInt(select.value);
+            localStorage.setItem('fullThreshold', fullThreshold.toString());
+
+            // データがあれば再描画
+            if (Object.keys(processedData).length > 0) {
+                updateAllCharts();
+            }
+        }
         let processedData = {};
 
         // 種別切り替え
@@ -1186,15 +1221,16 @@
 
             html += '</tbody></table>';
 
-            // 凡例
+            // 凡例（満枠設定に連動）
+            const t = fullThreshold;
             html += `
                 <div class="heat-legend">
-                    <div class="heat-legend-item"><div class="heat-legend-color heat-5"></div>10枠以上</div>
-                    <div class="heat-legend-item"><div class="heat-legend-color heat-4"></div>7-9枠</div>
-                    <div class="heat-legend-item"><div class="heat-legend-color heat-3"></div>5-6枠</div>
-                    <div class="heat-legend-item"><div class="heat-legend-color heat-2"></div>3-4枠</div>
-                    <div class="heat-legend-item"><div class="heat-legend-color heat-1"></div>1-2枠</div>
-                    <div class="heat-legend-item"><div class="heat-legend-color heat-0"></div>0枠（満）</div>
+                    <div class="heat-legend-item"><div class="heat-legend-color heat-5"></div>${t + 10}枠以上</div>
+                    <div class="heat-legend-item"><div class="heat-legend-color heat-4"></div>${t + 7}-${t + 9}枠</div>
+                    <div class="heat-legend-item"><div class="heat-legend-color heat-3"></div>${t + 5}-${t + 6}枠</div>
+                    <div class="heat-legend-item"><div class="heat-legend-color heat-2"></div>${t + 3}-${t + 4}枠</div>
+                    <div class="heat-legend-item"><div class="heat-legend-color heat-1"></div>${t + 1}-${t + 2}枠</div>
+                    <div class="heat-legend-item"><div class="heat-legend-color heat-0"></div>${t}枠以下（満）</div>
                 </div>
             `;
 
@@ -1202,11 +1238,13 @@
         }
 
         function getHeatClass(value) {
-            if (value === 0) return 'heat-0';
-            if (value <= 2) return 'heat-1';
-            if (value <= 4) return 'heat-2';
-            if (value <= 6) return 'heat-3';
-            if (value <= 9) return 'heat-4';
+            // fullThreshold以下は満枠（heat-0）
+            if (value <= fullThreshold) return 'heat-0';
+            // それ以上はグラデーション
+            if (value <= fullThreshold + 2) return 'heat-1';
+            if (value <= fullThreshold + 4) return 'heat-2';
+            if (value <= fullThreshold + 6) return 'heat-3';
+            if (value <= fullThreshold + 9) return 'heat-4';
             return 'heat-5';
         }
 
@@ -1377,7 +1415,7 @@
                     const stat = tableData[slot.label][dayIndex];
                     if (stat.count > 0) {
                         const avg = Math.round(stat.total / stat.count);
-                        const className = avg <= 2 ? 'warning' : '';
+                        const className = avg <= fullThreshold ? 'warning' : '';
                         html += `<td class="${className}">${avg}枠</td>`;
                     } else {
                         html += `<td>-</td>`;
@@ -1431,7 +1469,7 @@
                 TIME_SLOTS.forEach(slot => {
                     const val = dayData[slot.label];
                     if (val !== undefined) {
-                        const className = val <= 2 ? 'warning' : '';
+                        const className = val <= fullThreshold ? 'warning' : '';
                         html += `<td class="${className}">${val}</td>`;
                     } else {
                         html += `<td>-</td>`;
@@ -1486,17 +1524,18 @@
 
                     <h3>色の意味</h3>
                     <ul>
-                        <li><span style="background:#66bb6a;color:white;padding:2px 8px;border-radius:4px;">緑</span> 10枠以上 - 余裕あり</li>
-                        <li><span style="background:#ffca28;color:#333;padding:2px 8px;border-radius:4px;">黄</span> 7-9枠 - やや余裕</li>
-                        <li><span style="background:#ffa726;color:white;padding:2px 8px;border-radius:4px;">オレンジ</span> 5-6枠 - 普通</li>
-                        <li><span style="background:#ff7043;color:white;padding:2px 8px;border-radius:4px;">赤橙</span> 3-4枠 - やや混雑</li>
-                        <li><span style="background:#ef5350;color:white;padding:2px 8px;border-radius:4px;">赤</span> 1-2枠 - 混雑</li>
-                        <li><span style="background:#c62828;color:white;padding:2px 8px;border-radius:4px;">濃赤</span> 0枠 - 満枠</li>
+                        <li><span style="background:#66bb6a;color:white;padding:2px 8px;border-radius:4px;">緑</span> 余裕あり</li>
+                        <li><span style="background:#ffca28;color:#333;padding:2px 8px;border-radius:4px;">黄</span> やや余裕</li>
+                        <li><span style="background:#ffa726;color:white;padding:2px 8px;border-radius:4px;">オレンジ</span> 普通</li>
+                        <li><span style="background:#ff7043;color:white;padding:2px 8px;border-radius:4px;">赤橙</span> やや混雑</li>
+                        <li><span style="background:#ef5350;color:white;padding:2px 8px;border-radius:4px;">赤</span> 混雑</li>
+                        <li><span style="background:#c62828;color:white;padding:2px 8px;border-radius:4px;">濃赤</span> 満枠（設定値以下）</li>
                     </ul>
+                    <p><strong>※</strong> 色の基準は上部の「満枠判定」設定に連動しています。凡例はヒートマップ下部に表示されます。</p>
 
                     <h3>活用方法</h3>
                     <div class="tip">
-                        赤色が多い曜日×時間帯 = 混みやすいパターン<br>
+                        濃い赤が多い曜日×時間帯 = 混みやすいパターン<br>
                         患者さんへの案内時に「○曜の△時頃は混みやすいです」と伝える参考に。
                     </div>
                 `
@@ -1562,7 +1601,8 @@
 
                     <h3>赤字の意味</h3>
                     <div class="tip">
-                        <span style="color:#c62828;font-weight:bold;">赤字（2枠以下）</span>は混雑している状態です。この時間帯×曜日は予約が取りにくい傾向があります。
+                        <span style="color:#c62828;font-weight:bold;">赤字</span>は「満枠判定」の設定値以下の状態です。この時間帯×曜日は予約が取りにくい傾向があります。<br>
+                        ※判定基準は上部の「満枠判定」設定で変更できます。
                     </div>
                 `
             },
@@ -1588,6 +1628,33 @@
 
                     <h3>活用方法</h3>
                     <p>個別の日の状況を確認したい場合に使います。「先週の月曜はどうだったか？」などの振り返りに便利です。</p>
+                `
+            },
+            fullThreshold: {
+                title: '⚙️ 満枠判定の設定',
+                content: `
+                    <h3>この設定について</h3>
+                    <p>「満枠」とみなす空き枠数の<strong>閾値（しきい値）</strong>を設定します。</p>
+
+                    <h3>選択肢の違い</h3>
+                    <ul>
+                        <li><strong>0枠（完全満枠）</strong> - 空き枠がゼロの状態のみを「満枠」と判定</li>
+                        <li><strong>1枠以下</strong> - 残り1枠も「ほぼ満枠」として扱う</li>
+                        <li><strong>2枠以下</strong> - 残り2枠以下を「実質満枠」として扱う（初期値）</li>
+                        <li><strong>3枠以下</strong> - やや余裕を持った判定</li>
+                        <li><strong>5枠以下</strong> - 「混雑気味」の閾値として使用</li>
+                    </ul>
+
+                    <h3>なぜ「2枠以下」が初期値？</h3>
+                    <div class="tip">
+                        残り1〜2枠だと、希望する時間帯の枠ではないことが多く、患者さんから見れば「予約が取れない」状態と同じです。<br>
+                        また、直前キャンセルで空く枠は1〜2枠程度のため、それを除いた「実質的な満枠」を捉えています。
+                    </div>
+
+                    <h3>活用方法</h3>
+                    <p>貴院の運用に合わせて調整してください。この設定は今後追加予定の「満枠到達時刻」などの指標にも使用されます。</p>
+
+                    <p><strong>※</strong> 設定はブラウザに保存され、次回アクセス時も維持されます。</p>
                 `
             }
         };
