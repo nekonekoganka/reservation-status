@@ -328,16 +328,15 @@
         min-width: 0;
       }
 
-      /* 一般予約: 薄いオレンジ背景 */
+      /* 一般予約: 薄いオレンジ背景 + 中央分割線（グレー） */
       .card-wrapper.general-wrapper .card {
         background: #fff8f0;
-        border-right: 4px solid #CC6600;
+        border-right: 4px solid #888888;
       }
 
       /* 視野予約: 薄い緑背景 */
       .card-wrapper.shiya-wrapper .card {
         background: #f0fff4;
-        border-left: 4px solid #006633;
       }
 
       .card {
@@ -384,14 +383,13 @@
       /* 時間帯詳細にも背景色と分割線を適用 */
       .card-wrapper.general-wrapper .timeslots-container {
         background: #fff8f0;
-        border-right: 4px solid #CC6600;
+        border-right: 4px solid #888888;
         padding: 1vw;
         border-radius: 0 0 1vw 1vw;
       }
 
       .card-wrapper.shiya-wrapper .timeslots-container {
         background: #f0fff4;
-        border-left: 4px solid #006633;
         padding: 1vw;
         border-radius: 0 0 1vw 1vw;
       }
@@ -1043,6 +1041,7 @@
     function renderTimeslots(type, slots, slotsCount) {
       const listElement = document.getElementById(`timeslots-list-${type}`);
       const expandIndicator = document.getElementById(`expand-${type}`);
+      const containerElement = document.getElementById(`timeslots-${type}`);
 
       // スロットデータを保存
       slotsData[type] = slots;
@@ -1060,10 +1059,12 @@
 
         listElement.innerHTML = html;
         expandIndicator.style.display = 'block';
+        containerElement.style.display = 'block';
       } else {
-        // 時間枠がない場合は何も表示しない
+        // 時間枠がない場合はコンテナごと非表示
         listElement.innerHTML = '';
         expandIndicator.style.display = 'none';
+        containerElement.style.display = 'none';
       }
     }
 
