@@ -345,12 +345,13 @@
         border-radius: 1.5vw;
       }
 
-      /* 大画面用タイトル（短縮・大きく・テーマカラー） */
+      /* 大画面用タイトル（横並び・大きく・テーマカラー） */
       .card-title-large {
-        display: block;
+        display: flex;
+        align-items: center;
         font-size: 5vw;
         font-weight: 800;
-        margin-bottom: 0.5vw;
+        padding: 0 1.5vw;
       }
 
       .card-title-large.general {
@@ -426,6 +427,7 @@
 
       .card-header {
         gap: 1.5vw;
+        align-items: center;
       }
 
       /* タイムラインバー（2本構成） */
@@ -545,11 +547,11 @@
       <!-- 一般予約 -->
       <div class="card-wrapper general-wrapper">
         <div class="card" id="card-general" onclick="toggleTimeslots('general')">
-          <div class="card-title-large general">一般</div>
           <div class="card-header">
             <div class="icon-wrapper">
               <canvas id="canvas-general" width="128" height="128"></canvas>
             </div>
+            <div class="card-title-large general">一般</div>
             <div class="card-info">
               <div class="card-title">一般予約</div>
               <div id="status-general" class="status">読み込み中...</div>
@@ -596,11 +598,11 @@
       <!-- 視野予約 -->
       <div class="card-wrapper shiya-wrapper">
         <div class="card" id="card-shiya" onclick="toggleTimeslots('shiya')">
-          <div class="card-title-large shiya">視野</div>
           <div class="card-header">
             <div class="icon-wrapper">
               <canvas id="canvas-shiya" width="128" height="128"></canvas>
             </div>
+            <div class="card-title-large shiya">視野</div>
             <div class="card-info">
               <div class="card-title">視野予約</div>
               <div id="status-shiya" class="status">読み込み中...</div>
