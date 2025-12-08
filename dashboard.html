@@ -440,7 +440,7 @@
         <!-- メイングラフ: 1日の空き枠推移 -->
         <div class="charts-grid">
             <div class="chart-card">
-                <h3>📈 1日の空き枠推移（18:30 → 18:00）</h3>
+                <h3>📈 1日の空き枠推移（18:30 → 18:00）- 10分刻み</h3>
                 <div class="chart-container large">
                     <canvas id="dailyProgressChart"></canvas>
                 </div>
@@ -517,7 +517,7 @@
         const GENERAL_HISTORY = `${STORAGE_BASE}/history/general`;
         const SHIYA_HISTORY = `${STORAGE_BASE}/history/shiya`;
 
-        // 時間帯の区切り（分単位に変換して比較用）
+        // 時間帯の区切り（分単位に変換して比較用）- サマリー用
         const TIME_SLOTS = [
             { label: '18:30', hour: 18, minute: 30, prevDay: true },
             { label: '02:00', hour: 2, minute: 0, prevDay: false },
@@ -527,6 +527,39 @@
             { label: '16:00', hour: 16, minute: 0, prevDay: false },
             { label: '18:00', hour: 18, minute: 0, prevDay: false }
         ];
+
+        // 10分刻みの詳細時間帯（折れ線グラフ用）
+        // 18:30 → 翌18:00 の23.5時間を10分刻みで141ポイント
+        const DETAILED_TIME_SLOTS = generateDetailedTimeSlots();
+
+        function generateDetailedTimeSlots() {
+            const slots = [];
+            // 18:30から23:50まで（前日）
+            for (let h = 18; h <= 23; h++) {
+                const startMin = (h === 18) ? 30 : 0;
+                for (let m = startMin; m < 60; m += 10) {
+                    slots.push({
+                        label: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`,
+                        hour: h,
+                        minute: m,
+                        prevDay: true
+                    });
+                }
+            }
+            // 00:00から18:00まで（当日）
+            for (let h = 0; h <= 18; h++) {
+                const endMin = (h === 18) ? 0 : 50;
+                for (let m = 0; m <= endMin; m += 10) {
+                    slots.push({
+                        label: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`,
+                        hour: h,
+                        minute: m,
+                        prevDay: false
+                    });
+                }
+            }
+            return slots;
+        }
 
         // 曜日名
         const DAY_NAMES = ['日', '月', '火', '水', '木', '金', '土'];
@@ -689,37 +722,26 @@
                 });
             });
 
-            // 各対象日について、7つの時間帯に最も近いデータを取得
+            // 各対象日について、時間帯別データを取得
             const result = {};
             Object.keys(byTargetDate).forEach(targetDate => {
                 const entries = byTargetDate[targetDate];
                 const slotData = {};
+                const detailedSlotData = {};
 
+                // サマリー用（7つの時間帯）
                 TIME_SLOTS.forEach(slot => {
-                    let targetMinutes;
-                    if (slot.prevDay) {
-                        // 18:30は前日なので、18:30以降のデータを探す
-                        targetMinutes = slot.hour * 60 + slot.minute;
-                        // 前日の18:30以降のデータを探す
-                        const candidates = entries.filter(e => {
-                            const prevDayDate = new Date(targetDate);
-                            prevDayDate.setDate(prevDayDate.getDate() - 1);
-                            return e.date === formatDate(prevDayDate) && e.minutes >= targetMinutes;
-                        });
-                        if (candidates.length > 0) {
-                            // 18:30に最も近いものを選択
-                            candidates.sort((a, b) => Math.abs(a.minutes - targetMinutes) - Math.abs(b.minutes - targetMinutes));
-                            slotData[slot.label] = candidates[0].count;
-                        }
-                    } else {
-                        targetMinutes = slot.hour * 60 + slot.minute;
-                        // 当日のデータを探す
-                        const candidates = entries.filter(e => e.date === targetDate);
-                        if (candidates.length > 0) {
-                            // 目標時刻に最も近いものを選択
-                            candidates.sort((a, b) => Math.abs(a.minutes - targetMinutes) - Math.abs(b.minutes - targetMinutes));
-                            slotData[slot.label] = candidates[0].count;
-                        }
+                    const count = findClosestCount(entries, targetDate, slot);
+                    if (count !== null) {
+                        slotData[slot.label] = count;
+                    }
+                });
+
+                // 詳細グラフ用（10分刻み）
+                DETAILED_TIME_SLOTS.forEach(slot => {
+                    const count = findClosestCount(entries, targetDate, slot);
+                    if (count !== null) {
+                        detailedSlotData[slot.label] = count;
                     }
                 });
 
@@ -727,6 +749,7 @@
                     const date = new Date(targetDate);
                     result[targetDate] = {
                         ...slotData,
+                        detailed: detailedSlotData,
                         dayOfWeek: date.getDay(),
                         month: date.getMonth() + 1
                     };
@@ -734,6 +757,46 @@
             });
 
             return result;
+        }
+
+        // 指定した時間帯に最も近いデータを探す
+        function findClosestCount(entries, targetDate, slot) {
+            const targetMinutes = slot.hour * 60 + slot.minute;
+
+            if (slot.prevDay) {
+                // 前日のデータを探す
+                const prevDayDate = new Date(targetDate);
+                prevDayDate.setDate(prevDayDate.getDate() - 1);
+                const prevDateStr = formatDate(prevDayDate);
+
+                const candidates = entries.filter(e =>
+                    e.date === prevDateStr && e.minutes >= (18 * 60 + 30)
+                );
+
+                if (candidates.length > 0) {
+                    candidates.sort((a, b) =>
+                        Math.abs(a.minutes - targetMinutes) - Math.abs(b.minutes - targetMinutes)
+                    );
+                    // 10分以内のデータのみ採用
+                    if (Math.abs(candidates[0].minutes - targetMinutes) <= 10) {
+                        return candidates[0].count;
+                    }
+                }
+            } else {
+                // 当日のデータを探す
+                const candidates = entries.filter(e => e.date === targetDate);
+
+                if (candidates.length > 0) {
+                    candidates.sort((a, b) =>
+                        Math.abs(a.minutes - targetMinutes) - Math.abs(b.minutes - targetMinutes)
+                    );
+                    // 10分以内のデータのみ採用
+                    if (Math.abs(candidates[0].minutes - targetMinutes) <= 10) {
+                        return candidates[0].count;
+                    }
+                }
+            }
+            return null;
         }
 
         function updateAllCharts() {
@@ -746,7 +809,7 @@
             updateRecentDataTable(data);
         }
 
-        // 1日の空き枠推移グラフ
+        // 1日の空き枠推移グラフ（10分刻み）
         function updateDailyProgressChart(data) {
             const ctx = document.getElementById('dailyProgressChart').getContext('2d');
 
@@ -754,21 +817,22 @@
                 dailyProgressChart.destroy();
             }
 
-            // 曜日別の平均を計算
+            // 曜日別の平均を計算（10分刻み）
             const dayAverages = {};
             DAY_NAMES.forEach((_, i) => {
                 if (i === 3) return; // 水曜スキップ
                 dayAverages[i] = {};
-                TIME_SLOTS.forEach(slot => {
+                DETAILED_TIME_SLOTS.forEach(slot => {
                     dayAverages[i][slot.label] = { total: 0, count: 0 };
                 });
             });
 
             Object.values(data).forEach(dayData => {
                 if (dayData.dayOfWeek === 3) return; // 水曜スキップ
-                TIME_SLOTS.forEach(slot => {
-                    if (dayData[slot.label] !== undefined) {
-                        dayAverages[dayData.dayOfWeek][slot.label].total += dayData[slot.label];
+                if (!dayData.detailed) return;
+                DETAILED_TIME_SLOTS.forEach(slot => {
+                    if (dayData.detailed[slot.label] !== undefined) {
+                        dayAverages[dayData.dayOfWeek][slot.label].total += dayData.detailed[slot.label];
                         dayAverages[dayData.dayOfWeek][slot.label].count++;
                     }
                 });
@@ -788,7 +852,7 @@
 
             let colorIndex = 0;
             [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
-                const avgData = TIME_SLOTS.map(slot => {
+                const avgData = DETAILED_TIME_SLOTS.map(slot => {
                     const stat = dayAverages[dayIndex][slot.label];
                     return stat.count > 0 ? Math.round(stat.total / stat.count * 10) / 10 : null;
                 });
@@ -800,27 +864,50 @@
                     backgroundColor: colors[colorIndex].replace('1)', '0.1)'),
                     tension: 0.3,
                     fill: false,
-                    pointRadius: 4,
-                    pointHoverRadius: 6
+                    pointRadius: 0,        // 多いのでドットは非表示
+                    pointHoverRadius: 4,   // ホバー時のみ表示
+                    borderWidth: 2
                 });
                 colorIndex++;
+            });
+
+            // X軸ラベル（1時間ごとに表示、それ以外は空）
+            const labels = DETAILED_TIME_SLOTS.map(slot => {
+                // 00分のときだけラベル表示
+                if (slot.minute === 0) {
+                    return slot.label;
+                }
+                // 18:30は開始点なので表示
+                if (slot.label === '18:30') {
+                    return '18:30';
+                }
+                return '';
             });
 
             dailyProgressChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: TIME_SLOTS.map(s => s.label),
+                    labels: labels,
                     datasets: datasets
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
                     plugins: {
                         legend: {
                             position: 'top',
                         },
                         tooltip: {
                             callbacks: {
+                                title: function(context) {
+                                    // 実際の時刻を表示
+                                    const index = context[0].dataIndex;
+                                    return DETAILED_TIME_SLOTS[index].label;
+                                },
                                 label: function(context) {
                                     return context.dataset.label + ': ' + (context.parsed.y !== null ? context.parsed.y + '枠' : 'データなし');
                                 }
@@ -839,6 +926,15 @@
                             title: {
                                 display: true,
                                 text: '時刻（前日18:30 → 当日18:00）'
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 0,
+                                autoSkip: false,
+                                callback: function(value, index) {
+                                    // ラベルがある場所のみ表示
+                                    return labels[index] || null;
+                                }
                             }
                         }
                     }
