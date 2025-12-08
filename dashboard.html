@@ -942,7 +942,10 @@
         });
 
         function formatDate(date) {
-            return date.toISOString().split('T')[0];
+            // 日本時間（UTC+9）でフォーマット
+            const jstOffset = 9 * 60 * 60 * 1000;
+            const jstDate = new Date(date.getTime() + jstOffset);
+            return jstDate.toISOString().split('T')[0];
         }
 
         function showError(message) {
