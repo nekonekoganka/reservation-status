@@ -1057,7 +1057,7 @@
                     }
                     targetDate = formatDate(d);
                 } else {
-                    targetDate = entry.date;
+                    targetDate = formatDate(parseDate(entry.date));
                 }
 
                 if (!byTargetDate[targetDate]) {
@@ -1065,6 +1065,7 @@
                 }
                 byTargetDate[targetDate].push({
                     ...entry,
+                    date: formatDate(parseDate(entry.date)), // 日付フォーマットを正規化
                     hour,
                     minute,
                     minutes: entryMinutes
