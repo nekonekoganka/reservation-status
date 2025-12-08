@@ -227,6 +227,47 @@ const FILE_NAME_SHIYA = 'timeslots-shiya.json';
 視野予約: https://ckreserve.com/clinic/fujiminohikari-ganka/fujiminohikari
 ```
 
+### Cloud Run サービス
+
+| 種類 | サービス名 | URL |
+|---|---|---|
+| 一般予約 | `timeslot-checker` | `https://timeslot-checker-224924651996.asia-northeast1.run.app` |
+| 視野予約 | `timeslot-checker-shiya` | `https://timeslot-checker-shiya-224924651996.asia-northeast1.run.app` |
+
+### Cloud Scheduler ジョブ
+
+| 種類 | ジョブ名 | 呼び出し先 |
+|---|---|---|
+| 一般予約 | `reservation-timeslot-checker-job` | `/check` エンドポイント |
+| 視野予約 | `reservation-timeslot-checker-shiya-job` | `/check` エンドポイント |
+
+**注意:** Schedulerのジョブ名とCloud Runのサービス名が異なるため、デプロイ後はSchedulerの向き先URLも確認が必要です。
+
+### デプロイ手順
+
+```bash
+# 一般予約
+cd docker-timeslot-checker
+gcloud run deploy timeslot-checker \
+  --source . \
+  --region asia-northeast1 \
+  --memory 1Gi
+
+# 視野予約
+cd docker-timeslot-checker-shiya
+gcloud run deploy timeslot-checker-shiya \
+  --source . \
+  --region asia-northeast1 \
+  --memory 1Gi
+```
+
+**デプロイ後の確認:**
+```bash
+# 履歴ファイルが作成されているか確認
+gsutil ls gs://reservation-timeslots-fujiminohikari/history/general/
+gsutil ls gs://reservation-timeslots-fujiminohikari/history/shiya/
+```
+
 ---
 
 ## 📅 日付判定ロジック
@@ -262,7 +303,71 @@ const FILE_NAME_SHIYA = 'timeslots-shiya.json';
 
 ## 🆕 最近のアップデート（技術的な改善履歴）
 
-### 2025年12月7日 - タイムラインバー2本構成と白抜きドット 🆕
+### 2025年12月8日 - Cloud Run再デプロイと履歴保存機能の有効化 🆕
+
+#### 🔧 Cloud Storage URL修正
+
+**概要:**
+`entrance-display.html` と `dashboard.html` のCloud Storage URLが古いバケット名を参照していた問題を修正しました。
+
+**修正内容:**
+| ファイル | 修正前 | 修正後 |
+|---|---|---|
+| entrance-display.html | `fujimino-ophthalmology-reservations` | `reservation-timeslots-fujiminohikari` |
+| dashboard.html | `fujimino-ophthalmology-reservations` | `reservation-timeslots-fujiminohikari` |
+
+#### 🚀 Cloud Run再デプロイ
+
+**概要:**
+履歴保存機能を有効化するため、Cloud Runサービスを再デプロイしました。
+
+**デプロイしたサービス:**
+- `timeslot-checker` (一般予約) - リビジョン: timeslot-checker-00007-qmf
+- `timeslot-checker-shiya` (視野予約) - リビジョン: timeslot-checker-shiya-00001-vrk
+
+#### ⚠️ Cloud Scheduler向き先修正
+
+**問題:**
+Cloud Schedulerが古いサービス名を呼び出していたため、履歴データが保存されていませんでした。
+
+| 種類 | Schedulerが呼んでいたサービス | 実際のサービス名 |
+|---|---|---|
+| 一般予約 | `reservation-timeslot-checker` | `timeslot-checker` |
+| 視野予約 | `reservation-timeslot-checker-shiya` | `timeslot-checker-shiya` |
+
+**修正後のScheduler設定:**
+```bash
+# 一般予約
+gcloud scheduler jobs update http reservation-timeslot-checker-job \
+  --location=asia-northeast1 \
+  --uri="https://timeslot-checker-224924651996.asia-northeast1.run.app/check"
+
+# 視野予約
+gcloud scheduler jobs update http reservation-timeslot-checker-shiya-job \
+  --location=asia-northeast1 \
+  --uri="https://timeslot-checker-shiya-224924651996.asia-northeast1.run.app/check"
+```
+
+#### 📊 履歴保存機能の有効化
+
+**概要:**
+ダッシュボード用の履歴データ保存が開始されました。
+
+**保存先:**
+```
+gs://reservation-timeslots-fujiminohikari/
+├── history/
+│   ├── general/2025-12-08.json  ✅ 作成確認済み
+│   └── shiya/2025-12-08.json    ✅ 作成確認済み
+```
+
+**効果:**
+- 予約傾向ダッシュボードにデータが蓄積される
+- 曜日別・時間帯別の分析が可能に
+
+---
+
+### 2025年12月7日 - タイムラインバー2本構成と白抜きドット
 
 #### 📊 タイムラインバーの大幅改善
 
