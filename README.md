@@ -44,6 +44,13 @@
 - **[エントランスディスプレイ（デバッグ）](https://nekonekoganka.github.io/reservation-status/entrance-display-debug.html)**
   - カスタマイズ機能付きのデバッグ版
 
+### 📊 ダッシュボード
+
+- **[予約傾向ダッシュボード](https://nekonekoganka.github.io/reservation-status/dashboard.html)**
+  - 予約データの傾向分析・可視化
+  - 曜日別・時間帯別の予約傾向をグラフ表示
+  - 詳細：[DASHBOARD-README.md](DASHBOARD-README.md)
+
 ---
 
 ## 📌 主な機能
@@ -72,6 +79,7 @@ reservation-status/
 ├── timeslot-display-shiya.html     # 視野予約: 時間枠を抽出して表示
 ├── entrance-display.html           # エントランスディスプレイ（入口用）
 ├── entrance-display-debug.html     # エントランスディスプレイ（デバッグ版）
+├── dashboard.html                  # 予約傾向ダッシュボード（分析・可視化）
 ├── chrome-extension-timeslot-general/  # Chrome拡張機能（一般予約枠数表示）
 ├── chrome-extension-timeslot-shiya/    # Chrome拡張機能（視野予約枠数表示）
 ├── chrome-extension-auto-reload/   # Chrome拡張機能（ディスプレイ自動リロード）
