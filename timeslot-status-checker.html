@@ -255,6 +255,11 @@
       font-weight: 500;
     }
 
+    /* 大画面用タイトル（デフォルトは非表示、大画面モードで表示） */
+    .card-title-large {
+      display: none;
+    }
+
     .footer {
       text-align: center;
       margin-top: 10px;
@@ -314,7 +319,8 @@
 
       .cards {
         flex-direction: row;
-        gap: 2vw;
+        gap: 0;
+        align-items: flex-start;
       }
 
       .card-wrapper {
@@ -322,10 +328,43 @@
         min-width: 0;
       }
 
+      /* 一般予約: 薄いオレンジ背景 */
+      .card-wrapper.general-wrapper .card {
+        background: #fff8f0;
+        border-right: 4px solid #CC6600;
+      }
+
+      /* 視野予約: 薄い緑背景 */
+      .card-wrapper.shiya-wrapper .card {
+        background: #f0fff4;
+        border-left: 4px solid #006633;
+      }
+
       .card {
         cursor: default;
         padding: 1.5vw;
         border-radius: 1.5vw;
+      }
+
+      /* 大画面用タイトル（短縮・大きく・テーマカラー） */
+      .card-title-large {
+        display: block;
+        font-size: 5vw;
+        font-weight: 800;
+        margin-bottom: 0.5vw;
+      }
+
+      .card-title-large.general {
+        color: #CC6600;
+      }
+
+      .card-title-large.shiya {
+        color: #006633;
+      }
+
+      /* 通常のタイトルは非表示 */
+      .card-title {
+        display: none;
       }
 
       .card:hover {
@@ -491,8 +530,9 @@
   <div class="container">
     <div class="cards">
       <!-- 一般予約 -->
-      <div class="card-wrapper">
+      <div class="card-wrapper general-wrapper">
         <div class="card" id="card-general" onclick="toggleTimeslots('general')">
+          <div class="card-title-large general">一般</div>
           <div class="card-header">
             <div class="icon-wrapper">
               <canvas id="canvas-general" width="128" height="128"></canvas>
@@ -541,8 +581,9 @@
       </div>
 
       <!-- 視野予約 -->
-      <div class="card-wrapper">
+      <div class="card-wrapper shiya-wrapper">
         <div class="card" id="card-shiya" onclick="toggleTimeslots('shiya')">
+          <div class="card-title-large shiya">視野</div>
           <div class="card-header">
             <div class="icon-wrapper">
               <canvas id="canvas-shiya" width="128" height="128"></canvas>
