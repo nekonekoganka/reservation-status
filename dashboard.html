@@ -776,14 +776,11 @@
                 </div>
             </div>
 
-            <!-- 時間帯別×曜日 残り枠 -->
+            <!-- 曜日別 満枠到達率 -->
             <div class="chart-card">
-                <h3>🕐 時間帯別 × 曜日 残り枠数<span class="help-icon" onclick="openHelpModal('timeSlotTable')">?<span class="tooltip">数値で詳細を確認</span></span></h3>
-                <div class="data-table-container" id="timeSlotTableContainer">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <span>データを読み込んでください</span>
-                    </div>
+                <h3>📊 曜日別 満枠到達率<span class="help-icon" onclick="openHelpModal('dayFullRate')">?<span class="tooltip">曜日ごとの満枠傾向</span></span></h3>
+                <div class="chart-container">
+                    <canvas id="dayFullRateChart"></canvas>
                 </div>
             </div>
         </div>
@@ -888,6 +885,7 @@
         // チャートインスタンス
         let dailyProgressChart = null;
         let monthlyChart = null;
+        let dayFullRateChart = null;
 
         // データ格納
         let rawData = [];
@@ -1080,9 +1078,9 @@
                 const slotData = {};
                 const detailedSlotData = {};
 
-                // サマリー用（7つの時間帯）- 制限なしで最も近いデータを採用
+                // サマリー用（7つの時間帯）- 10分以内のデータのみ採用
                 TIME_SLOTS.forEach(slot => {
-                    const count = findClosestCount(entries, targetDate, slot, false);
+                    const count = findClosestCount(entries, targetDate, slot, true);
                     if (count !== null) {
                         slotData[slot.label] = count;
                     }
@@ -1216,7 +1214,7 @@
             updateMetrics(data);
             updateDetailedAnalysis(data);
             updateMonthlyChart(data);
-            updateTimeSlotTable(data);
+            updateDayFullRateChart(data);
             updateRecentDataTable(data);
         }
 
@@ -1874,52 +1872,91 @@
             });
         }
 
-        // 時間帯別×曜日テーブル
-        function updateTimeSlotTable(data) {
-            const container = document.getElementById('timeSlotTableContainer');
+        // 曜日別 満枠到達率チャート
+        function updateDayFullRateChart(data) {
+            const ctx = document.getElementById('dayFullRateChart').getContext('2d');
 
-            // 曜日×時間帯の平均を計算
-            const tableData = {};
-            TIME_SLOTS.forEach(slot => {
-                tableData[slot.label] = {};
-                [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
-                    tableData[slot.label][dayIndex] = { total: 0, count: 0 };
-                });
+            if (dayFullRateChart) {
+                dayFullRateChart.destroy();
+            }
+
+            // 曜日別の満枠到達率を計算（10:00時点でfullThreshold以下の日の割合）
+            const dayStats = {};
+            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+                dayStats[dayIndex] = { total: 0, full: 0 };
             });
 
             Object.values(data).forEach(dayData => {
-                if (dayData.dayOfWeek === 3) return;
-                TIME_SLOTS.forEach(slot => {
-                    if (dayData[slot.label] !== undefined) {
-                        tableData[slot.label][dayData.dayOfWeek].total += dayData[slot.label];
-                        tableData[slot.label][dayData.dayOfWeek].count++;
+                if (dayData.dayOfWeek === 3) return; // 水曜除外
+                const dow = dayData.dayOfWeek;
+                if (dayData['10:00'] !== undefined) {
+                    dayStats[dow].total++;
+                    if (dayData['10:00'] <= fullThreshold) {
+                        dayStats[dow].full++;
                     }
-                });
+                }
             });
 
-            let html = '<table class="data-table"><thead><tr><th>時刻</th>';
-            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
-                html += `<th>${DAY_NAMES[dayIndex]}曜</th>`;
+            // 日曜始まりで並べる（水曜を除く）
+            const dayOrder = [0, 1, 2, 4, 5, 6];
+            const labels = dayOrder.map(d => DAY_NAMES[d] + '曜');
+            const rates = dayOrder.map(d => {
+                const stat = dayStats[d];
+                return stat.total > 0 ? Math.round((stat.full / stat.total) * 100) : 0;
             });
-            html += '</tr></thead><tbody>';
 
-            TIME_SLOTS.forEach(slot => {
-                html += `<tr><td class="day-col">${slot.label}</td>`;
-                [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
-                    const stat = tableData[slot.label][dayIndex];
-                    if (stat.count > 0) {
-                        const avg = Math.round(stat.total / stat.count);
-                        const className = avg <= fullThreshold ? 'warning' : '';
-                        html += `<td class="${className}">${avg}枠</td>`;
-                    } else {
-                        html += `<td>-</td>`;
+            // 色を満枠率に応じて設定
+            const colors = rates.map(rate => {
+                if (rate >= 80) return 'rgba(198, 40, 40, 0.8)';   // 赤
+                if (rate >= 60) return 'rgba(239, 108, 0, 0.8)';   // オレンジ
+                if (rate >= 40) return 'rgba(251, 192, 45, 0.8)';  // 黄
+                if (rate >= 20) return 'rgba(124, 179, 66, 0.8)';  // 黄緑
+                return 'rgba(67, 160, 71, 0.8)';                    // 緑
+            });
+
+            dayFullRateChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '満枠到達率 (%)',
+                        data: rates,
+                        backgroundColor: colors,
+                        borderColor: colors.map(c => c.replace('0.8', '1')),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const idx = context.dataIndex;
+                                    const dow = dayOrder[idx];
+                                    const stat = dayStats[dow];
+                                    return `${context.raw}% (${stat.full}/${stat.total}日)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: value => value + '%'
+                            },
+                            title: {
+                                display: true,
+                                text: '10時時点で満枠の日の割合'
+                            }
+                        }
                     }
-                });
-                html += '</tr>';
+                }
             });
-
-            html += '</tbody></table>';
-            container.innerHTML = html;
         }
 
         // 直近の埋まり方データテーブル
@@ -2132,26 +2169,30 @@
                     <p><strong>注意:</strong> データ蓄積が進むと、より正確な傾向が見えてきます。</p>
                 `
             },
-            timeSlotTable: {
-                title: '🕐 時間帯別 × 曜日 残り枠数',
+            dayFullRate: {
+                title: '📊 曜日別 満枠到達率',
                 content: `
                     <h3>表示内容</h3>
-                    <p>ヒートマップと同じデータを<strong>数値テーブル</strong>で表示します。</p>
+                    <p><strong>10時時点で満枠（予約がほぼ埋まった状態）に達した日の割合</strong>を曜日別に棒グラフで表示します。</p>
 
-                    <h3>時間帯の意味</h3>
+                    <h3>計算方法</h3>
                     <ul>
-                        <li><code>18:30</code> - 前日の受付終了時点（翌日の予約開始時）</li>
-                        <li><code>02:00</code> - 深夜（ほぼ変化なし）</li>
-                        <li><code>07:00</code> - 早朝（朝の予約が入り始める前）</li>
-                        <li><code>10:00</code> - 診療開始時点</li>
-                        <li><code>14:00</code> - 昼休み明け</li>
-                        <li><code>16:00</code> - 夕方</li>
-                        <li><code>18:00</code> - 受付終了直前</li>
+                        <li>各曜日について、10:00時点のデータを集計</li>
+                        <li>空き枠数が「満枠判定」の設定値以下の日を「満枠」とカウント</li>
+                        <li>満枠の日数 ÷ 全日数 × 100 = 満枠到達率</li>
                     </ul>
 
-                    <h3>赤字の意味</h3>
+                    <h3>色の意味</h3>
+                    <ul>
+                        <li><span style="color:#c62828;">■ 赤</span> - 80%以上（ほぼ毎回満枠）</li>
+                        <li><span style="color:#ef6c00;">■ オレンジ</span> - 60-79%（高頻度で満枠）</li>
+                        <li><span style="color:#fbc02d;">■ 黄</span> - 40-59%（半分程度満枠）</li>
+                        <li><span style="color:#7cb342;">■ 黄緑</span> - 20-39%（たまに満枠）</li>
+                        <li><span style="color:#43a047;">■ 緑</span> - 20%未満（余裕あり）</li>
+                    </ul>
+
                     <div class="tip">
-                        <span style="color:#c62828;font-weight:bold;">赤字</span>は「満枠判定」の設定値以下の状態です。この時間帯×曜日は予約が取りにくい傾向があります。<br>
+                        ツールチップで「○% (満枠日数/全日数)」を確認できます。<br>
                         ※判定基準は上部の「満枠判定」設定で変更できます。
                     </div>
                 `
