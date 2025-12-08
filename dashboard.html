@@ -1045,20 +1045,21 @@
                 const entryMinutes = hour * 60 + minute;
 
                 // この記録がどの対象日のものか判定
-                // 18:30以降は翌日の予約データ
+                // 18:30以降は翌営業日の予約データ、それ以前は当日の予約データを参照
                 let targetDate;
-                if (hour >= 18 && minute >= 30 || hour > 18) {
-                    // 翌日の対象
-                    const d = parseDate(entry.date);
+                const d = parseDate(entry.date);
+
+                // 18:30以降は翌日に進める
+                if (hour > 18 || (hour === 18 && minute >= 30)) {
                     d.setDate(d.getDate() + 1);
-                    // 水曜日スキップ
-                    if (d.getDay() === 3) {
-                        d.setDate(d.getDate() + 1);
-                    }
-                    targetDate = formatDate(d);
-                } else {
-                    targetDate = entry.date;
                 }
+
+                // 水曜休診のため、対象日が水曜になった場合はさらに翌日に進める
+                if (d.getDay() === 3) {
+                    d.setDate(d.getDate() + 1);
+                }
+
+                targetDate = formatDate(d);
 
                 if (!byTargetDate[targetDate]) {
                     byTargetDate[targetDate] = [];
@@ -1114,10 +1115,8 @@
             const targetMinutes = slot.hour * 60 + slot.minute;
 
             if (slot.prevDay) {
-                // 前日のデータを探す
-                const prevDayDate = parseDate(targetDate);
-                prevDayDate.setDate(prevDayDate.getDate() - 1);
-                const prevDateStr = formatDate(prevDayDate);
+                // 対象日前営業日のデータを探す（18:30以降）
+                const prevDateStr = getPreviousOpenDate(targetDate);
 
                 const candidates = entries.filter(e =>
                     e.date === prevDateStr && e.minutes >= (18 * 60 + 30)
@@ -1147,6 +1146,15 @@
                 }
             }
             return null;
+        }
+
+        // 対象日前の「診療がある日」を取得（水曜をスキップ）
+        function getPreviousOpenDate(targetDate) {
+            const prevDayDate = parseDate(targetDate);
+            do {
+                prevDayDate.setDate(prevDayDate.getDate() - 1);
+            } while (prevDayDate.getDay() === 3);
+            return formatDate(prevDayDate);
         }
 
         // デバッグ用: 取得した生データを表示
@@ -1367,8 +1375,9 @@
             Object.values(data).forEach(dayData => {
                 if (dayData.dayOfWeek === 3) return;
                 TIME_SLOTS.forEach(slot => {
-                    if (dayData[slot.label] !== undefined) {
-                        heatData[dayData.dayOfWeek][slot.label].total += dayData[slot.label];
+                    const count = dayData.detailed ? dayData.detailed[slot.label] : dayData[slot.label];
+                    if (count !== undefined) {
+                        heatData[dayData.dayOfWeek][slot.label].total += count;
                         heatData[dayData.dayOfWeek][slot.label].count++;
                     }
                 });
