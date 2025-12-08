@@ -942,10 +942,17 @@
         });
 
         function formatDate(date) {
-            // 日本時間（UTC+9）でフォーマット
-            const jstOffset = 9 * 60 * 60 * 1000;
-            const jstDate = new Date(date.getTime() + jstOffset);
-            return jstDate.toISOString().split('T')[0];
+            // ローカル時刻（日本時間）の日付を YYYY-MM-DD 形式で返す
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // 日付文字列をローカル時刻としてパース
+        function parseDate(dateStr) {
+            const [year, month, day] = dateStr.split('-').map(Number);
+            return new Date(year, month - 1, day);
         }
 
         function showError(message) {
@@ -1044,7 +1051,7 @@
                 let targetDate;
                 if (hour >= 18 && minute >= 30 || hour > 18) {
                     // 翌日の対象
-                    const d = new Date(entry.date);
+                    const d = parseDate(entry.date);
                     d.setDate(d.getDate() + 1);
                     // 水曜日スキップ
                     if (d.getDay() === 3) {
@@ -1090,7 +1097,7 @@
                 });
 
                 if (Object.keys(slotData).length > 0) {
-                    const date = new Date(targetDate);
+                    const date = parseDate(targetDate);
                     result[targetDate] = {
                         ...slotData,
                         detailed: detailedSlotData,
@@ -1110,7 +1117,7 @@
 
             if (slot.prevDay) {
                 // 前日のデータを探す
-                const prevDayDate = new Date(targetDate);
+                const prevDayDate = parseDate(targetDate);
                 prevDayDate.setDate(prevDayDate.getDate() - 1);
                 const prevDateStr = formatDate(prevDayDate);
 
