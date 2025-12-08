@@ -349,7 +349,97 @@
             font-size: 0.9em;
         }
 
-        /* 埋まりスピードバー */
+        /* 予約傾向指標 */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 10px 0;
+        }
+
+        .metric-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .metric-card.highlight {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+        }
+
+        .metric-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .metric-title {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .metric-value.warning {
+            color: #c62828;
+        }
+
+        .metric-value small {
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .metric-detail {
+            font-size: 11px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .metric-by-day {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .metric-by-day h4 {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .day-metrics {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .day-metric {
+            text-align: center;
+            min-width: 45px;
+        }
+
+        .day-metric .day-name {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .day-metric .day-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .day-metric .day-value.warning {
+            color: #c62828;
+        }
+
+        /* 埋まりスピードバー（残存） */
         .speed-bar-container {
             margin: 8px 0;
         }
@@ -651,10 +741,23 @@
                 </div>
             </div>
 
-            <!-- 曜日別埋まりスピード -->
+            <!-- 予約傾向指標 -->
             <div class="chart-card">
-                <h3>📊 曜日別 埋まりスピード<span class="help-icon" onclick="openHelpModal('speed')">?<span class="tooltip">1日で何枠減るかを比較</span></span></h3>
-                <div id="speedChartContainer">
+                <h3>📊 予約傾向指標<span class="help-icon" onclick="openHelpModal('metrics')">?<span class="tooltip">満枠判定に基づく指標</span></span></h3>
+                <div id="metricsContainer">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <span>データを読み込んでください</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 詳細分析カード -->
+        <div class="charts-row">
+            <div class="chart-card">
+                <h3>🔍 詳細分析<span class="help-icon" onclick="openHelpModal('detailedAnalysis')">?<span class="tooltip">予約パターンの詳細分析</span></span></h3>
+                <div id="detailedAnalysisContainer">
                     <div class="loading">
                         <div class="spinner"></div>
                         <span>データを読み込んでください</span>
@@ -1031,7 +1134,8 @@
             const data = processedData[currentType] || {};
             updateDailyProgressChart(data);
             updateHeatmap(data);
-            updateSpeedChart(data);
+            updateMetrics(data);
+            updateDetailedAnalysis(data);
             updateMonthlyChart(data);
             updateTimeSlotTable(data);
             updateRecentDataTable(data);
@@ -1248,66 +1352,377 @@
             return 'heat-5';
         }
 
-        // 埋まりスピードグラフ
-        function updateSpeedChart(data) {
-            const container = document.getElementById('speedChartContainer');
+        // 予約傾向指標
+        function updateMetrics(data) {
+            const container = document.getElementById('metricsContainer');
 
-            // 曜日別の18:30と18:00の差を計算
-            const speedData = {};
+            // 1. 満枠到達時刻の計算（fullThreshold以下になった最初の時刻）
+            const fullTimesByDay = {};
             [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
-                speedData[dayIndex] = { start: [], end: [] };
+                fullTimesByDay[dayIndex] = [];
+            });
+
+            // 2. 10時時点の満枠到達率
+            let totalDaysAt10 = 0;
+            let fullDaysAt10 = 0;
+            const fullAt10ByDay = {};
+            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+                fullAt10ByDay[dayIndex] = { total: 0, full: 0 };
+            });
+
+            // 3. 朝の予約集中度（07:00→10:00の減少）
+            const morningDecreaseByDay = {};
+            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+                morningDecreaseByDay[dayIndex] = [];
             });
 
             Object.values(data).forEach(dayData => {
-                if (dayData.dayOfWeek === 3) return;
-                if (dayData['18:30'] !== undefined) {
-                    speedData[dayData.dayOfWeek].start.push(dayData['18:30']);
+                if (dayData.dayOfWeek === 3) return; // 水曜休診
+
+                // 満枠到達時刻を探す（10分刻みデータを使用）
+                let foundFullTime = null;
+                for (const slot of DETAILED_TIME_SLOTS) {
+                    const count = dayData[slot.label];
+                    if (count !== undefined && count <= fullThreshold) {
+                        // 時刻を分に変換（18:30を起点として）
+                        let minutes;
+                        if (slot.prevDay) {
+                            // 前日18:30以降: 18:30=0, 19:00=30, ...
+                            minutes = (slot.hour - 18) * 60 + slot.minute - 30;
+                        } else {
+                            // 当日00:00以降: 00:00=330, 07:00=780, 10:00=960, ...
+                            minutes = (24 - 18) * 60 - 30 + slot.hour * 60 + slot.minute;
+                        }
+                        foundFullTime = { label: slot.label, minutes: minutes };
+                        break;
+                    }
                 }
-                if (dayData['18:00'] !== undefined) {
-                    speedData[dayData.dayOfWeek].end.push(dayData['18:00']);
+                if (foundFullTime) {
+                    fullTimesByDay[dayData.dayOfWeek].push(foundFullTime);
+                }
+
+                // 10時時点の満枠チェック
+                if (dayData['10:00'] !== undefined) {
+                    totalDaysAt10++;
+                    fullAt10ByDay[dayData.dayOfWeek].total++;
+                    if (dayData['10:00'] <= fullThreshold) {
+                        fullDaysAt10++;
+                        fullAt10ByDay[dayData.dayOfWeek].full++;
+                    }
+                }
+
+                // 朝の減少量（07:00→10:00）
+                if (dayData['07:00'] !== undefined && dayData['10:00'] !== undefined) {
+                    const decrease = dayData['07:00'] - dayData['10:00'];
+                    morningDecreaseByDay[dayData.dayOfWeek].push(decrease);
                 }
             });
 
-            let html = '<div class="speed-bar-container">';
-
-            // 最大減少量を計算（バーの幅計算用）
-            let maxDecrease = 0;
+            // 全体の平均満枠到達時刻
+            let allFullTimes = [];
             [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
-                const startAvg = speedData[dayIndex].start.length > 0
-                    ? speedData[dayIndex].start.reduce((a, b) => a + b, 0) / speedData[dayIndex].start.length
-                    : 0;
-                const endAvg = speedData[dayIndex].end.length > 0
-                    ? speedData[dayIndex].end.reduce((a, b) => a + b, 0) / speedData[dayIndex].end.length
-                    : 0;
-                const decrease = startAvg - endAvg;
-                if (decrease > maxDecrease) maxDecrease = decrease;
+                allFullTimes = allFullTimes.concat(fullTimesByDay[dayIndex]);
             });
 
+            let avgFullTimeLabel = '-';
+            if (allFullTimes.length > 0) {
+                const avgMinutes = allFullTimes.reduce((sum, t) => sum + t.minutes, 0) / allFullTimes.length;
+                avgFullTimeLabel = minutesToTimeLabel(avgMinutes);
+            }
+
+            // 全体の10時時点満枠率
+            const fullRateAt10 = totalDaysAt10 > 0 ? Math.round((fullDaysAt10 / totalDaysAt10) * 100) : 0;
+
+            // 全体の朝の減少量平均
+            let allMorningDecrease = [];
             [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
-                const startAvg = speedData[dayIndex].start.length > 0
-                    ? speedData[dayIndex].start.reduce((a, b) => a + b, 0) / speedData[dayIndex].start.length
+                allMorningDecrease = allMorningDecrease.concat(morningDecreaseByDay[dayIndex]);
+            });
+            const avgMorningDecrease = allMorningDecrease.length > 0
+                ? Math.round(allMorningDecrease.reduce((a, b) => a + b, 0) / allMorningDecrease.length * 10) / 10
+                : 0;
+
+            // HTML生成
+            let html = '<div class="metrics-grid">';
+
+            // 満枠到達時刻カード
+            html += `
+                <div class="metric-card">
+                    <div class="metric-icon">⏰</div>
+                    <div class="metric-title">満枠到達時刻<br>（平均）</div>
+                    <div class="metric-value">${avgFullTimeLabel}</div>
+                    <div class="metric-detail">${fullThreshold}枠以下になる時刻</div>
+                </div>
+            `;
+
+            // 10時時点 満枠到達率カード
+            const rateClass = fullRateAt10 >= 50 ? 'warning' : '';
+            html += `
+                <div class="metric-card ${fullRateAt10 >= 70 ? 'highlight' : ''}">
+                    <div class="metric-icon">🔴</div>
+                    <div class="metric-title">10時時点<br>満枠到達率</div>
+                    <div class="metric-value ${rateClass}">${fullRateAt10}<small>%</small></div>
+                    <div class="metric-detail">${fullDaysAt10}/${totalDaysAt10}日が満枠</div>
+                </div>
+            `;
+
+            // 朝の予約集中度カード
+            html += `
+                <div class="metric-card">
+                    <div class="metric-icon">🌅</div>
+                    <div class="metric-title">朝の予約集中度<br>（07時→10時）</div>
+                    <div class="metric-value">-${avgMorningDecrease}<small>枠</small></div>
+                    <div class="metric-detail">3時間での減少数</div>
+                </div>
+            `;
+
+            html += '</div>';
+
+            // 曜日別詳細
+            html += '<div class="metric-by-day"><h4>📅 曜日別の詳細</h4><div class="day-metrics">';
+            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+                const times = fullTimesByDay[dayIndex];
+                const avgTime = times.length > 0
+                    ? minutesToTimeLabel(times.reduce((sum, t) => sum + t.minutes, 0) / times.length)
+                    : '-';
+                const rate = fullAt10ByDay[dayIndex].total > 0
+                    ? Math.round((fullAt10ByDay[dayIndex].full / fullAt10ByDay[dayIndex].total) * 100)
                     : 0;
-                const endAvg = speedData[dayIndex].end.length > 0
-                    ? speedData[dayIndex].end.reduce((a, b) => a + b, 0) / speedData[dayIndex].end.length
-                    : 0;
-                const decrease = startAvg - endAvg;
-                const percentage = maxDecrease > 0 ? (decrease / maxDecrease) * 100 : 0;
+                const rateWarning = rate >= 50 ? 'warning' : '';
 
                 html += `
-                    <div class="speed-bar-row">
-                        <span class="speed-bar-label">${DAY_NAMES[dayIndex]}曜</span>
-                        <div class="speed-bar-wrapper">
-                            <div class="speed-bar-fill ${currentType}" style="width: ${percentage}%">
-                                ${decrease >= 5 ? Math.round(decrease) + '枠減' : ''}
-                            </div>
-                        </div>
-                        <span class="speed-bar-value">-${Math.round(decrease)}枠</span>
+                    <div class="day-metric">
+                        <div class="day-name">${DAY_NAMES[dayIndex]}曜</div>
+                        <div class="day-value">${avgTime}</div>
+                        <div class="day-value ${rateWarning}">${rate}%</div>
                     </div>
                 `;
             });
+            html += '</div></div>';
+
+            html += `<p style="font-size: 11px; color: #888; margin-top: 10px;">※ 満枠 = ${fullThreshold}枠以下（設定で変更可）</p>`;
+
+            container.innerHTML = html;
+        }
+
+        // 分を時刻ラベルに変換（18:30起点）
+        function minutesToTimeLabel(minutes) {
+            // 18:30を0分として計算
+            // 0-330: 18:30-23:59（前日）
+            // 330-: 00:00以降（当日）
+            let totalMinutes = minutes + 18 * 60 + 30; // 実際の分に変換
+            if (totalMinutes >= 24 * 60) {
+                totalMinutes -= 24 * 60;
+            }
+            const h = Math.floor(totalMinutes / 60);
+            const m = Math.round(totalMinutes % 60);
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        }
+
+        // 詳細分析
+        function updateDetailedAnalysis(data) {
+            const container = document.getElementById('detailedAnalysisContainer');
+
+            // データを日付でソート
+            const sortedDates = Object.keys(data).sort();
+            if (sortedDates.length === 0) {
+                container.innerHTML = '<div class="no-data">データがありません</div>';
+                return;
+            }
+
+            // 現在の期間設定を取得
+            const selectedDays = parseInt(document.querySelector('.preset-btn.active')?.dataset.days || '30');
+
+            // 期間を前半・後半に分割
+            const midIndex = Math.floor(sortedDates.length / 2);
+            const recentDates = sortedDates.slice(midIndex);
+            const previousDates = sortedDates.slice(0, midIndex);
+
+            // 1. 夜間予約率（18:30→07:00の減少枠数）曜日別
+            const nightDecreaseByDay = {};
+            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+                nightDecreaseByDay[dayIndex] = [];
+            });
+
+            // 2. 初期枠数（18:30時点）曜日別
+            const initialSlotsByDay = {};
+            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+                initialSlotsByDay[dayIndex] = [];
+            });
+
+            // 3. 予約集中ピーク（1時間単位で最も減少が急な時間帯）曜日別
+            const peakHoursByDay = {};
+            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+                peakHoursByDay[dayIndex] = [];
+            });
+
+            // 4. 期間比較用データ
+            let recentFullDays = 0, recentTotalDays = 0;
+            let previousFullDays = 0, previousTotalDays = 0;
+
+            // 1時間単位の時間帯定義
+            const hourlySlots = [];
+            for (let h = 19; h <= 23; h++) {
+                hourlySlots.push({ start: `${String(h).padStart(2, '0')}:00`, end: `${String(h + 1 === 24 ? 0 : h + 1).padStart(2, '0')}:00`, label: `${h}時台` });
+            }
+            for (let h = 0; h <= 17; h++) {
+                hourlySlots.push({ start: `${String(h).padStart(2, '0')}:00`, end: `${String(h + 1).padStart(2, '0')}:00`, label: `${h}時台` });
+            }
+
+            Object.entries(data).forEach(([date, dayData]) => {
+                if (dayData.dayOfWeek === 3) return; // 水曜休診
+
+                const dayIndex = dayData.dayOfWeek;
+
+                // 夜間予約（18:30→07:00）
+                if (dayData['18:30'] !== undefined && dayData['07:00'] !== undefined) {
+                    const decrease = dayData['18:30'] - dayData['07:00'];
+                    nightDecreaseByDay[dayIndex].push(decrease);
+                }
+
+                // 初期枠数
+                if (dayData['18:30'] !== undefined) {
+                    initialSlotsByDay[dayIndex].push(dayData['18:30']);
+                }
+
+                // 予約集中ピーク（1時間ごとの減少量を計算）
+                let maxDecrease = 0;
+                let peakHour = null;
+                hourlySlots.forEach(slot => {
+                    const startCount = dayData[slot.start];
+                    const endCount = dayData[slot.end];
+                    if (startCount !== undefined && endCount !== undefined) {
+                        const decrease = startCount - endCount;
+                        if (decrease > maxDecrease) {
+                            maxDecrease = decrease;
+                            peakHour = slot.label;
+                        }
+                    }
+                });
+                if (peakHour) {
+                    peakHoursByDay[dayIndex].push(peakHour);
+                }
+
+                // 期間比較（10時時点の満枠率）
+                const isRecent = recentDates.includes(date);
+                if (dayData['10:00'] !== undefined) {
+                    if (isRecent) {
+                        recentTotalDays++;
+                        if (dayData['10:00'] <= fullThreshold) recentFullDays++;
+                    } else {
+                        previousTotalDays++;
+                        if (dayData['10:00'] <= fullThreshold) previousFullDays++;
+                    }
+                }
+            });
+
+            // 全体平均の計算
+            let allNightDecrease = [];
+            let allInitialSlots = [];
+            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+                allNightDecrease = allNightDecrease.concat(nightDecreaseByDay[dayIndex]);
+                allInitialSlots = allInitialSlots.concat(initialSlotsByDay[dayIndex]);
+            });
+
+            const avgNightDecrease = allNightDecrease.length > 0
+                ? Math.round(allNightDecrease.reduce((a, b) => a + b, 0) / allNightDecrease.length * 10) / 10
+                : 0;
+            const avgInitialSlots = allInitialSlots.length > 0
+                ? Math.round(allInitialSlots.reduce((a, b) => a + b, 0) / allInitialSlots.length * 10) / 10
+                : 0;
+
+            // 最頻出ピーク時間帯
+            const allPeakHours = [];
+            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+                allPeakHours.push(...peakHoursByDay[dayIndex]);
+            });
+            const peakHourCounts = {};
+            allPeakHours.forEach(h => {
+                peakHourCounts[h] = (peakHourCounts[h] || 0) + 1;
+            });
+            const mostFrequentPeak = Object.entries(peakHourCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
+
+            // 期間比較
+            const recentRate = recentTotalDays > 0 ? Math.round((recentFullDays / recentTotalDays) * 100) : 0;
+            const previousRate = previousTotalDays > 0 ? Math.round((previousFullDays / previousTotalDays) * 100) : 0;
+            const rateDiff = recentRate - previousRate;
+
+            // HTML生成
+            let html = '<div class="metrics-grid" style="grid-template-columns: repeat(4, 1fr);">';
+
+            // 🌙 夜間予約
+            html += `
+                <div class="metric-card">
+                    <div class="metric-icon">🌙</div>
+                    <div class="metric-title">夜間予約<br>（18:30→07:00）</div>
+                    <div class="metric-value">-${avgNightDecrease}<small>枠</small></div>
+                    <div class="metric-detail">夜間の減少数</div>
+                </div>
+            `;
+
+            // 📈 初期枠数
+            html += `
+                <div class="metric-card">
+                    <div class="metric-icon">📈</div>
+                    <div class="metric-title">初期枠数<br>（18:30時点）</div>
+                    <div class="metric-value">${avgInitialSlots}<small>枠</small></div>
+                    <div class="metric-detail">平均の空き枠数</div>
+                </div>
+            `;
+
+            // ⚡ 予約集中ピーク
+            html += `
+                <div class="metric-card">
+                    <div class="metric-icon">⚡</div>
+                    <div class="metric-title">予約集中<br>ピーク時間</div>
+                    <div class="metric-value" style="font-size: 20px;">${mostFrequentPeak}</div>
+                    <div class="metric-detail">最も予約が入る時間</div>
+                </div>
+            `;
+
+            // 📊 期間比較
+            const diffClass = rateDiff > 0 ? 'warning' : '';
+            const diffSign = rateDiff > 0 ? '+' : '';
+            const periodLabel = selectedDays === 7 ? '週' : selectedDays === 30 ? '月' : selectedDays === 90 ? '3ヶ月' : '年';
+            html += `
+                <div class="metric-card ${Math.abs(rateDiff) >= 10 ? 'highlight' : ''}">
+                    <div class="metric-icon">📊</div>
+                    <div class="metric-title">期間比較<br>（満枠率）</div>
+                    <div class="metric-value ${diffClass}">${diffSign}${rateDiff}<small>%</small></div>
+                    <div class="metric-detail">前${periodLabel}比: ${previousRate}%→${recentRate}%</div>
+                </div>
+            `;
 
             html += '</div>';
-            html += '<p style="font-size: 12px; color: #666; margin-top: 10px;">※ 18:30時点 → 18:00時点の減少量（バーが長い＝早く埋まる）</p>';
+
+            // 曜日別詳細
+            html += '<div class="metric-by-day"><h4>📅 曜日別の詳細</h4>';
+            html += '<table class="data-table" style="font-size: 12px;"><thead><tr><th>曜日</th><th>🌙夜間</th><th>📈初期枠</th><th>⚡ピーク</th></tr></thead><tbody>';
+
+            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+                const nightAvg = nightDecreaseByDay[dayIndex].length > 0
+                    ? Math.round(nightDecreaseByDay[dayIndex].reduce((a, b) => a + b, 0) / nightDecreaseByDay[dayIndex].length * 10) / 10
+                    : '-';
+                const initAvg = initialSlotsByDay[dayIndex].length > 0
+                    ? Math.round(initialSlotsByDay[dayIndex].reduce((a, b) => a + b, 0) / initialSlotsByDay[dayIndex].length * 10) / 10
+                    : '-';
+
+                // 曜日別ピーク時間（最頻出）
+                const dayPeakCounts = {};
+                peakHoursByDay[dayIndex].forEach(h => {
+                    dayPeakCounts[h] = (dayPeakCounts[h] || 0) + 1;
+                });
+                const dayPeak = Object.entries(dayPeakCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
+
+                html += `<tr>
+                    <td class="day-col">${DAY_NAMES[dayIndex]}曜</td>
+                    <td>${nightAvg !== '-' ? '-' + nightAvg + '枠' : '-'}</td>
+                    <td>${initAvg !== '-' ? initAvg + '枠' : '-'}</td>
+                    <td>${dayPeak}</td>
+                </tr>`;
+            });
+
+            html += '</tbody></table></div>';
 
             container.innerHTML = html;
         }
@@ -1540,27 +1955,83 @@
                     </div>
                 `
             },
-            speed: {
-                title: '📊 曜日別 埋まりスピード',
+            metrics: {
+                title: '📊 予約傾向指標',
                 content: `
-                    <h3>表示内容</h3>
-                    <p>1日（18:30→18:00）で<strong>何枠減少するか</strong>を曜日別に比較したグラフです。</p>
+                    <h3>3つの指標</h3>
 
-                    <h3>計算方法</h3>
+                    <h4>⏰ 満枠到達時刻</h4>
+                    <p>空き枠が「満枠判定」の設定値以下になった<strong>最初の時刻</strong>の平均です。</p>
                     <div class="example">
-                        減少量 = 18:30時点の空き枠数 − 18:00時点の空き枠数
+                        例: 平均「08:30」→ 朝8時半頃には予約がほぼ埋まる傾向
                     </div>
-                    <p>この減少量の平均を曜日ごとに算出しています。</p>
 
-                    <h3>見方</h3>
-                    <ul>
-                        <li><strong>バーが長い曜日</strong> = 予約が入りやすい（人気）</li>
-                        <li><strong>バーが短い曜日</strong> = 予約が入りにくい（空きやすい）</li>
-                    </ul>
+                    <h4>🔴 10時時点 満枠到達率</h4>
+                    <p>診療開始時刻（10:00）の時点で、既に「満枠」状態だった日の<strong>割合</strong>です。</p>
+                    <div class="example">
+                        例: 70% → 10日中7日は、診療開始時点で予約が埋まっている
+                    </div>
+                    <p>この数値が高いほど、予約が取りにくい傾向を示します。</p>
+
+                    <h4>🌅 朝の予約集中度</h4>
+                    <p>07:00から10:00の3時間で減少する枠数の平均です。</p>
+                    <div class="example">
+                        例: -5枠 → 朝の3時間で平均5枠が埋まる
+                    </div>
+                    <p>この数値が大きいほど、朝に予約が集中していることを示します。</p>
+
+                    <h3>曜日別詳細</h3>
+                    <p>下部には曜日別の満枠到達時刻と10時時点満枠率を表示。曜日による違いを比較できます。</p>
 
                     <h3>活用方法</h3>
                     <div class="tip">
-                        バーが長い曜日は早めに埋まるため、お急ぎの患者さんにはバーが短い曜日を案内すると予約が取りやすいです。
+                        <strong>満枠到達率が高い曜日</strong> = 人気の曜日。予約が埋まりやすいので、早めの予約を案内。<br>
+                        <strong>満枠到達時刻が早い曜日</strong> = 朝の予約競争が激しい。前日までの予約を推奨。
+                    </div>
+
+                    <p><strong>※</strong> すべての指標は「満枠判定」設定に連動します。設定を変えると値も変わります。</p>
+                `
+            },
+            detailedAnalysis: {
+                title: '🔍 詳細分析',
+                content: `
+                    <h3>4つの指標</h3>
+
+                    <h4>🌙 夜間予約</h4>
+                    <p>18:30から翌朝07:00までの間に減少した枠数です。</p>
+                    <div class="example">
+                        例: -5枠 → 夜間に平均5枠が予約で埋まる
+                    </div>
+                    <p>この数値が大きいほど、夜のうちに予約が入りやすいことを示します。</p>
+
+                    <h4>📈 初期枠数</h4>
+                    <p>18:30時点（予約データ切り替え時）の空き枠数の平均です。</p>
+                    <div class="example">
+                        例: 15枠 → 1日の始まりは平均15枠の空きがある
+                    </div>
+                    <p>曜日によって枠数が異なる場合、曜日別の詳細で確認できます。</p>
+
+                    <h4>⚡ 予約集中ピーク</h4>
+                    <p>1時間単位で最も予約が集中する時間帯です。</p>
+                    <div class="example">
+                        例: 7時台 → 07:00〜08:00に最も多くの予約が入る
+                    </div>
+                    <p>この時間帯に予約が殺到するため、システム負荷や対応準備の参考に。</p>
+
+                    <h4>📊 期間比較</h4>
+                    <p>選択した期間の前半と後半で、10時時点の満枠率を比較します。</p>
+                    <div class="example">
+                        例: +10% → 最近の方が満枠になりやすくなっている
+                    </div>
+                    <p>プラスなら混雑傾向が増加、マイナスなら減少を示します。</p>
+
+                    <h3>曜日別詳細</h3>
+                    <p>下部のテーブルで、各曜日の夜間予約数・初期枠数・ピーク時間を確認できます。</p>
+
+                    <h3>活用方法</h3>
+                    <div class="tip">
+                        <strong>夜間予約が多い曜日</strong> = 前日夜に予約が殺到。当日朝には既に埋まっている可能性。<br>
+                        <strong>ピーク時間が早い曜日</strong> = 朝一番で予約が集中。早めの予約を推奨。
                     </div>
                 `
             },
