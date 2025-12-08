@@ -43,6 +43,13 @@
       top: 0;
       right: 0;
       display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .header-buttons-row {
+      display: flex;
       gap: 6px;
     }
 
@@ -282,6 +289,11 @@
       border-color: #3498db;
     }
 
+    .icon-btn.dashboard-btn:hover {
+      background: #9b59b6;
+      border-color: #9b59b6;
+    }
+
     .loading {
       display: inline-block;
       width: 10px;
@@ -311,8 +323,11 @@
         <div id="day-text" class="day-text"></div>
       </div>
       <div class="header-buttons">
-        <a id="help-link" class="icon-btn help-btn" href="https://nekonekoganka.github.io/reservation-status/chrome-extension-help.html" target="_blank" title="ヘルプ">? ヘルプ</a>
-        <a id="checker-link" class="icon-btn" href="#" title="予約状況チェッカーへ">📊 予約状況チェッカー</a>
+        <div class="header-buttons-row">
+          <a id="help-link" class="icon-btn help-btn" href="https://nekonekoganka.github.io/reservation-status/chrome-extension-help.html" target="_blank" title="ヘルプ">? ヘルプ</a>
+          <a id="checker-link" class="icon-btn" href="#" title="予約状況チェッカーへ">📊 予約状況チェッカー</a>
+        </div>
+        <a id="dashboard-link" class="icon-btn dashboard-btn" href="https://nekonekoganka.github.io/reservation-status/dashboard.html" target="_blank" title="予約傾向ダッシュボードへ">📈 予約推移の解析</a>
       </div>
     </div>
 
