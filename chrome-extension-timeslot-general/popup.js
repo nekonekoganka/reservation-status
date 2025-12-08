@@ -356,7 +356,7 @@ async function updateCountdown() {
     const data = await chrome.storage.local.get(['lastUpdate']);
 
     if (!data.lastUpdate) {
-      document.getElementById('next-update').textContent = '--秒';
+      document.getElementById('next-update').textContent = '--';
       return;
     }
 
@@ -366,10 +366,10 @@ async function updateCountdown() {
     const diff = nextUpdate - now;
 
     if (diff <= 0) {
-      document.getElementById('next-update').textContent = 'まもなく';
+      document.getElementById('next-update').textContent = '0';
     } else {
       const seconds = Math.floor(diff / 1000);
-      document.getElementById('next-update').textContent = `${seconds}秒`;
+      document.getElementById('next-update').textContent = seconds;
     }
   } catch (error) {
     console.error('[一般予約枠数] カウントダウンエラー:', error);
