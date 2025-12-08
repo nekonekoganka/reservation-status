@@ -199,24 +199,13 @@
       text-align: center;
     }
 
-    /* フッター */
-    .footer {
+    /* タイムライン下の凡例 */
+    .timeline-legend {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .footer-left {
-      display: flex;
-      align-items: center;
+      justify-content: center;
       gap: 6px;
-    }
-
-    .legend {
-      display: flex;
-      align-items: center;
-      gap: 4px;
+      margin-top: 8px;
       font-size: 11px;
       color: #666;
     }
@@ -229,10 +218,12 @@
       border: 2px solid #CC6600;
     }
 
-    .footer-right {
+    /* フッター */
+    .footer {
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: space-between;
+      gap: 8px;
     }
 
     .update-info {
@@ -349,6 +340,11 @@
           <span class="timeline-label">18</span>
         </div>
       </div>
+      <!-- 凡例（タイムライン下） -->
+      <div class="timeline-legend">
+        <span class="legend-dot"></span>
+        <span>空き枠</span>
+      </div>
     </div>
 
     <!-- 時間枠リスト -->
@@ -360,16 +356,10 @@
 
     <!-- フッター -->
     <div class="footer">
-      <div class="footer-left">
-        <div class="legend">
-          <span class="legend-dot"></span>
-          <span>空き枠</span>
-        </div>
+      <div class="update-info">
+        更新: <span id="last-update">--:--</span> / 次回 <span id="next-update">--</span>秒後
       </div>
-      <div class="footer-right">
-        <span class="update-info"><span id="last-update">--:--</span></span>
-        <button id="refresh-btn" class="refresh-btn">🔄 更新</button>
-      </div>
+      <button id="refresh-btn" class="refresh-btn">🔄 更新</button>
     </div>
   </div>
 
