@@ -461,18 +461,32 @@
         margin-top: 0.5vw;
       }
 
-      /* 時間枠リスト */
+      /* 時間枠リスト（デフォルト4列） */
       .timeslots-list {
+        padding: 0.8vw;
+        gap: 0.8vw;
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      /* 13枠以上のとき6列に変更 */
+      .timeslots-list.many-slots {
         padding: 0.6vw;
         gap: 0.5vw;
         grid-template-columns: repeat(6, 1fr);
       }
 
       .timeslot-item {
+        padding: 1vw 0.8vw;
+        font-size: 2.5vw;
+        border-radius: 0.8vw;
+        border-width: 2px;
+      }
+
+      /* 13枠以上のときコンパクト表示 */
+      .timeslots-list.many-slots .timeslot-item {
         padding: 0.6vw 0.5vw;
         font-size: 2vw;
         border-radius: 0.6vw;
-        border-width: 2px;
       }
 
       /* フッター（コンパクト1行） */
@@ -1069,6 +1083,13 @@
         listElement.innerHTML = html;
         expandIndicator.style.display = 'block';
         containerElement.style.display = 'block';
+
+        // 13枠以上のときは6列表示（many-slotsクラス追加）
+        if (slotsCount >= 13) {
+          listElement.classList.add('many-slots');
+        } else {
+          listElement.classList.remove('many-slots');
+        }
       } else {
         // 時間枠がない場合はコンテナごと非表示
         listElement.innerHTML = '';
