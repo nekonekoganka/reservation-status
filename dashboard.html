@@ -753,6 +753,19 @@
             </div>
         </div>
 
+        <!-- 詳細分析カード -->
+        <div class="charts-row">
+            <div class="chart-card">
+                <h3>🔍 詳細分析<span class="help-icon" onclick="openHelpModal('detailedAnalysis')">?<span class="tooltip">予約パターンの詳細分析</span></span></h3>
+                <div id="detailedAnalysisContainer">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <span>データを読み込んでください</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- 2列グラフ -->
         <div class="charts-row">
             <!-- 月別の平均空き枠 -->
@@ -1122,6 +1135,7 @@
             updateDailyProgressChart(data);
             updateHeatmap(data);
             updateMetrics(data);
+            updateDetailedAnalysis(data);
             updateMonthlyChart(data);
             updateTimeSlotTable(data);
             updateRecentDataTable(data);
@@ -1505,6 +1519,214 @@
             return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
         }
 
+        // 詳細分析
+        function updateDetailedAnalysis(data) {
+            const container = document.getElementById('detailedAnalysisContainer');
+
+            // データを日付でソート
+            const sortedDates = Object.keys(data).sort();
+            if (sortedDates.length === 0) {
+                container.innerHTML = '<div class="no-data">データがありません</div>';
+                return;
+            }
+
+            // 現在の期間設定を取得
+            const selectedDays = parseInt(document.querySelector('.preset-btn.active')?.dataset.days || '30');
+
+            // 期間を前半・後半に分割
+            const midIndex = Math.floor(sortedDates.length / 2);
+            const recentDates = sortedDates.slice(midIndex);
+            const previousDates = sortedDates.slice(0, midIndex);
+
+            // 1. 夜間予約率（18:30→07:00の減少枠数）曜日別
+            const nightDecreaseByDay = {};
+            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+                nightDecreaseByDay[dayIndex] = [];
+            });
+
+            // 2. 初期枠数（18:30時点）曜日別
+            const initialSlotsByDay = {};
+            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+                initialSlotsByDay[dayIndex] = [];
+            });
+
+            // 3. 予約集中ピーク（1時間単位で最も減少が急な時間帯）曜日別
+            const peakHoursByDay = {};
+            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+                peakHoursByDay[dayIndex] = [];
+            });
+
+            // 4. 期間比較用データ
+            let recentFullDays = 0, recentTotalDays = 0;
+            let previousFullDays = 0, previousTotalDays = 0;
+
+            // 1時間単位の時間帯定義
+            const hourlySlots = [];
+            for (let h = 19; h <= 23; h++) {
+                hourlySlots.push({ start: `${String(h).padStart(2, '0')}:00`, end: `${String(h + 1 === 24 ? 0 : h + 1).padStart(2, '0')}:00`, label: `${h}時台` });
+            }
+            for (let h = 0; h <= 17; h++) {
+                hourlySlots.push({ start: `${String(h).padStart(2, '0')}:00`, end: `${String(h + 1).padStart(2, '0')}:00`, label: `${h}時台` });
+            }
+
+            Object.entries(data).forEach(([date, dayData]) => {
+                if (dayData.dayOfWeek === 3) return; // 水曜休診
+
+                const dayIndex = dayData.dayOfWeek;
+
+                // 夜間予約（18:30→07:00）
+                if (dayData['18:30'] !== undefined && dayData['07:00'] !== undefined) {
+                    const decrease = dayData['18:30'] - dayData['07:00'];
+                    nightDecreaseByDay[dayIndex].push(decrease);
+                }
+
+                // 初期枠数
+                if (dayData['18:30'] !== undefined) {
+                    initialSlotsByDay[dayIndex].push(dayData['18:30']);
+                }
+
+                // 予約集中ピーク（1時間ごとの減少量を計算）
+                let maxDecrease = 0;
+                let peakHour = null;
+                hourlySlots.forEach(slot => {
+                    const startCount = dayData[slot.start];
+                    const endCount = dayData[slot.end];
+                    if (startCount !== undefined && endCount !== undefined) {
+                        const decrease = startCount - endCount;
+                        if (decrease > maxDecrease) {
+                            maxDecrease = decrease;
+                            peakHour = slot.label;
+                        }
+                    }
+                });
+                if (peakHour) {
+                    peakHoursByDay[dayIndex].push(peakHour);
+                }
+
+                // 期間比較（10時時点の満枠率）
+                const isRecent = recentDates.includes(date);
+                if (dayData['10:00'] !== undefined) {
+                    if (isRecent) {
+                        recentTotalDays++;
+                        if (dayData['10:00'] <= fullThreshold) recentFullDays++;
+                    } else {
+                        previousTotalDays++;
+                        if (dayData['10:00'] <= fullThreshold) previousFullDays++;
+                    }
+                }
+            });
+
+            // 全体平均の計算
+            let allNightDecrease = [];
+            let allInitialSlots = [];
+            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+                allNightDecrease = allNightDecrease.concat(nightDecreaseByDay[dayIndex]);
+                allInitialSlots = allInitialSlots.concat(initialSlotsByDay[dayIndex]);
+            });
+
+            const avgNightDecrease = allNightDecrease.length > 0
+                ? Math.round(allNightDecrease.reduce((a, b) => a + b, 0) / allNightDecrease.length * 10) / 10
+                : 0;
+            const avgInitialSlots = allInitialSlots.length > 0
+                ? Math.round(allInitialSlots.reduce((a, b) => a + b, 0) / allInitialSlots.length * 10) / 10
+                : 0;
+
+            // 最頻出ピーク時間帯
+            const allPeakHours = [];
+            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+                allPeakHours.push(...peakHoursByDay[dayIndex]);
+            });
+            const peakHourCounts = {};
+            allPeakHours.forEach(h => {
+                peakHourCounts[h] = (peakHourCounts[h] || 0) + 1;
+            });
+            const mostFrequentPeak = Object.entries(peakHourCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
+
+            // 期間比較
+            const recentRate = recentTotalDays > 0 ? Math.round((recentFullDays / recentTotalDays) * 100) : 0;
+            const previousRate = previousTotalDays > 0 ? Math.round((previousFullDays / previousTotalDays) * 100) : 0;
+            const rateDiff = recentRate - previousRate;
+
+            // HTML生成
+            let html = '<div class="metrics-grid" style="grid-template-columns: repeat(4, 1fr);">';
+
+            // 🌙 夜間予約
+            html += `
+                <div class="metric-card">
+                    <div class="metric-icon">🌙</div>
+                    <div class="metric-title">夜間予約<br>（18:30→07:00）</div>
+                    <div class="metric-value">-${avgNightDecrease}<small>枠</small></div>
+                    <div class="metric-detail">夜間の減少数</div>
+                </div>
+            `;
+
+            // 📈 初期枠数
+            html += `
+                <div class="metric-card">
+                    <div class="metric-icon">📈</div>
+                    <div class="metric-title">初期枠数<br>（18:30時点）</div>
+                    <div class="metric-value">${avgInitialSlots}<small>枠</small></div>
+                    <div class="metric-detail">平均の空き枠数</div>
+                </div>
+            `;
+
+            // ⚡ 予約集中ピーク
+            html += `
+                <div class="metric-card">
+                    <div class="metric-icon">⚡</div>
+                    <div class="metric-title">予約集中<br>ピーク時間</div>
+                    <div class="metric-value" style="font-size: 20px;">${mostFrequentPeak}</div>
+                    <div class="metric-detail">最も予約が入る時間</div>
+                </div>
+            `;
+
+            // 📊 期間比較
+            const diffClass = rateDiff > 0 ? 'warning' : '';
+            const diffSign = rateDiff > 0 ? '+' : '';
+            const periodLabel = selectedDays === 7 ? '週' : selectedDays === 30 ? '月' : selectedDays === 90 ? '3ヶ月' : '年';
+            html += `
+                <div class="metric-card ${Math.abs(rateDiff) >= 10 ? 'highlight' : ''}">
+                    <div class="metric-icon">📊</div>
+                    <div class="metric-title">期間比較<br>（満枠率）</div>
+                    <div class="metric-value ${diffClass}">${diffSign}${rateDiff}<small>%</small></div>
+                    <div class="metric-detail">前${periodLabel}比: ${previousRate}%→${recentRate}%</div>
+                </div>
+            `;
+
+            html += '</div>';
+
+            // 曜日別詳細
+            html += '<div class="metric-by-day"><h4>📅 曜日別の詳細</h4>';
+            html += '<table class="data-table" style="font-size: 12px;"><thead><tr><th>曜日</th><th>🌙夜間</th><th>📈初期枠</th><th>⚡ピーク</th></tr></thead><tbody>';
+
+            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+                const nightAvg = nightDecreaseByDay[dayIndex].length > 0
+                    ? Math.round(nightDecreaseByDay[dayIndex].reduce((a, b) => a + b, 0) / nightDecreaseByDay[dayIndex].length * 10) / 10
+                    : '-';
+                const initAvg = initialSlotsByDay[dayIndex].length > 0
+                    ? Math.round(initialSlotsByDay[dayIndex].reduce((a, b) => a + b, 0) / initialSlotsByDay[dayIndex].length * 10) / 10
+                    : '-';
+
+                // 曜日別ピーク時間（最頻出）
+                const dayPeakCounts = {};
+                peakHoursByDay[dayIndex].forEach(h => {
+                    dayPeakCounts[h] = (dayPeakCounts[h] || 0) + 1;
+                });
+                const dayPeak = Object.entries(dayPeakCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
+
+                html += `<tr>
+                    <td class="day-col">${DAY_NAMES[dayIndex]}曜</td>
+                    <td>${nightAvg !== '-' ? '-' + nightAvg + '枠' : '-'}</td>
+                    <td>${initAvg !== '-' ? initAvg + '枠' : '-'}</td>
+                    <td>${dayPeak}</td>
+                </tr>`;
+            });
+
+            html += '</tbody></table></div>';
+
+            container.innerHTML = html;
+        }
+
         // 月別グラフ
         function updateMonthlyChart(data) {
             const ctx = document.getElementById('monthlyChart').getContext('2d');
@@ -1768,6 +1990,49 @@
                     </div>
 
                     <p><strong>※</strong> すべての指標は「満枠判定」設定に連動します。設定を変えると値も変わります。</p>
+                `
+            },
+            detailedAnalysis: {
+                title: '🔍 詳細分析',
+                content: `
+                    <h3>4つの指標</h3>
+
+                    <h4>🌙 夜間予約</h4>
+                    <p>18:30から翌朝07:00までの間に減少した枠数です。</p>
+                    <div class="example">
+                        例: -5枠 → 夜間に平均5枠が予約で埋まる
+                    </div>
+                    <p>この数値が大きいほど、夜のうちに予約が入りやすいことを示します。</p>
+
+                    <h4>📈 初期枠数</h4>
+                    <p>18:30時点（予約データ切り替え時）の空き枠数の平均です。</p>
+                    <div class="example">
+                        例: 15枠 → 1日の始まりは平均15枠の空きがある
+                    </div>
+                    <p>曜日によって枠数が異なる場合、曜日別の詳細で確認できます。</p>
+
+                    <h4>⚡ 予約集中ピーク</h4>
+                    <p>1時間単位で最も予約が集中する時間帯です。</p>
+                    <div class="example">
+                        例: 7時台 → 07:00〜08:00に最も多くの予約が入る
+                    </div>
+                    <p>この時間帯に予約が殺到するため、システム負荷や対応準備の参考に。</p>
+
+                    <h4>📊 期間比較</h4>
+                    <p>選択した期間の前半と後半で、10時時点の満枠率を比較します。</p>
+                    <div class="example">
+                        例: +10% → 最近の方が満枠になりやすくなっている
+                    </div>
+                    <p>プラスなら混雑傾向が増加、マイナスなら減少を示します。</p>
+
+                    <h3>曜日別詳細</h3>
+                    <p>下部のテーブルで、各曜日の夜間予約数・初期枠数・ピーク時間を確認できます。</p>
+
+                    <h3>活用方法</h3>
+                    <div class="tip">
+                        <strong>夜間予約が多い曜日</strong> = 前日夜に予約が殺到。当日朝には既に埋まっている可能性。<br>
+                        <strong>ピーク時間が早い曜日</strong> = 朝一番で予約が集中。早めの予約を推奨。
+                    </div>
                 `
             },
             monthly: {
