@@ -402,6 +402,185 @@
             font-weight: 600;
             min-width: 60px;
         }
+
+        /* ヘルプアイコン */
+        .help-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: #e0e0e0;
+            color: #666;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .help-icon:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* ツールチップ */
+        .help-icon .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 130%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 400;
+            white-space: nowrap;
+            z-index: 100;
+            transition: opacity 0.2s, visibility 0.2s;
+        }
+
+        .help-icon .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #333;
+        }
+
+        .help-icon:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* モーダル */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .modal-header h2 {
+            font-size: 1.3em;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            padding: 5px;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .modal-body h3 {
+            color: #333;
+            font-size: 1em;
+            margin: 20px 0 10px 0;
+            padding-left: 10px;
+            border-left: 3px solid #667eea;
+        }
+
+        .modal-body p {
+            margin-bottom: 10px;
+        }
+
+        .modal-body ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .modal-body li {
+            margin-bottom: 5px;
+        }
+
+        .modal-body code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .modal-body .example {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+
+        .modal-body .tip {
+            background: #e8f5e9;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #4CAF50;
+        }
     </style>
 </head>
 <body>
@@ -440,7 +619,7 @@
         <!-- メイングラフ: 1日の空き枠推移 -->
         <div class="charts-grid">
             <div class="chart-card">
-                <h3>📈 1日の空き枠推移（18:30 → 18:00）- 10分刻み</h3>
+                <h3>📈 1日の空き枠推移（18:30 → 18:00）- 10分刻み<span class="help-icon" onclick="openHelpModal('dailyProgress')">?<span class="tooltip">曜日別の空き枠推移を表示</span></span></h3>
                 <div class="chart-container large">
                     <canvas id="dailyProgressChart"></canvas>
                 </div>
@@ -451,7 +630,7 @@
         <div class="charts-row">
             <!-- 曜日×時間帯ヒートマップ -->
             <div class="chart-card">
-                <h3>🗓️ 曜日 × 時間帯 ヒートマップ</h3>
+                <h3>🗓️ 曜日 × 時間帯 ヒートマップ<span class="help-icon" onclick="openHelpModal('heatmap')">?<span class="tooltip">曜日×時間帯の平均空き枠</span></span></h3>
                 <div class="heatmap-container" id="heatmapContainer">
                     <div class="loading">
                         <div class="spinner"></div>
@@ -462,7 +641,7 @@
 
             <!-- 曜日別埋まりスピード -->
             <div class="chart-card">
-                <h3>📊 曜日別 埋まりスピード</h3>
+                <h3>📊 曜日別 埋まりスピード<span class="help-icon" onclick="openHelpModal('speed')">?<span class="tooltip">1日で何枠減るかを比較</span></span></h3>
                 <div id="speedChartContainer">
                     <div class="loading">
                         <div class="spinner"></div>
@@ -476,7 +655,7 @@
         <div class="charts-row">
             <!-- 月別の平均空き枠 -->
             <div class="chart-card">
-                <h3>📅 月別の平均空き枠（9時時点）</h3>
+                <h3>📅 月別の平均空き枠（10時時点）<span class="help-icon" onclick="openHelpModal('monthly')">?<span class="tooltip">月ごとの傾向を確認</span></span></h3>
                 <div class="chart-container">
                     <canvas id="monthlyChart"></canvas>
                 </div>
@@ -484,7 +663,7 @@
 
             <!-- 時間帯別×曜日 残り枠 -->
             <div class="chart-card">
-                <h3>🕐 時間帯別 × 曜日 残り枠数</h3>
+                <h3>🕐 時間帯別 × 曜日 残り枠数<span class="help-icon" onclick="openHelpModal('timeSlotTable')">?<span class="tooltip">数値で詳細を確認</span></span></h3>
                 <div class="data-table-container" id="timeSlotTableContainer">
                     <div class="loading">
                         <div class="spinner"></div>
@@ -496,7 +675,7 @@
 
         <!-- 直近の埋まり方データ -->
         <div class="chart-card">
-            <h3>📋 直近の埋まり方データ</h3>
+            <h3>📋 直近の埋まり方データ<span class="help-icon" onclick="openHelpModal('recentData')">?<span class="tooltip">生データ一覧を確認</span></span></h3>
             <div class="data-table-container" id="recentDataContainer" style="max-height: 400px; overflow-y: auto;">
                 <div class="loading">
                     <div class="spinner"></div>
@@ -509,6 +688,19 @@
             <p>ふじみ野ひかり眼科 予約傾向ダッシュボード v2.0</p>
             <p>データは1分ごとに更新されます（Cloud Run稼働時）</p>
         </footer>
+    </div>
+
+    <!-- ヘルプモーダル -->
+    <div class="modal-overlay" id="helpModal" onclick="closeHelpModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 id="modalTitle">ヘルプ</h2>
+                <button class="modal-close" onclick="closeHelpModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- 動的に挿入 -->
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1254,6 +1446,176 @@
 
             container.innerHTML = html;
         }
+
+        // ========================================
+        // ヘルプモーダル機能
+        // ========================================
+
+        const HELP_CONTENT = {
+            dailyProgress: {
+                title: '📈 1日の空き枠推移',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>前日18:30から当日18:00までの空き枠数の変化を、<strong>曜日別</strong>に折れ線グラフで表示します。</p>
+
+                    <h3>なぜ18:30開始？</h3>
+                    <p>当クリニックの受付終了時刻は18:30です。18:30を過ぎると翌営業日の予約データに切り替わるため、ここを起点としています。</p>
+                    <div class="example">
+                        例：火曜18:30 → 木曜の予約データ（水曜は休診日のためスキップ）
+                    </div>
+
+                    <h3>計算方法</h3>
+                    <ul>
+                        <li>10分刻みでデータポイントを取得</li>
+                        <li>同じ曜日の同じ時刻のデータを平均化</li>
+                        <li>例：月曜の07:00のデータが5件あれば、その平均値を表示</li>
+                    </ul>
+
+                    <h3>見方のコツ</h3>
+                    <div class="tip">
+                        <strong>線が急降下する時間帯</strong> = 予約が集中しやすい時間帯<br>
+                        例えば07:00〜10:00で急に下がるなら、朝の予約が多いということです。
+                    </div>
+                `
+            },
+            heatmap: {
+                title: '🗓️ 曜日 × 時間帯 ヒートマップ',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>曜日と時間帯の組み合わせごとに、<strong>平均空き枠数</strong>を色で表現したマップです。</p>
+
+                    <h3>色の意味</h3>
+                    <ul>
+                        <li><span style="background:#66bb6a;color:white;padding:2px 8px;border-radius:4px;">緑</span> 10枠以上 - 余裕あり</li>
+                        <li><span style="background:#ffca28;color:#333;padding:2px 8px;border-radius:4px;">黄</span> 7-9枠 - やや余裕</li>
+                        <li><span style="background:#ffa726;color:white;padding:2px 8px;border-radius:4px;">オレンジ</span> 5-6枠 - 普通</li>
+                        <li><span style="background:#ff7043;color:white;padding:2px 8px;border-radius:4px;">赤橙</span> 3-4枠 - やや混雑</li>
+                        <li><span style="background:#ef5350;color:white;padding:2px 8px;border-radius:4px;">赤</span> 1-2枠 - 混雑</li>
+                        <li><span style="background:#c62828;color:white;padding:2px 8px;border-radius:4px;">濃赤</span> 0枠 - 満枠</li>
+                    </ul>
+
+                    <h3>活用方法</h3>
+                    <div class="tip">
+                        赤色が多い曜日×時間帯 = 混みやすいパターン<br>
+                        患者さんへの案内時に「○曜の△時頃は混みやすいです」と伝える参考に。
+                    </div>
+                `
+            },
+            speed: {
+                title: '📊 曜日別 埋まりスピード',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>1日（18:30→18:00）で<strong>何枠減少するか</strong>を曜日別に比較したグラフです。</p>
+
+                    <h3>計算方法</h3>
+                    <div class="example">
+                        減少量 = 18:30時点の空き枠数 − 18:00時点の空き枠数
+                    </div>
+                    <p>この減少量の平均を曜日ごとに算出しています。</p>
+
+                    <h3>見方</h3>
+                    <ul>
+                        <li><strong>バーが長い曜日</strong> = 予約が入りやすい（人気）</li>
+                        <li><strong>バーが短い曜日</strong> = 予約が入りにくい（空きやすい）</li>
+                    </ul>
+
+                    <h3>活用方法</h3>
+                    <div class="tip">
+                        バーが長い曜日は早めに埋まるため、お急ぎの患者さんにはバーが短い曜日を案内すると予約が取りやすいです。
+                    </div>
+                `
+            },
+            monthly: {
+                title: '📅 月別の平均空き枠',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>月ごとの<strong>10:00時点</strong>の平均空き枠数を棒グラフで表示します。</p>
+
+                    <h3>なぜ10:00時点？</h3>
+                    <p>診療開始直後（10:00）の空き状況は、その日の混雑度を予測する指標になります。朝の時点で枠が少なければ、その日は混雑日です。</p>
+
+                    <h3>活用方法</h3>
+                    <div class="tip">
+                        季節による混雑傾向を把握できます。<br>
+                        例：花粉症シーズン（2-4月）は混みやすい、など
+                    </div>
+
+                    <p><strong>注意:</strong> データ蓄積が進むと、より正確な傾向が見えてきます。</p>
+                `
+            },
+            timeSlotTable: {
+                title: '🕐 時間帯別 × 曜日 残り枠数',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>ヒートマップと同じデータを<strong>数値テーブル</strong>で表示します。</p>
+
+                    <h3>時間帯の意味</h3>
+                    <ul>
+                        <li><code>18:30</code> - 前日の受付終了時点（翌日の予約開始時）</li>
+                        <li><code>02:00</code> - 深夜（ほぼ変化なし）</li>
+                        <li><code>07:00</code> - 早朝（朝の予約が入り始める前）</li>
+                        <li><code>10:00</code> - 診療開始時点</li>
+                        <li><code>14:00</code> - 昼休み明け</li>
+                        <li><code>16:00</code> - 夕方</li>
+                        <li><code>18:00</code> - 受付終了直前</li>
+                    </ul>
+
+                    <h3>赤字の意味</h3>
+                    <div class="tip">
+                        <span style="color:#c62828;font-weight:bold;">赤字（2枠以下）</span>は混雑している状態です。この時間帯×曜日は予約が取りにくい傾向があります。
+                    </div>
+                `
+            },
+            recentData: {
+                title: '📋 直近の埋まり方データ',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>直近20日分の<strong>生データ</strong>を一覧表示します。各日の時間帯ごとの空き枠数がわかります。</p>
+
+                    <h3>各列の意味</h3>
+                    <ul>
+                        <li><strong>対象日</strong> - その予約データがどの診療日のものか</li>
+                        <li><strong>曜</strong> - 曜日</li>
+                        <li><strong>18:30〜18:00</strong> - 各時間帯の空き枠数</li>
+                        <li><strong>減少</strong> - 1日で何枠減ったか（18:30→18:00）</li>
+                    </ul>
+
+                    <h3>⚠️マークの意味</h3>
+                    <div class="tip">
+                        <strong>⚠️</strong> = 07:00時点で残り8枠未満<br>
+                        早朝から既に混雑している日です。前日の夜〜早朝に予約が集中したことを示します。
+                    </div>
+
+                    <h3>活用方法</h3>
+                    <p>個別の日の状況を確認したい場合に使います。「先週の月曜はどうだったか？」などの振り返りに便利です。</p>
+                `
+            }
+        };
+
+        function openHelpModal(helpKey) {
+            const help = HELP_CONTENT[helpKey];
+            if (!help) return;
+
+            document.getElementById('modalTitle').textContent = help.title;
+            document.getElementById('modalBody').innerHTML = help.content;
+            document.getElementById('helpModal').classList.add('active');
+            document.body.style.overflow = 'hidden'; // スクロール無効化
+        }
+
+        function closeHelpModal(event) {
+            // オーバーレイクリック時のみ閉じる（モーダル内クリックは無視）
+            if (event && event.target !== event.currentTarget) return;
+
+            document.getElementById('helpModal').classList.remove('active');
+            document.body.style.overflow = ''; // スクロール復元
+        }
+
+        // Escキーでモーダルを閉じる
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeHelpModal();
+            }
+        });
     </script>
 </body>
 </html>
