@@ -799,6 +799,14 @@
             </div>
         </div>
 
+        <!-- デバッグ用: Cloud Storageから取得した生データ -->
+        <div class="chart-card">
+            <h3>🔧 取得データ確認（デバッグ用）</h3>
+            <div id="rawDataDebugContainer" style="max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; background: #f5f5f5; padding: 10px; border-radius: 8px;">
+                <span style="color: #888;">データを読み込んでください</span>
+            </div>
+        </div>
+
         <footer>
             <p>ふじみ野ひかり眼科 予約傾向ダッシュボード v2.0</p>
             <p>データは1分ごとに更新されます（Cloud Run稼働時）</p>
@@ -996,6 +1004,9 @@
                 const generalData = generalResults.filter(d => d !== null).flat();
                 const shiyaData = shiyaResults.filter(d => d !== null).flat();
 
+                // デバッグ用: 取得した生データを表示
+                updateRawDataDebug(generalData, shiyaData, dateList);
+
                 if (generalData.length === 0 && shiyaData.length === 0) {
                     showError('選択期間にデータがありません。Cloud Runがデータを記録し始めるまでお待ちください。');
                 } else {
@@ -1128,6 +1139,64 @@
                 }
             }
             return null;
+        }
+
+        // デバッグ用: 取得した生データを表示
+        function updateRawDataDebug(generalData, shiyaData, dateList) {
+            const container = document.getElementById('rawDataDebugContainer');
+            if (!container) return;
+
+            let html = '';
+
+            // 取得状況サマリー
+            html += `<div style="margin-bottom: 10px; padding: 10px; background: #fff; border-radius: 4px;">`;
+            html += `<strong>📊 取得状況</strong><br>`;
+            html += `取得対象日: ${dateList.length}日分 (${dateList[0]} 〜 ${dateList[dateList.length - 1]})<br>`;
+            html += `一般予約データ: <span style="color: ${generalData.length > 0 ? 'green' : 'red'};">${generalData.length}件</span><br>`;
+            html += `視野予約データ: <span style="color: ${shiyaData.length > 0 ? 'green' : 'red'};">${shiyaData.length}件</span>`;
+            html += `</div>`;
+
+            // 一般予約の直近50件
+            const currentData = currentType === 'general' ? generalData : shiyaData;
+            const typeName = currentType === 'general' ? '一般予約' : '視野予約';
+
+            if (currentData.length > 0) {
+                // 日付と時刻でソート（降順）
+                const sortedData = [...currentData].sort((a, b) => {
+                    const dateCompare = b.date.localeCompare(a.date);
+                    if (dateCompare !== 0) return dateCompare;
+                    return b.time.localeCompare(a.time);
+                });
+
+                html += `<div style="margin-bottom: 10px;"><strong>📋 ${typeName} 直近50件（新しい順）</strong></div>`;
+                html += `<table style="width: 100%; border-collapse: collapse; font-size: 11px;">`;
+                html += `<thead><tr style="background: #e0e0e0;"><th style="padding: 4px; border: 1px solid #ccc;">日付</th><th style="padding: 4px; border: 1px solid #ccc;">時刻</th><th style="padding: 4px; border: 1px solid #ccc;">枠数</th><th style="padding: 4px; border: 1px solid #ccc;">状態</th></tr></thead>`;
+                html += `<tbody>`;
+
+                sortedData.slice(0, 50).forEach(entry => {
+                    const bgColor = entry.count <= 2 ? '#ffebee' : '#fff';
+                    html += `<tr style="background: ${bgColor};">`;
+                    html += `<td style="padding: 4px; border: 1px solid #ccc;">${entry.date}</td>`;
+                    html += `<td style="padding: 4px; border: 1px solid #ccc;">${entry.time}</td>`;
+                    html += `<td style="padding: 4px; border: 1px solid #ccc; text-align: right;">${entry.count}</td>`;
+                    html += `<td style="padding: 4px; border: 1px solid #ccc;">${entry.status || '-'}</td>`;
+                    html += `</tr>`;
+                });
+
+                html += `</tbody></table>`;
+
+                // 最新と最古のエントリを強調
+                const newest = sortedData[0];
+                const oldest = sortedData[sortedData.length - 1];
+                html += `<div style="margin-top: 10px; padding: 8px; background: #e3f2fd; border-radius: 4px;">`;
+                html += `<strong>最新:</strong> ${newest.date} ${newest.time} (${newest.count}枠)<br>`;
+                html += `<strong>最古:</strong> ${oldest.date} ${oldest.time} (${oldest.count}枠)`;
+                html += `</div>`;
+            } else {
+                html += `<div style="color: red;">⚠️ ${typeName}のデータが取得できませんでした</div>`;
+            }
+
+            container.innerHTML = html;
         }
 
         function updateAllCharts() {
