@@ -38,6 +38,14 @@
       flex-shrink: 0;
     }
 
+    .header-buttons {
+      position: absolute;
+      top: 0;
+      right: 0;
+      display: flex;
+      gap: 6px;
+    }
+
     canvas {
       border-radius: 12px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
@@ -308,6 +316,10 @@
         <div id="status-text" class="status-text">読み込み中...</div>
         <div id="day-text" class="day-text"></div>
       </div>
+      <div class="header-buttons">
+        <a id="help-link" class="icon-btn help-btn" href="https://nekonekoganka.github.io/reservation-status/chrome-extension-help.html" target="_blank" title="ヘルプ">?</a>
+        <a id="checker-link" class="icon-btn" href="#" title="予約状況チェッカーへ">📊</a>
+      </div>
     </div>
 
     <!-- タイムラインバー（2本構成：午前/午後） -->
@@ -354,8 +366,6 @@
       <div class="footer-right">
         <span class="update-info"><span id="last-update">--:--</span></span>
         <button id="refresh-btn" class="refresh-btn">🔄</button>
-        <a id="help-link" class="icon-btn help-btn" href="https://nekonekoganka.github.io/reservation-status/chrome-extension-help.html" target="_blank" title="ヘルプ">?</a>
-        <a id="checker-link" class="icon-btn" href="#" title="予約状況チェッカーへ">📊</a>
       </div>
     </div>
   </div>
