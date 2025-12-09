@@ -1105,11 +1105,6 @@
                     d.setDate(d.getDate() + 1);
                 }
 
-                // 水曜休診のため、対象日が水曜になった場合はさらに翌日に進める
-                if (d.getDay() === 3) {
-                    d.setDate(d.getDate() + 1);
-                }
-
                 targetDate = formatDate(d);
 
                 if (!byTargetDate[targetDate]) {
@@ -1198,12 +1193,10 @@
             return null;
         }
 
-        // 対象日前の「診療がある日」を取得（水曜をスキップ）
+        // 対象日の前日を取得
         function getPreviousOpenDate(targetDate) {
             const prevDayDate = parseDate(targetDate);
-            do {
-                prevDayDate.setDate(prevDayDate.getDate() - 1);
-            } while (prevDayDate.getDay() === 3);
+            prevDayDate.setDate(prevDayDate.getDate() - 1);
             return formatDate(prevDayDate);
         }
 
@@ -1288,7 +1281,6 @@
             // 曜日別の平均を計算（10分刻み）
             const dayAverages = {};
             DAY_NAMES.forEach((_, i) => {
-                if (i === 3) return; // 水曜スキップ
                 dayAverages[i] = {};
                 DETAILED_TIME_SLOTS.forEach(slot => {
                     dayAverages[i][slot.label] = { total: 0, count: 0 };
@@ -1296,7 +1288,6 @@
             });
 
             Object.values(data).forEach(dayData => {
-                if (dayData.dayOfWeek === 3) return; // 水曜スキップ
                 if (!dayData.detailed) return;
                 DETAILED_TIME_SLOTS.forEach(slot => {
                     if (dayData.detailed[slot.label] !== undefined) {
@@ -1312,14 +1303,13 @@
                 'rgba(255, 99, 132, 1)',   // 日
                 'rgba(54, 162, 235, 1)',   // 月
                 'rgba(255, 206, 86, 1)',   // 火
-                // 水曜なし
+                'rgba(156, 39, 176, 1)',   // 水
                 'rgba(75, 192, 192, 1)',   // 木
                 'rgba(153, 102, 255, 1)',  // 金
                 'rgba(255, 159, 64, 1)'    // 土
             ];
 
-            let colorIndex = 0;
-            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+            [0, 1, 2, 3, 4, 5, 6].forEach((dayIndex, colorIndex) => {
                 const avgData = DETAILED_TIME_SLOTS.map(slot => {
                     const stat = dayAverages[dayIndex][slot.label];
                     return stat.count > 0 ? Math.round(stat.total / stat.count * 10) / 10 : null;
@@ -1336,7 +1326,6 @@
                     pointHoverRadius: 4,   // ホバー時のみ表示
                     borderWidth: 2
                 });
-                colorIndex++;
             });
 
             // X軸ラベル（1時間ごとに表示、それ以外は空）
@@ -1444,15 +1433,11 @@
                 weeklyProgressChart.destroy();
             }
 
-            // 直近1週間の日付を取得（水曜日を除外）
+            // 直近1週間の日付を取得
             const sortedDates = Object.keys(data)
-                .filter(date => {
-                    const dayData = data[date];
-                    return dayData.dayOfWeek !== 3; // 水曜日を除外
-                })
                 .sort()
                 .reverse()
-                .slice(0, 7) // 直近7日（水曜除外なので実質6日程度）
+                .slice(0, 7) // 直近7日
                 .reverse(); // 古い順に並べ替え
 
             if (sortedDates.length === 0) {
@@ -1620,7 +1605,7 @@
 
             // 曜日×時間帯の平均を計算
             const heatData = {};
-            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+            [0, 1, 2, 3, 4, 5, 6].forEach(dayIndex => {
                 heatData[dayIndex] = {};
                 TIME_SLOTS.forEach(slot => {
                     heatData[dayIndex][slot.label] = { total: 0, count: 0 };
@@ -1628,7 +1613,6 @@
             });
 
             Object.values(data).forEach(dayData => {
-                if (dayData.dayOfWeek === 3) return;
                 TIME_SLOTS.forEach(slot => {
                     const count = dayData.detailed ? dayData.detailed[slot.label] : dayData[slot.label];
                     if (count !== undefined) {
@@ -1647,20 +1631,16 @@
 
             [0, 1, 2, 3, 4, 5, 6].forEach(dayIndex => {
                 html += `<tr><td class="day-label">${DAY_NAMES[dayIndex]}曜</td>`;
-                if (dayIndex === 3) {
-                    html += `<td colspan="${TIME_SLOTS.length}" class="closed">休診日</td>`;
-                } else {
-                    TIME_SLOTS.forEach(slot => {
-                        const stat = heatData[dayIndex][slot.label];
-                        if (stat.count > 0) {
-                            const avg = Math.round(stat.total / stat.count);
-                            const heatClass = getHeatClass(avg);
-                            html += `<td class="${heatClass}">${avg}</td>`;
-                        } else {
-                            html += `<td>-</td>`;
-                        }
-                    });
-                }
+                TIME_SLOTS.forEach(slot => {
+                    const stat = heatData[dayIndex][slot.label];
+                    if (stat.count > 0) {
+                        const avg = Math.round(stat.total / stat.count);
+                        const heatClass = getHeatClass(avg);
+                        html += `<td class="${heatClass}">${avg}</td>`;
+                    } else {
+                        html += `<td>-</td>`;
+                    }
+                });
                 html += '</tr>';
             });
 
@@ -1699,7 +1679,7 @@
 
             // 1. 満枠到達時刻の計算（fullThreshold以下になった最初の時刻）
             const fullTimesByDay = {};
-            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+            [0, 1, 2, 3, 4, 5, 6].forEach(dayIndex => {
                 fullTimesByDay[dayIndex] = [];
             });
 
@@ -1707,19 +1687,17 @@
             let totalDaysAtCheck = 0;
             let fullDaysAtCheck = 0;
             const fullAtCheckByDay = {};
-            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+            [0, 1, 2, 3, 4, 5, 6].forEach(dayIndex => {
                 fullAtCheckByDay[dayIndex] = { total: 0, full: 0 };
             });
 
             // 3. 朝の予約集中度（07:00→指定時刻の減少）
             const morningDecreaseByDay = {};
-            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+            [0, 1, 2, 3, 4, 5, 6].forEach(dayIndex => {
                 morningDecreaseByDay[dayIndex] = [];
             });
 
             Object.values(data).forEach(dayData => {
-                if (dayData.dayOfWeek === 3) return; // 水曜休診
-
                 // 満枠到達時刻を探す（10分刻みデータを使用）
                 let foundFullTime = null;
                 for (const slot of DETAILED_TIME_SLOTS) {
@@ -1761,7 +1739,7 @@
 
             // 全体の平均満枠到達時刻
             let allFullTimes = [];
-            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+            [0, 1, 2, 3, 4, 5, 6].forEach(dayIndex => {
                 allFullTimes = allFullTimes.concat(fullTimesByDay[dayIndex]);
             });
 
@@ -1778,7 +1756,7 @@
 
             // 全体の朝の減少量平均
             let allMorningDecrease = [];
-            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+            [0, 1, 2, 3, 4, 5, 6].forEach(dayIndex => {
                 allMorningDecrease = allMorningDecrease.concat(morningDecreaseByDay[dayIndex]);
             });
             const avgMorningDecrease = allMorningDecrease.length > 0
@@ -1823,7 +1801,7 @@
 
             // 曜日別詳細
             html += `<div class="metric-by-day"><h4>📅 曜日別の詳細（満枠到達時刻 / ${checkTimeLabel}時点満枠率）</h4><div class="day-metrics">`;
-            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+            [0, 1, 2, 3, 4, 5, 6].forEach(dayIndex => {
                 const times = fullTimesByDay[dayIndex];
                 const avgTime = times.length > 0
                     ? minutesToTimeLabel(times.reduce((sum, t) => sum + t.minutes, 0) / times.length)
@@ -1883,19 +1861,19 @@
 
             // 1. 夜間予約率（18:30→07:00の減少枠数）曜日別
             const nightDecreaseByDay = {};
-            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+            [0, 1, 2, 3, 4, 5, 6].forEach(dayIndex => {
                 nightDecreaseByDay[dayIndex] = [];
             });
 
             // 2. 初期枠数（18:30時点）曜日別
             const initialSlotsByDay = {};
-            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+            [0, 1, 2, 3, 4, 5, 6].forEach(dayIndex => {
                 initialSlotsByDay[dayIndex] = [];
             });
 
             // 3. 予約集中ピーク（1時間単位で最も減少が急な時間帯）曜日別
             const peakHoursByDay = {};
-            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+            [0, 1, 2, 3, 4, 5, 6].forEach(dayIndex => {
                 peakHoursByDay[dayIndex] = [];
             });
 
@@ -1913,8 +1891,6 @@
             }
 
             Object.entries(data).forEach(([date, dayData]) => {
-                if (dayData.dayOfWeek === 3) return; // 水曜休診
-
                 const dayIndex = dayData.dayOfWeek;
 
                 // 夜間予約（18:30→07:00）
@@ -1962,7 +1938,7 @@
             // 全体平均の計算
             let allNightDecrease = [];
             let allInitialSlots = [];
-            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+            [0, 1, 2, 3, 4, 5, 6].forEach(dayIndex => {
                 allNightDecrease = allNightDecrease.concat(nightDecreaseByDay[dayIndex]);
                 allInitialSlots = allInitialSlots.concat(initialSlotsByDay[dayIndex]);
             });
@@ -1976,7 +1952,7 @@
 
             // 最頻出ピーク時間帯
             const allPeakHours = [];
-            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+            [0, 1, 2, 3, 4, 5, 6].forEach(dayIndex => {
                 allPeakHours.push(...peakHoursByDay[dayIndex]);
             });
             const peakHourCounts = {};
@@ -2042,7 +2018,7 @@
             html += '<div class="metric-by-day"><h4>📅 曜日別の詳細</h4>';
             html += '<table class="data-table" style="font-size: 14px;"><thead><tr><th>曜日</th><th>🌙夜間</th><th>📈初期枠</th><th>⚡ピーク</th></tr></thead><tbody>';
 
-            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+            [0, 1, 2, 3, 4, 5, 6].forEach(dayIndex => {
                 const nightAvg = nightDecreaseByDay[dayIndex].length > 0
                     ? Math.round(nightDecreaseByDay[dayIndex].reduce((a, b) => a + b, 0) / nightDecreaseByDay[dayIndex].length * 10) / 10
                     : '-';
@@ -2148,12 +2124,11 @@
 
             // 曜日別の満枠到達率を計算（指定時刻時点でfullThreshold以下の日の割合）
             const dayStats = {};
-            [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
+            [0, 1, 2, 3, 4, 5, 6].forEach(dayIndex => {
                 dayStats[dayIndex] = { total: 0, full: 0 };
             });
 
             Object.values(data).forEach(dayData => {
-                if (dayData.dayOfWeek === 3) return; // 水曜除外
                 const dow = dayData.dayOfWeek;
                 if (dayData[checkTime] !== undefined) {
                     dayStats[dow].total++;
@@ -2163,8 +2138,8 @@
                 }
             });
 
-            // 日曜始まりで並べる（水曜を除く）
-            const dayOrder = [0, 1, 2, 4, 5, 6];
+            // 日曜始まりで並べる
+            const dayOrder = [0, 1, 2, 3, 4, 5, 6];
             const labels = dayOrder.map(d => DAY_NAMES[d] + '曜');
             const rates = dayOrder.map(d => {
                 const stat = dayStats[d];
@@ -2229,9 +2204,8 @@
         function updateRecentDataTable(data) {
             const container = document.getElementById('recentDataContainer');
 
-            // 日付でソートして直近20件（水曜日は除外）
+            // 日付でソートして直近20件
             const sortedDates = Object.keys(data)
-                .filter(date => data[date].dayOfWeek !== 3) // 水曜日を除外
                 .sort()
                 .reverse()
                 .slice(0, 20);
@@ -2307,9 +2281,9 @@
                     <p>前日18:30から当日18:00までの空き枠数の変化を、<strong>曜日別</strong>に折れ線グラフで表示します。</p>
 
                     <h3>なぜ18:30開始？</h3>
-                    <p>当クリニックの受付終了時刻は18:30です。18:30を過ぎると翌営業日の予約データに切り替わるため、ここを起点としています。</p>
+                    <p>当クリニックの受付終了時刻は18:30です。18:30を過ぎると翌日の予約データに切り替わるため、ここを起点としています。</p>
                     <div class="example">
-                        例：火曜18:30 → 木曜の予約データ（水曜は休診日のためスキップ）
+                        例：火曜18:30 → 水曜の予約データ
                     </div>
 
                     <h3>計算方法</h3>
@@ -2335,7 +2309,7 @@
 
                     <h3>表示される日</h3>
                     <ul>
-                        <li>直近1週間の営業日（水曜日は休診のため除外）</li>
+                        <li>直近1週間の日付</li>
                         <li>最大7日分のデータを表示</li>
                         <li>ラベルは「12/9（月）」のような日付+曜日形式</li>
                     </ul>
