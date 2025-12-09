@@ -1328,6 +1328,24 @@
                     plugins: {
                         legend: {
                             position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            title: {
+                                display: true,
+                                text: '※ クリックで表示/非表示を切替',
+                                font: { size: 11, style: 'italic' },
+                                color: '#666',
+                                padding: { bottom: 5 }
+                            },
+                            onHover: function(event, legendItem, legend) {
+                                event.native.target.style.cursor = 'pointer';
+                            },
+                            onLeave: function(event, legendItem, legend) {
+                                event.native.target.style.cursor = 'default';
+                            }
                         },
                         tooltip: {
                             callbacks: {
@@ -1411,14 +1429,15 @@
 
             // 各日のデータセットを作成
             const datasets = [];
+            // 濃くて見やすい色のパレット（古い→新しい順）
             const colors = [
-                'rgba(200, 200, 200, 0.6)',  // 古いデータは薄い色
-                'rgba(180, 180, 180, 0.7)',
-                'rgba(160, 160, 160, 0.8)',
-                'rgba(140, 140, 140, 0.9)',
-                'rgba(100, 100, 100, 1)',
-                'rgba(54, 162, 235, 1)',      // 最新の1つ前は青
-                'rgba(255, 99, 132, 1)'       // 最新は赤（目立つ色）
+                'rgba(156, 39, 176, 1)',     // 紫
+                'rgba(0, 150, 136, 1)',      // ティール
+                'rgba(255, 152, 0, 1)',      // オレンジ
+                'rgba(76, 175, 80, 1)',      // 緑
+                'rgba(33, 150, 243, 1)',     // 青
+                'rgba(63, 81, 181, 1)',      // インディゴ（最新の1つ前）
+                'rgba(244, 67, 54, 1)'       // 赤（最新・最も目立つ）
             ];
 
             sortedDates.forEach((date, index) => {
@@ -1481,6 +1500,24 @@
                     plugins: {
                         legend: {
                             position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            title: {
+                                display: true,
+                                text: '※ クリックで表示/非表示を切替',
+                                font: { size: 11, style: 'italic' },
+                                color: '#666',
+                                padding: { bottom: 5 }
+                            },
+                            onHover: function(event, legendItem, legend) {
+                                event.native.target.style.cursor = 'pointer';
+                            },
+                            onLeave: function(event, legendItem, legend) {
+                                event.native.target.style.cursor = 'default';
+                            }
                         },
                         tooltip: {
                             callbacks: {
