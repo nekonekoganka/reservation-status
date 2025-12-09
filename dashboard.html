@@ -1341,13 +1341,13 @@
 
             // X軸ラベル（1時間ごとに表示、それ以外は空）
             const labels = DETAILED_TIME_SLOTS.map(slot => {
-                // 00分のときだけラベル表示
+                // 00分のときだけラベル表示（時間のみ、例: 19, 20, ... 18）
                 if (slot.minute === 0) {
-                    return slot.label;
+                    return String(slot.hour);
                 }
                 // 18:30は開始点なので表示
                 if (slot.label === '18:30') {
-                    return '18:30';
+                    return '18半';
                 }
                 return '';
             });
@@ -1405,18 +1405,26 @@
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: '空き枠数'
+                                text: '空き枠数',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                font: { size: 13, weight: 'bold' },
+                                color: '#333'
                             }
                         },
                         x: {
                             title: {
                                 display: true,
-                                text: '時刻（前日18:30 → 当日18:00）'
+                                text: '時刻（前日18:30 → 当日18:00）',
+                                font: { size: 14, weight: 'bold' }
                             },
                             ticks: {
-                                maxRotation: 45,
+                                maxRotation: 0,
                                 minRotation: 0,
                                 autoSkip: false,
+                                font: { size: 14, weight: 'bold' },
+                                color: '#333',
                                 callback: function(value, index) {
                                     // ラベルがある場所のみ表示
                                     return labels[index] || null;
@@ -1513,13 +1521,13 @@
                 });
             });
 
-            // X軸ラベル（1時間ごとに表示）
+            // X軸ラベル（1時間ごとに表示、時間のみ）
             const labels = DETAILED_TIME_SLOTS.map(slot => {
                 if (slot.minute === 0) {
-                    return slot.label;
+                    return String(slot.hour);
                 }
                 if (slot.label === '18:30') {
-                    return '18:30';
+                    return '18半';
                 }
                 return '';
             });
@@ -1576,18 +1584,26 @@
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: '空き枠数'
+                                text: '空き枠数',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                font: { size: 13, weight: 'bold' },
+                                color: '#333'
                             }
                         },
                         x: {
                             title: {
                                 display: true,
-                                text: '時刻（前日18:30 → 当日18:00）'
+                                text: '時刻（前日18:30 → 当日18:00）',
+                                font: { size: 14, weight: 'bold' }
                             },
                             ticks: {
-                                maxRotation: 45,
+                                maxRotation: 0,
                                 minRotation: 0,
                                 autoSkip: false,
+                                font: { size: 14, weight: 'bold' },
+                                color: '#333',
                                 callback: function(value, index) {
                                     return labels[index] || null;
                                 }
