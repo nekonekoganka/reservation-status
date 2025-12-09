@@ -713,6 +713,22 @@
                 <span class="help-icon" onclick="openHelpModal('fullThreshold')">?<span class="tooltip">「満枠」とみなす基準</span></span>
             </div>
 
+            <div class="control-group">
+                <label>判定時刻:</label>
+                <select id="checkTime" onchange="updateCheckTime()">
+                    <option value="07:00">07:00</option>
+                    <option value="08:00">08:00</option>
+                    <option value="09:00">09:00</option>
+                    <option value="10:00" selected>10:00</option>
+                    <option value="11:00">11:00</option>
+                    <option value="12:00">12:00</option>
+                    <option value="14:00">14:00</option>
+                    <option value="15:00">15:00</option>
+                    <option value="16:00">16:00</option>
+                </select>
+                <span class="help-icon" onclick="openHelpModal('checkTime')">?<span class="tooltip">満枠到達率を判定する時刻</span></span>
+            </div>
+
             <button class="btn" id="loadBtn" onclick="loadData()">
                 📥 データ読み込み
             </button>
@@ -892,6 +908,9 @@
         // 満枠判定の閾値（この枠数以下を「満枠」とみなす）
         let fullThreshold = parseInt(localStorage.getItem('fullThreshold') || '2');
 
+        // 満枠到達率を判定する時刻（デフォルト10:00）
+        let checkTime = localStorage.getItem('checkTime') || '10:00';
+
         // チャートインスタンス
         let dailyProgressChart = null;
         let weeklyProgressChart = null;
@@ -903,9 +922,13 @@
 
         // ページ読み込み時に設定を復元
         document.addEventListener('DOMContentLoaded', () => {
-            const select = document.getElementById('fullThreshold');
-            if (select) {
-                select.value = fullThreshold.toString();
+            const thresholdSelect = document.getElementById('fullThreshold');
+            if (thresholdSelect) {
+                thresholdSelect.value = fullThreshold.toString();
+            }
+            const timeSelect = document.getElementById('checkTime');
+            if (timeSelect) {
+                timeSelect.value = checkTime;
             }
         });
 
@@ -914,6 +937,18 @@
             const select = document.getElementById('fullThreshold');
             fullThreshold = parseInt(select.value);
             localStorage.setItem('fullThreshold', fullThreshold.toString());
+
+            // データがあれば再描画
+            if (Object.keys(processedData).length > 0) {
+                updateAllCharts();
+            }
+        }
+
+        // 判定時刻の更新
+        function updateCheckTime() {
+            const select = document.getElementById('checkTime');
+            checkTime = select.value;
+            localStorage.setItem('checkTime', checkTime);
 
             // データがあれば再描画
             if (Object.keys(processedData).length > 0) {
@@ -1647,15 +1682,15 @@
                 fullTimesByDay[dayIndex] = [];
             });
 
-            // 2. 10時時点の満枠到達率
-            let totalDaysAt10 = 0;
-            let fullDaysAt10 = 0;
-            const fullAt10ByDay = {};
+            // 2. 指定時刻時点の満枠到達率
+            let totalDaysAtCheck = 0;
+            let fullDaysAtCheck = 0;
+            const fullAtCheckByDay = {};
             [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
-                fullAt10ByDay[dayIndex] = { total: 0, full: 0 };
+                fullAtCheckByDay[dayIndex] = { total: 0, full: 0 };
             });
 
-            // 3. 朝の予約集中度（07:00→10:00の減少）
+            // 3. 朝の予約集中度（07:00→指定時刻の減少）
             const morningDecreaseByDay = {};
             [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
                 morningDecreaseByDay[dayIndex] = [];
@@ -1686,19 +1721,19 @@
                     fullTimesByDay[dayData.dayOfWeek].push(foundFullTime);
                 }
 
-                // 10時時点の満枠チェック
-                if (dayData['10:00'] !== undefined) {
-                    totalDaysAt10++;
-                    fullAt10ByDay[dayData.dayOfWeek].total++;
-                    if (dayData['10:00'] <= fullThreshold) {
-                        fullDaysAt10++;
-                        fullAt10ByDay[dayData.dayOfWeek].full++;
+                // 指定時刻時点の満枠チェック
+                if (dayData[checkTime] !== undefined) {
+                    totalDaysAtCheck++;
+                    fullAtCheckByDay[dayData.dayOfWeek].total++;
+                    if (dayData[checkTime] <= fullThreshold) {
+                        fullDaysAtCheck++;
+                        fullAtCheckByDay[dayData.dayOfWeek].full++;
                     }
                 }
 
-                // 朝の減少量（07:00→10:00）
-                if (dayData['07:00'] !== undefined && dayData['10:00'] !== undefined) {
-                    const decrease = dayData['07:00'] - dayData['10:00'];
+                // 朝の減少量（07:00→指定時刻）
+                if (dayData['07:00'] !== undefined && dayData[checkTime] !== undefined) {
+                    const decrease = dayData['07:00'] - dayData[checkTime];
                     morningDecreaseByDay[dayData.dayOfWeek].push(decrease);
                 }
             });
@@ -1715,8 +1750,10 @@
                 avgFullTimeLabel = minutesToTimeLabel(avgMinutes);
             }
 
-            // 全体の10時時点満枠率
-            const fullRateAt10 = totalDaysAt10 > 0 ? Math.round((fullDaysAt10 / totalDaysAt10) * 100) : 0;
+            // 全体の指定時刻時点満枠率
+            const fullRateAtCheck = totalDaysAtCheck > 0 ? Math.round((fullDaysAtCheck / totalDaysAtCheck) * 100) : 0;
+            // 時刻の表示用（10:00 → 10時）
+            const checkTimeLabel = checkTime.replace(':00', '時').replace(':30', '時半');
 
             // 全体の朝の減少量平均
             let allMorningDecrease = [];
@@ -1740,14 +1777,14 @@
                 </div>
             `;
 
-            // 10時時点 満枠到達率カード
-            const rateClass = fullRateAt10 >= 50 ? 'warning' : '';
+            // 指定時刻時点 満枠到達率カード
+            const rateClass = fullRateAtCheck >= 50 ? 'warning' : '';
             html += `
-                <div class="metric-card ${fullRateAt10 >= 70 ? 'highlight' : ''}">
+                <div class="metric-card ${fullRateAtCheck >= 70 ? 'highlight' : ''}">
                     <div class="metric-icon">🔴</div>
-                    <div class="metric-title">10時時点<br>満枠到達率</div>
-                    <div class="metric-value ${rateClass}">${fullRateAt10}<small>%</small></div>
-                    <div class="metric-detail">${fullDaysAt10}/${totalDaysAt10}日が満枠</div>
+                    <div class="metric-title">${checkTimeLabel}時点<br>満枠到達率</div>
+                    <div class="metric-value ${rateClass}">${fullRateAtCheck}<small>%</small></div>
+                    <div class="metric-detail">${fullDaysAtCheck}/${totalDaysAtCheck}日が満枠</div>
                 </div>
             `;
 
@@ -1755,23 +1792,23 @@
             html += `
                 <div class="metric-card">
                     <div class="metric-icon">🌅</div>
-                    <div class="metric-title">朝の予約集中度<br>（07時→10時）</div>
+                    <div class="metric-title">予約集中度<br>（07時→${checkTimeLabel}）</div>
                     <div class="metric-value">-${avgMorningDecrease}<small>枠</small></div>
-                    <div class="metric-detail">3時間での減少数</div>
+                    <div class="metric-detail">減少枠数</div>
                 </div>
             `;
 
             html += '</div>';
 
             // 曜日別詳細
-            html += '<div class="metric-by-day"><h4>📅 曜日別の詳細</h4><div class="day-metrics">';
+            html += `<div class="metric-by-day"><h4>📅 曜日別の詳細（満枠到達時刻 / ${checkTimeLabel}時点満枠率）</h4><div class="day-metrics">`;
             [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
                 const times = fullTimesByDay[dayIndex];
                 const avgTime = times.length > 0
                     ? minutesToTimeLabel(times.reduce((sum, t) => sum + t.minutes, 0) / times.length)
                     : '-';
-                const rate = fullAt10ByDay[dayIndex].total > 0
-                    ? Math.round((fullAt10ByDay[dayIndex].full / fullAt10ByDay[dayIndex].total) * 100)
+                const rate = fullAtCheckByDay[dayIndex].total > 0
+                    ? Math.round((fullAtCheckByDay[dayIndex].full / fullAtCheckByDay[dayIndex].total) * 100)
                     : 0;
                 const rateWarning = rate >= 50 ? 'warning' : '';
 
@@ -1888,15 +1925,15 @@
                     peakHoursByDay[dayIndex].push(peakHour);
                 }
 
-                // 期間比較（10時時点の満枠率）
+                // 期間比較（指定時刻時点の満枠率）
                 const isRecent = recentDates.includes(date);
-                if (dayData['10:00'] !== undefined) {
+                if (dayData[checkTime] !== undefined) {
                     if (isRecent) {
                         recentTotalDays++;
-                        if (dayData['10:00'] <= fullThreshold) recentFullDays++;
+                        if (dayData[checkTime] <= fullThreshold) recentFullDays++;
                     } else {
                         previousTotalDays++;
-                        if (dayData['10:00'] <= fullThreshold) previousFullDays++;
+                        if (dayData[checkTime] <= fullThreshold) previousFullDays++;
                     }
                 }
             });
@@ -2020,15 +2057,15 @@
                 monthlyChart.destroy();
             }
 
-            // 月別の09:00時点の平均を計算
+            // 月別の指定時刻時点の平均を計算
             const monthData = {};
             for (let i = 1; i <= 12; i++) {
                 monthData[i] = { total: 0, count: 0 };
             }
 
             Object.values(data).forEach(dayData => {
-                if (dayData['10:00'] !== undefined) {
-                    monthData[dayData.month].total += dayData['10:00'];
+                if (dayData[checkTime] !== undefined) {
+                    monthData[dayData.month].total += dayData[checkTime];
                     monthData[dayData.month].count++;
                 }
             });
@@ -2054,7 +2091,7 @@
                 data: {
                     labels: months,
                     datasets: [{
-                        label: '平均空き枠数（10時時点）',
+                        label: `平均空き枠数（${checkTime.replace(':00', '時').replace(':30', '時半')}時点）`,
                         data: values,
                         backgroundColor: bgColor,
                         borderColor: borderColor,
@@ -2088,7 +2125,7 @@
                 dayFullRateChart.destroy();
             }
 
-            // 曜日別の満枠到達率を計算（10:00時点でfullThreshold以下の日の割合）
+            // 曜日別の満枠到達率を計算（指定時刻時点でfullThreshold以下の日の割合）
             const dayStats = {};
             [0, 1, 2, 4, 5, 6].forEach(dayIndex => {
                 dayStats[dayIndex] = { total: 0, full: 0 };
@@ -2097,9 +2134,9 @@
             Object.values(data).forEach(dayData => {
                 if (dayData.dayOfWeek === 3) return; // 水曜除外
                 const dow = dayData.dayOfWeek;
-                if (dayData['10:00'] !== undefined) {
+                if (dayData[checkTime] !== undefined) {
                     dayStats[dow].total++;
-                    if (dayData['10:00'] <= fullThreshold) {
+                    if (dayData[checkTime] <= fullThreshold) {
                         dayStats[dow].full++;
                     }
                 }
@@ -2159,7 +2196,7 @@
                             },
                             title: {
                                 display: true,
-                                text: '10時時点で満枠の日の割合'
+                                text: `${checkTime.replace(':00', '時').replace(':30', '時半')}時点で満枠の日の割合`
                             }
                         }
                     }
