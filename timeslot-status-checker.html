@@ -271,6 +271,33 @@
       margin-bottom: 8px;
     }
 
+    .footer-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .dashboard-btn {
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dashboard-btn:active {
+      transform: scale(0.95);
+      background: #f0f0ff;
+    }
+
     .refresh-btn {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
@@ -510,6 +537,17 @@
         font-size: 1vw;
         border-radius: 1.5vw;
       }
+
+      .dashboard-btn {
+        padding: 0.5vw 1.2vw;
+        font-size: 1vw;
+        border-radius: 1.5vw;
+        border-width: 0.15vw;
+      }
+
+      .footer-buttons {
+        gap: 1vw;
+      }
     }
 
     /* スマホモード: 800px以下 */
@@ -670,7 +708,10 @@
 
     <div class="footer">
       <div id="update-time" class="update-time">更新中...</div>
-      <button id="refresh-btn" class="refresh-btn">🔄 更新</button>
+      <div class="footer-buttons">
+        <a href="dashboard.html" class="dashboard-btn">📊 解析</a>
+        <button id="refresh-btn" class="refresh-btn">🔄 更新</button>
+      </div>
     </div>
   </div>
 
