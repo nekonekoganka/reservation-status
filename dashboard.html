@@ -1207,6 +1207,76 @@
                 align-items: flex-start;
             }
         }
+
+        /* 詳細分析カード用グリッド */
+        .detailed-analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 10px 0;
+        }
+
+        .detailed-analysis-table {
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .detailed-analysis-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .detailed-analysis-table {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .detailed-analysis-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .detailed-analysis-grid .metric-card {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: 12px;
+                text-align: left;
+                padding: 12px;
+            }
+
+            .detailed-analysis-grid .metric-icon {
+                font-size: 24px;
+                margin-bottom: 0;
+            }
+
+            .detailed-analysis-grid .metric-title {
+                font-size: 12px;
+                margin-bottom: 2px;
+            }
+
+            .detailed-analysis-grid .metric-title br {
+                display: none;
+            }
+
+            .detailed-analysis-grid .metric-value {
+                font-size: 18px;
+            }
+
+            .detailed-analysis-grid .metric-detail {
+                font-size: 10px;
+            }
+
+            .detailed-analysis-table {
+                font-size: 12px;
+            }
+
+            .detailed-analysis-table th,
+            .detailed-analysis-table td {
+                padding: 8px 4px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2617,7 +2687,7 @@
             const rateDiff = recentRate - previousRate;
 
             // HTML生成
-            let html = '<div class="metrics-grid" style="grid-template-columns: repeat(4, 1fr);">';
+            let html = '<div class="detailed-analysis-grid">';
 
             // 🌙 夜間予約
             html += `
@@ -2666,7 +2736,7 @@
 
             // 曜日別詳細
             html += '<div class="metric-by-day"><h4>📅 曜日別の詳細</h4>';
-            html += '<table class="data-table" style="font-size: 14px;"><thead><tr><th>曜日</th><th>🌙夜間</th><th>📈初期枠</th><th>⚡ピーク</th></tr></thead><tbody>';
+            html += '<table class="data-table detailed-analysis-table"><thead><tr><th>曜日</th><th>🌙夜間</th><th>📈初期枠</th><th>⚡ピーク</th></tr></thead><tbody>';
 
             [0, 1, 2, 3, 4, 5, 6].forEach(dayIndex => {
                 const nightAvg = nightDecreaseByDay[dayIndex].length > 0
