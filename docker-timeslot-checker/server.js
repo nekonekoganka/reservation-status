@@ -658,6 +658,271 @@ app.get('/test', async (req, res) => {
   }
 });
 
+/**
+ * 月次集計データを生成するエンドポイント
+ * Cloud Schedulerから毎日深夜に呼び出すことを想定
+ *
+ * クエリパラメータ:
+ *   - month: 対象月（YYYY-MM形式）。省略時は前月
+ */
+app.get('/generate-monthly-summary', async (req, res) => {
+  console.log('=== 月次集計データ生成開始 ===');
+
+  try {
+    const japanTime = getJapanTime();
+
+    // 対象月を決定（指定がなければ前月）
+    let targetYear, targetMonth;
+    if (req.query.month) {
+      const [y, m] = req.query.month.split('-').map(Number);
+      targetYear = y;
+      targetMonth = m;
+    } else {
+      // 前月を計算
+      targetYear = japanTime.month === 1 ? japanTime.year - 1 : japanTime.year;
+      targetMonth = japanTime.month === 1 ? 12 : japanTime.month - 1;
+    }
+
+    const monthStr = `${targetYear}-${String(targetMonth).padStart(2, '0')}`;
+    console.log(`対象月: ${monthStr}`);
+
+    // 対象月の日数を取得
+    const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+
+    // 日別データを読み込み
+    const dailyData = {};
+    let totalDataPoints = 0;
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${monthStr}-${String(day).padStart(2, '0')}`;
+      const historyFileName = `${HISTORY_PREFIX}/${dateStr}.json`;
+      const historyFile = bucket.file(historyFileName);
+
+      try {
+        const [exists] = await historyFile.exists();
+        if (exists) {
+          const [content] = await historyFile.download();
+          const dayHistory = JSON.parse(content.toString());
+
+          // 曜日を計算
+          const dayOfWeek = new Date(targetYear, targetMonth - 1, day).getDay();
+
+          // 時間帯別の平均を計算
+          const timeSlotData = {};
+          dayHistory.forEach(entry => {
+            if (!timeSlotData[entry.time]) {
+              timeSlotData[entry.time] = { total: 0, count: 0 };
+            }
+            timeSlotData[entry.time].total += entry.count;
+            timeSlotData[entry.time].count++;
+          });
+
+          // 平均値を計算
+          const avgSlots = {};
+          Object.keys(timeSlotData).forEach(time => {
+            avgSlots[time] = Math.round(timeSlotData[time].total / timeSlotData[time].count * 10) / 10;
+          });
+
+          // 満枠到達時刻を探す（空き枠が2以下になった最初の時刻）
+          let fullTimeMinutes = null;
+          const sortedTimes = Object.keys(avgSlots).sort();
+          for (const time of sortedTimes) {
+            if (avgSlots[time] <= 2) {
+              const [h, m] = time.split(':').map(Number);
+              fullTimeMinutes = h * 60 + m;
+              break;
+            }
+          }
+
+          dailyData[dateStr] = {
+            dayOfWeek,
+            avgSlots,
+            fullTimeMinutes,
+            dataPoints: dayHistory.length
+          };
+
+          totalDataPoints += dayHistory.length;
+          console.log(`${dateStr}: ${dayHistory.length}件のデータを処理`);
+        }
+      } catch (readError) {
+        console.log(`${dateStr}: データなし`);
+      }
+    }
+
+    // 月次集計ファイルを作成
+    const summaryData = {
+      month: monthStr,
+      type: 'general',
+      daysWithData: Object.keys(dailyData).length,
+      totalDataPoints,
+      days: dailyData,
+      generatedAt: new Date().toISOString()
+    };
+
+    // Cloud Storageに保存
+    const summaryFileName = `monthly-summary/general/${monthStr}.json`;
+    const summaryFile = bucket.file(summaryFileName);
+
+    await summaryFile.save(JSON.stringify(summaryData, null, 2), {
+      contentType: 'application/json',
+      metadata: {
+        cacheControl: 'public, max-age=3600',
+      },
+    });
+
+    await summaryFile.makePublic();
+
+    console.log(`月次集計データを保存しました: gs://${BUCKET_NAME}/${summaryFileName}`);
+    console.log(`データのある日数: ${Object.keys(dailyData).length}日`);
+    console.log(`総データポイント: ${totalDataPoints}件`);
+    console.log('=== 月次集計データ生成完了 ===');
+
+    res.status(200).json({
+      success: true,
+      message: '月次集計データを生成しました',
+      month: monthStr,
+      daysWithData: Object.keys(dailyData).length,
+      totalDataPoints,
+      publicUrl: `https://storage.googleapis.com/${BUCKET_NAME}/${summaryFileName}`
+    });
+
+  } catch (error) {
+    console.error('月次集計エラー:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * 過去の全月次集計を一括生成するエンドポイント（初回セットアップ用）
+ * クエリパラメータ:
+ *   - months: 遡る月数（デフォルト: 12）
+ */
+app.get('/generate-all-monthly-summaries', async (req, res) => {
+  console.log('=== 全月次集計データ一括生成開始 ===');
+
+  try {
+    const japanTime = getJapanTime();
+    const monthsToGenerate = parseInt(req.query.months) || 12;
+    const results = [];
+
+    for (let i = 1; i <= monthsToGenerate; i++) {
+      let targetYear = japanTime.year;
+      let targetMonth = japanTime.month - i;
+
+      while (targetMonth <= 0) {
+        targetMonth += 12;
+        targetYear--;
+      }
+
+      const monthStr = `${targetYear}-${String(targetMonth).padStart(2, '0')}`;
+      console.log(`処理中: ${monthStr}`);
+
+      // 内部的に月次集計を実行
+      const mockReq = { query: { month: monthStr } };
+      const mockRes = {
+        status: () => mockRes,
+        json: (data) => {
+          results.push({ month: monthStr, ...data });
+        }
+      };
+
+      // 同期的に待機するため、直接処理を実行
+      try {
+        const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+        const dailyData = {};
+        let totalDataPoints = 0;
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dateStr = `${monthStr}-${String(day).padStart(2, '0')}`;
+          const historyFileName = `${HISTORY_PREFIX}/${dateStr}.json`;
+          const historyFile = bucket.file(historyFileName);
+
+          try {
+            const [exists] = await historyFile.exists();
+            if (exists) {
+              const [content] = await historyFile.download();
+              const dayHistory = JSON.parse(content.toString());
+              const dayOfWeek = new Date(targetYear, targetMonth - 1, day).getDay();
+
+              const timeSlotData = {};
+              dayHistory.forEach(entry => {
+                if (!timeSlotData[entry.time]) {
+                  timeSlotData[entry.time] = { total: 0, count: 0 };
+                }
+                timeSlotData[entry.time].total += entry.count;
+                timeSlotData[entry.time].count++;
+              });
+
+              const avgSlots = {};
+              Object.keys(timeSlotData).forEach(time => {
+                avgSlots[time] = Math.round(timeSlotData[time].total / timeSlotData[time].count * 10) / 10;
+              });
+
+              let fullTimeMinutes = null;
+              const sortedTimes = Object.keys(avgSlots).sort();
+              for (const time of sortedTimes) {
+                if (avgSlots[time] <= 2) {
+                  const [h, m] = time.split(':').map(Number);
+                  fullTimeMinutes = h * 60 + m;
+                  break;
+                }
+              }
+
+              dailyData[dateStr] = { dayOfWeek, avgSlots, fullTimeMinutes, dataPoints: dayHistory.length };
+              totalDataPoints += dayHistory.length;
+            }
+          } catch (readError) {
+            // データなし
+          }
+        }
+
+        if (Object.keys(dailyData).length > 0) {
+          const summaryData = {
+            month: monthStr,
+            type: 'general',
+            daysWithData: Object.keys(dailyData).length,
+            totalDataPoints,
+            days: dailyData,
+            generatedAt: new Date().toISOString()
+          };
+
+          const summaryFileName = `monthly-summary/general/${monthStr}.json`;
+          const summaryFile = bucket.file(summaryFileName);
+          await summaryFile.save(JSON.stringify(summaryData, null, 2), {
+            contentType: 'application/json',
+            metadata: { cacheControl: 'public, max-age=3600' },
+          });
+          await summaryFile.makePublic();
+
+          results.push({ month: monthStr, success: true, daysWithData: Object.keys(dailyData).length });
+        } else {
+          results.push({ month: monthStr, success: true, daysWithData: 0, message: 'データなし' });
+        }
+      } catch (monthError) {
+        results.push({ month: monthStr, success: false, error: monthError.message });
+      }
+    }
+
+    console.log('=== 全月次集計データ一括生成完了 ===');
+
+    res.status(200).json({
+      success: true,
+      message: `${monthsToGenerate}ヶ月分の月次集計を生成しました`,
+      results
+    });
+
+  } catch (error) {
+    console.error('一括生成エラー:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // サーバー起動
 app.listen(PORT, () => {
   console.log('==============================================');

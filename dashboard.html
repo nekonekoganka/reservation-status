@@ -859,6 +859,8 @@
         const STORAGE_BASE = 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari';
         const GENERAL_HISTORY = `${STORAGE_BASE}/history/general`;
         const SHIYA_HISTORY = `${STORAGE_BASE}/history/shiya`;
+        const GENERAL_MONTHLY = `${STORAGE_BASE}/monthly-summary/general`;
+        const SHIYA_MONTHLY = `${STORAGE_BASE}/monthly-summary/shiya`;
 
         // 時間帯の区切り（分単位に変換して比較用）- サマリー用
         const TIME_SLOTS = [
@@ -1030,6 +1032,51 @@
             }
         }
 
+        // 月次サマリーを取得
+        async function fetchMonthlySummary(baseUrl, yearMonth) {
+            try {
+                const url = `${baseUrl}/${yearMonth}.json?t=${Date.now()}`;
+                const response = await fetch(url);
+                if (!response.ok) {
+                    return null;
+                }
+                const data = await response.json();
+                // 月次サマリーからエントリを展開
+                const entries = [];
+                if (data.dailyData) {
+                    Object.keys(data.dailyData).forEach(dateStr => {
+                        const dayData = data.dailyData[dateStr];
+                        if (dayData.entries && Array.isArray(dayData.entries)) {
+                            dayData.entries.forEach(entry => {
+                                entries.push({
+                                    ...entry,
+                                    date: dateStr
+                                });
+                            });
+                        }
+                    });
+                }
+                return entries;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // 期間から必要な月リストを生成
+        function getMonthList(startDate, endDate) {
+            const months = [];
+            const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+            const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+
+            while (current <= end) {
+                const year = current.getFullYear();
+                const month = String(current.getMonth() + 1).padStart(2, '0');
+                months.push(`${year}-${month}`);
+                current.setMonth(current.getMonth() + 1);
+            }
+            return months;
+        }
+
         async function loadData() {
             const loadBtn = document.getElementById('loadBtn');
             loadBtn.disabled = true;
@@ -1042,26 +1089,79 @@
             const startDate = new Date();
             startDate.setDate(startDate.getDate() - days);
 
-            // 日付リストを生成
-            const dateList = [];
-            const currentDate = new Date(startDate);
-            while (currentDate <= endDate) {
-                dateList.push(formatDate(currentDate));
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-
-            // 両方のデータを取得
-            const generalPromises = dateList.map(d => fetchDateData(GENERAL_HISTORY, d));
-            const shiyaPromises = dateList.map(d => fetchDateData(SHIYA_HISTORY, d));
-
             try {
-                const [generalResults, shiyaResults] = await Promise.all([
-                    Promise.all(generalPromises),
-                    Promise.all(shiyaPromises)
-                ]);
+                let generalData = [];
+                let shiyaData = [];
+                let dateList = [];
 
-                const generalData = generalResults.filter(d => d !== null).flat();
-                const shiyaData = shiyaResults.filter(d => d !== null).flat();
+                // 60日以上の場合は月次サマリーを使用
+                if (days >= 60) {
+                    // 月リストを取得（当月を除く）
+                    const currentMonth = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}`;
+                    const monthList = getMonthList(startDate, endDate).filter(m => m !== currentMonth);
+
+                    // 月次サマリーを取得
+                    const generalMonthlyPromises = monthList.map(m => fetchMonthlySummary(GENERAL_MONTHLY, m));
+                    const shiyaMonthlyPromises = monthList.map(m => fetchMonthlySummary(SHIYA_MONTHLY, m));
+
+                    // 当月の日付リストを生成
+                    const currentMonthStart = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+                    const dailyStartDate = currentMonthStart > startDate ? currentMonthStart : startDate;
+                    const dailyDateList = [];
+                    const currentDate = new Date(dailyStartDate);
+                    while (currentDate <= endDate) {
+                        dailyDateList.push(formatDate(currentDate));
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+
+                    // 当月の日次データを取得
+                    const generalDailyPromises = dailyDateList.map(d => fetchDateData(GENERAL_HISTORY, d));
+                    const shiyaDailyPromises = dailyDateList.map(d => fetchDateData(SHIYA_HISTORY, d));
+
+                    const [generalMonthlyResults, shiyaMonthlyResults, generalDailyResults, shiyaDailyResults] = await Promise.all([
+                        Promise.all(generalMonthlyPromises),
+                        Promise.all(shiyaMonthlyPromises),
+                        Promise.all(generalDailyPromises),
+                        Promise.all(shiyaDailyPromises)
+                    ]);
+
+                    // 月次データと日次データを結合
+                    generalData = [
+                        ...generalMonthlyResults.filter(d => d !== null).flat(),
+                        ...generalDailyResults.filter(d => d !== null).flat()
+                    ];
+                    shiyaData = [
+                        ...shiyaMonthlyResults.filter(d => d !== null).flat(),
+                        ...shiyaDailyResults.filter(d => d !== null).flat()
+                    ];
+
+                    // 日付リストを生成（デバッグ用）
+                    const tempDate = new Date(startDate);
+                    while (tempDate <= endDate) {
+                        dateList.push(formatDate(tempDate));
+                        tempDate.setDate(tempDate.getDate() + 1);
+                    }
+
+                    console.log(`月次サマリー使用: ${monthList.length}ヶ月 + 日次${dailyDateList.length}日`);
+                } else {
+                    // 従来通り日次データを取得
+                    const currentDate = new Date(startDate);
+                    while (currentDate <= endDate) {
+                        dateList.push(formatDate(currentDate));
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+
+                    const generalPromises = dateList.map(d => fetchDateData(GENERAL_HISTORY, d));
+                    const shiyaPromises = dateList.map(d => fetchDateData(SHIYA_HISTORY, d));
+
+                    const [generalResults, shiyaResults] = await Promise.all([
+                        Promise.all(generalPromises),
+                        Promise.all(shiyaPromises)
+                    ]);
+
+                    generalData = generalResults.filter(d => d !== null).flat();
+                    shiyaData = shiyaResults.filter(d => d !== null).flat();
+                }
 
                 // デバッグ用: 取得した生データを表示
                 updateRawDataDebug(generalData, shiyaData, dateList);
