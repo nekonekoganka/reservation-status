@@ -676,6 +676,537 @@
             margin: 15px 0;
             border-left: 4px solid #4CAF50;
         }
+
+        /* ============================================
+           レスポンシブ対応 - タブレット (768px以下)
+           ============================================ */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            header h1 {
+                font-size: 1.6em;
+            }
+
+            header p {
+                font-size: 1em;
+            }
+
+            /* コントロールパネル - 縦並び */
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 15px;
+                gap: 12px;
+            }
+
+            .control-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                width: 100%;
+            }
+
+            .control-group label {
+                font-size: 14px;
+            }
+
+            .preset-btns,
+            .type-btns {
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .preset-btn,
+            .type-btn {
+                flex: 1;
+                min-width: 60px;
+                padding: 12px 10px;
+                font-size: 13px;
+            }
+
+            .control-group select {
+                width: 100%;
+                padding: 12px;
+            }
+
+            .btn {
+                width: 100%;
+                padding: 14px;
+                font-size: 16px;
+            }
+
+            /* グラフカード */
+            .chart-card {
+                padding: 15px;
+            }
+
+            .chart-card h3 {
+                font-size: 1.1em;
+                flex-wrap: wrap;
+            }
+
+            .chart-container.large {
+                height: 280px;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+
+            /* メトリクスカード - 2列 */
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .metric-card {
+                padding: 12px;
+            }
+
+            .metric-icon {
+                font-size: 24px;
+            }
+
+            .metric-title {
+                font-size: 12px;
+            }
+
+            .metric-value {
+                font-size: 22px;
+            }
+
+            .metric-value small {
+                font-size: 14px;
+            }
+
+            /* ヒートマップ */
+            .heatmap-table {
+                font-size: 14px;
+            }
+
+            .heatmap-table th,
+            .heatmap-table td {
+                padding: 10px 6px;
+                min-width: 45px;
+            }
+
+            .heatmap-table th {
+                font-size: 13px;
+            }
+
+            .heat-legend {
+                gap: 8px;
+                font-size: 12px;
+            }
+
+            .heat-legend-color {
+                width: 20px;
+                height: 20px;
+            }
+
+            /* 曜日別バー */
+            .day-metrics {
+                gap: 8px;
+            }
+
+            .day-metric .day-name {
+                font-size: 12px;
+            }
+
+            .day-metric .day-value {
+                font-size: 14px;
+            }
+
+            /* スピードバー */
+            .speed-bar-label {
+                width: 40px;
+                font-size: 14px;
+            }
+
+            .speed-bar-wrapper {
+                height: 20px;
+            }
+
+            .speed-bar-fill {
+                font-size: 12px;
+            }
+
+            .speed-bar-value {
+                font-size: 13px;
+                min-width: 55px;
+            }
+
+            /* データテーブル */
+            .data-table {
+                font-size: 13px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 10px 6px;
+            }
+
+            /* モーダル */
+            .modal {
+                padding: 20px;
+                width: 95%;
+            }
+
+            .modal-header h2 {
+                font-size: 1.1em;
+            }
+
+            /* フッター */
+            footer {
+                font-size: 0.8em;
+            }
+        }
+
+        /* ============================================
+           レスポンシブ対応 - スマホ (480px以下)
+           ============================================ */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            header {
+                margin-bottom: 20px;
+            }
+
+            header h1 {
+                font-size: 1.3em;
+            }
+
+            header p {
+                font-size: 0.9em;
+            }
+
+            /* コントロールパネル */
+            .controls {
+                padding: 12px;
+                gap: 10px;
+                border-radius: 12px;
+            }
+
+            .control-group label {
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+            .preset-btns {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+            }
+
+            .preset-btn {
+                padding: 10px 6px;
+                font-size: 12px;
+                min-width: unset;
+            }
+
+            .type-btns {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+            }
+
+            .type-btn {
+                padding: 12px 8px;
+                font-size: 13px;
+                min-width: unset;
+            }
+
+            .control-group select {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            .btn {
+                padding: 12px;
+                font-size: 15px;
+                border-radius: 10px;
+            }
+
+            /* グラフカード */
+            .charts-grid,
+            .charts-row {
+                gap: 15px;
+            }
+
+            .chart-card {
+                padding: 12px;
+                border-radius: 12px;
+            }
+
+            .chart-card h3 {
+                font-size: 1em;
+                margin-bottom: 15px;
+                gap: 6px;
+            }
+
+            .chart-container.large {
+                height: 220px;
+            }
+
+            .chart-container {
+                height: 200px;
+            }
+
+            /* メトリクスカード - 1列（重要なものは強調） */
+            .metrics-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .metric-card {
+                padding: 15px;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: 12px;
+                text-align: left;
+            }
+
+            .metric-card.highlight {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .metric-icon {
+                font-size: 28px;
+                margin-bottom: 0;
+            }
+
+            .metric-card.highlight .metric-icon {
+                margin-bottom: 5px;
+            }
+
+            .metric-content {
+                flex: 1;
+            }
+
+            .metric-title {
+                font-size: 13px;
+                margin-bottom: 4px;
+            }
+
+            .metric-value {
+                font-size: 20px;
+            }
+
+            .metric-card.highlight .metric-value {
+                font-size: 28px;
+            }
+
+            .metric-detail {
+                font-size: 11px;
+            }
+
+            /* 曜日別メトリクス */
+            .metric-by-day {
+                margin-top: 12px;
+                padding-top: 12px;
+            }
+
+            .metric-by-day h4 {
+                font-size: 13px;
+            }
+
+            .day-metrics {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                gap: 4px;
+            }
+
+            .day-metric {
+                min-width: unset;
+            }
+
+            .day-metric .day-name {
+                font-size: 11px;
+            }
+
+            .day-metric .day-value {
+                font-size: 13px;
+            }
+
+            /* ヒートマップ */
+            .heatmap-table {
+                font-size: 12px;
+            }
+
+            .heatmap-table th,
+            .heatmap-table td {
+                padding: 8px 4px;
+                min-width: 38px;
+            }
+
+            .heatmap-table th {
+                font-size: 11px;
+            }
+
+            .heat-legend {
+                gap: 6px;
+                font-size: 11px;
+                justify-content: center;
+            }
+
+            .heat-legend-color {
+                width: 16px;
+                height: 16px;
+            }
+
+            /* スピードバー */
+            .speed-bar-row {
+                margin-bottom: 6px;
+            }
+
+            .speed-bar-label {
+                width: 35px;
+                font-size: 13px;
+            }
+
+            .speed-bar-wrapper {
+                height: 18px;
+            }
+
+            .speed-bar-fill {
+                font-size: 11px;
+                padding-right: 4px;
+            }
+
+            .speed-bar-value {
+                font-size: 12px;
+                min-width: 50px;
+                margin-left: 6px;
+            }
+
+            /* データテーブル */
+            .data-table {
+                font-size: 12px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px 4px;
+            }
+
+            /* ヘルプアイコン */
+            .help-icon {
+                width: 20px;
+                height: 20px;
+                font-size: 12px;
+            }
+
+            .help-icon .tooltip {
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+
+            /* モーダル */
+            .modal {
+                padding: 15px;
+                border-radius: 12px;
+            }
+
+            .modal-header {
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+            }
+
+            .modal-header h2 {
+                font-size: 1em;
+            }
+
+            .modal-body {
+                font-size: 14px;
+                line-height: 1.6;
+            }
+
+            .modal-body h3 {
+                font-size: 0.95em;
+                margin: 15px 0 8px 0;
+            }
+
+            /* ローディング */
+            .loading {
+                height: 150px;
+            }
+
+            .spinner {
+                width: 30px;
+                height: 30px;
+            }
+
+            /* エラーメッセージ */
+            .error-message {
+                padding: 12px 15px;
+                font-size: 14px;
+                border-radius: 8px;
+            }
+
+            /* デバッグセクション - スマホでは小さく */
+            #rawDataDebugContainer {
+                font-size: 11px !important;
+                padding: 8px !important;
+            }
+
+            /* フッター */
+            footer {
+                margin-top: 20px;
+                font-size: 0.75em;
+            }
+
+            footer p {
+                margin-bottom: 3px;
+            }
+        }
+
+        /* ============================================
+           レスポンシブ対応 - 超小型スマホ (360px以下)
+           ============================================ */
+        @media (max-width: 360px) {
+            body {
+                padding: 8px;
+            }
+
+            header h1 {
+                font-size: 1.1em;
+            }
+
+            .controls {
+                padding: 10px;
+            }
+
+            .preset-btns {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .chart-container.large {
+                height: 180px;
+            }
+
+            .chart-container {
+                height: 160px;
+            }
+
+            .heatmap-table th,
+            .heatmap-table td {
+                padding: 6px 3px;
+                min-width: 32px;
+                font-size: 11px;
+            }
+
+            .heat-legend {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
@@ -926,6 +1457,110 @@
 
         // データ格納
         let rawData = [];
+
+        // モバイル判定とレスポンシブ設定
+        function isMobile() {
+            return window.innerWidth <= 480;
+        }
+
+        function isTablet() {
+            return window.innerWidth <= 768 && window.innerWidth > 480;
+        }
+
+        // Chart.js用のレスポンシブな凡例設定を取得
+        function getResponsiveLegendConfig() {
+            if (isMobile()) {
+                return {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 8,
+                        font: { size: 10, weight: 'bold' },
+                        boxWidth: 8
+                    },
+                    title: {
+                        display: true,
+                        text: '※ タップで表示/非表示',
+                        font: { size: 9, style: 'italic' },
+                        color: '#666',
+                        padding: { bottom: 3 }
+                    }
+                };
+            } else if (isTablet()) {
+                return {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 10,
+                        font: { size: 11, weight: 'bold' },
+                        boxWidth: 10
+                    },
+                    title: {
+                        display: true,
+                        text: '※ タップで表示/非表示',
+                        font: { size: 10, style: 'italic' },
+                        color: '#666',
+                        padding: { bottom: 4 }
+                    }
+                };
+            }
+            return {
+                position: 'top',
+                labels: {
+                    usePointStyle: true,
+                    padding: 15,
+                    font: { size: 12, weight: 'bold' }
+                },
+                title: {
+                    display: true,
+                    text: '※ クリックで表示/非表示を切替',
+                    font: { size: 11, style: 'italic' },
+                    color: '#666',
+                    padding: { bottom: 5 }
+                },
+                onHover: function(event, legendItem, legend) {
+                    event.native.target.style.cursor = 'pointer';
+                },
+                onLeave: function(event, legendItem, legend) {
+                    event.native.target.style.cursor = 'default';
+                }
+            };
+        }
+
+        // Chart.js用のレスポンシブな軸設定を取得
+        function getResponsiveScalesConfig(xTitle) {
+            const baseFontSize = isMobile() ? 11 : (isTablet() ? 12 : 14);
+            const tickFontSize = isMobile() ? 10 : (isTablet() ? 11 : 13);
+
+            return {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: !isMobile(),
+                        text: '空き枠数',
+                        font: { size: baseFontSize, weight: 'bold' }
+                    },
+                    ticks: {
+                        font: { size: tickFontSize, weight: 'bold' },
+                        color: '#333'
+                    }
+                },
+                x: {
+                    title: {
+                        display: !isMobile(),
+                        text: xTitle,
+                        font: { size: baseFontSize, weight: 'bold' }
+                    },
+                    ticks: {
+                        maxRotation: 0,
+                        minRotation: 0,
+                        autoSkip: false,
+                        font: { size: isMobile() ? 10 : tickFontSize, weight: 'bold' },
+                        color: '#333'
+                    }
+                }
+            };
+        }
 
         // ページ読み込み時に設定を復元
         document.addEventListener('DOMContentLoaded', () => {
@@ -1441,6 +2076,14 @@
                 return '';
             });
 
+            // レスポンシブ設定を取得
+            const legendConfig = getResponsiveLegendConfig();
+            const scalesConfig = getResponsiveScalesConfig('時刻（前日18:30 → 当日18:00）');
+            // X軸のcallbackを追加
+            scalesConfig.x.ticks.callback = function(value, index) {
+                return labels[index] || null;
+            };
+
             dailyProgressChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -1455,27 +2098,7 @@
                         intersect: false
                     },
                     plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 15,
-                                font: { size: 12, weight: 'bold' }
-                            },
-                            title: {
-                                display: true,
-                                text: '※ クリックで表示/非表示を切替',
-                                font: { size: 11, style: 'italic' },
-                                color: '#666',
-                                padding: { bottom: 5 }
-                            },
-                            onHover: function(event, legendItem, legend) {
-                                event.native.target.style.cursor = 'pointer';
-                            },
-                            onLeave: function(event, legendItem, legend) {
-                                event.native.target.style.cursor = 'default';
-                            }
-                        },
+                        legend: legendConfig,
                         tooltip: {
                             callbacks: {
                                 title: function(context) {
@@ -1489,38 +2112,7 @@
                             }
                         }
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: '空き枠数',
-                                font: { size: 14, weight: 'bold' }
-                            },
-                            ticks: {
-                                font: { size: 13, weight: 'bold' },
-                                color: '#333'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: '時刻（前日18:30 → 当日18:00）',
-                                font: { size: 14, weight: 'bold' }
-                            },
-                            ticks: {
-                                maxRotation: 0,
-                                minRotation: 0,
-                                autoSkip: false,
-                                font: { size: 14, weight: 'bold' },
-                                color: '#333',
-                                callback: function(value, index) {
-                                    // ラベルがある場所のみ表示
-                                    return labels[index] || null;
-                                }
-                            }
-                        }
-                    }
+                    scales: scalesConfig
                 }
             });
         }
@@ -1617,6 +2209,14 @@
                 return '';
             });
 
+            // レスポンシブ設定を取得
+            const weeklyLegendConfig = getResponsiveLegendConfig();
+            const weeklyScalesConfig = getResponsiveScalesConfig('時刻（前日18:30 → 当日18:00）');
+            // X軸のcallbackを追加
+            weeklyScalesConfig.x.ticks.callback = function(value, index) {
+                return labels[index] || null;
+            };
+
             weeklyProgressChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -1631,27 +2231,7 @@
                         intersect: false
                     },
                     plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 15,
-                                font: { size: 12, weight: 'bold' }
-                            },
-                            title: {
-                                display: true,
-                                text: '※ クリックで表示/非表示を切替',
-                                font: { size: 11, style: 'italic' },
-                                color: '#666',
-                                padding: { bottom: 5 }
-                            },
-                            onHover: function(event, legendItem, legend) {
-                                event.native.target.style.cursor = 'pointer';
-                            },
-                            onLeave: function(event, legendItem, legend) {
-                                event.native.target.style.cursor = 'default';
-                            }
-                        },
+                        legend: weeklyLegendConfig,
                         tooltip: {
                             callbacks: {
                                 title: function(context) {
@@ -1664,37 +2244,7 @@
                             }
                         }
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: '空き枠数',
-                                font: { size: 14, weight: 'bold' }
-                            },
-                            ticks: {
-                                font: { size: 13, weight: 'bold' },
-                                color: '#333'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: '時刻（前日18:30 → 当日18:00）',
-                                font: { size: 14, weight: 'bold' }
-                            },
-                            ticks: {
-                                maxRotation: 0,
-                                minRotation: 0,
-                                autoSkip: false,
-                                font: { size: 14, weight: 'bold' },
-                                color: '#333',
-                                callback: function(value, index) {
-                                    return labels[index] || null;
-                                }
-                            }
-                        }
-                    }
+                    scales: weeklyScalesConfig
                 }
             });
         }
