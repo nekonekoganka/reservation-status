@@ -1115,11 +1115,10 @@
             const targetMinutes = slot.hour * 60 + slot.minute;
 
             if (slot.prevDay) {
-                // 対象日前営業日のデータを探す（18:30以降）
-                const prevDateStr = getPreviousOpenDate(targetDate);
-
+                // 対象日前のデータを探す（18:30以降のデータ）
+                // e.dateが対象日より前で、かつ18:30以降のデータを探す
                 const candidates = entries.filter(e =>
-                    e.date === prevDateStr && e.minutes >= (18 * 60 + 30)
+                    e.date !== targetDate && e.minutes >= (18 * 60 + 30)
                 );
 
                 if (candidates.length > 0) {
@@ -1990,15 +1989,24 @@
                 const dayData = data[date];
                 const dayOfWeek = dayData.dayOfWeek;
 
+                // detailedから値を取得するヘルパー関数
+                const getValue = (label) => {
+                    if (dayData.detailed && dayData.detailed[label] !== undefined) {
+                        return dayData.detailed[label];
+                    }
+                    return dayData[label];
+                };
+
                 // 減少量計算
-                const startVal = dayData['18:30'];
-                const endVal = dayData['18:00'];
+                const startVal = getValue('18:30');
+                const endVal = getValue('18:00');
                 let decrease = '-';
                 let warning = false;
                 if (startVal !== undefined && endVal !== undefined) {
                     decrease = startVal - endVal;
                     // 07:00時点で既に少ない場合は警告
-                    if (dayData['07:00'] !== undefined && dayData['07:00'] < 8) {
+                    const val07 = getValue('07:00');
+                    if (val07 !== undefined && val07 < 8) {
                         warning = true;
                     }
                 }
@@ -2007,7 +2015,7 @@
                 html += `<td>${date}</td>`;
                 html += `<td class="day-col">${DAY_NAMES[dayOfWeek]}</td>`;
                 TIME_SLOTS.forEach(slot => {
-                    const val = dayData[slot.label];
+                    const val = getValue(slot.label);
                     if (val !== undefined) {
                         const className = val <= fullThreshold ? 'warning' : '';
                         html += `<td class="${className}">${val}</td>`;
