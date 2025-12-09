@@ -718,12 +718,22 @@
             </button>
         </div>
 
-        <!-- メイングラフ: 1日の空き枠推移 -->
+        <!-- メイングラフ: 1日の空き枠推移（曜日別平均） -->
         <div class="charts-grid">
             <div class="chart-card">
-                <h3>📈 1日の空き枠推移（18:30 → 18:00）- 10分刻み<span class="help-icon" onclick="openHelpModal('dailyProgress')">?<span class="tooltip">曜日別の空き枠推移を表示</span></span></h3>
+                <h3>📈 1日の空き枠推移（曜日別平均）- 10分刻み<span class="help-icon" onclick="openHelpModal('dailyProgress')">?<span class="tooltip">曜日別の空き枠推移を表示</span></span></h3>
                 <div class="chart-container large">
                     <canvas id="dailyProgressChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 直近1週間の空き枠推移（日別） -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>📈 直近1週間の空き枠推移（日別）- 10分刻み<span class="help-icon" onclick="openHelpModal('weeklyProgress')">?<span class="tooltip">直近1週間の各日のデータを表示</span></span></h3>
+                <div class="chart-container large">
+                    <canvas id="weeklyProgressChart"></canvas>
                 </div>
             </div>
         </div>
@@ -884,6 +894,7 @@
 
         // チャートインスタンス
         let dailyProgressChart = null;
+        let weeklyProgressChart = null;
         let monthlyChart = null;
         let dayFullRateChart = null;
 
@@ -1217,6 +1228,7 @@
         function updateAllCharts() {
             const data = processedData[currentType] || {};
             updateDailyProgressChart(data);
+            updateWeeklyProgressChart(data);
             updateHeatmap(data);
             updateMetrics(data);
             updateDetailedAnalysis(data);
@@ -1349,6 +1361,157 @@
                                 autoSkip: false,
                                 callback: function(value, index) {
                                     // ラベルがある場所のみ表示
+                                    return labels[index] || null;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 直近1週間の空き枠推移グラフ（日別）
+        function updateWeeklyProgressChart(data) {
+            const ctx = document.getElementById('weeklyProgressChart').getContext('2d');
+
+            if (weeklyProgressChart) {
+                weeklyProgressChart.destroy();
+            }
+
+            // 直近1週間の日付を取得（水曜日を除外）
+            const sortedDates = Object.keys(data)
+                .filter(date => {
+                    const dayData = data[date];
+                    return dayData.dayOfWeek !== 3; // 水曜日を除外
+                })
+                .sort()
+                .reverse()
+                .slice(0, 7) // 直近7日（水曜除外なので実質6日程度）
+                .reverse(); // 古い順に並べ替え
+
+            if (sortedDates.length === 0) {
+                // データがない場合は空のチャートを表示
+                weeklyProgressChart = new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: [], datasets: [] },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            title: {
+                                display: true,
+                                text: 'データがありません'
+                            }
+                        }
+                    }
+                });
+                return;
+            }
+
+            // 各日のデータセットを作成
+            const datasets = [];
+            const colors = [
+                'rgba(200, 200, 200, 0.6)',  // 古いデータは薄い色
+                'rgba(180, 180, 180, 0.7)',
+                'rgba(160, 160, 160, 0.8)',
+                'rgba(140, 140, 140, 0.9)',
+                'rgba(100, 100, 100, 1)',
+                'rgba(54, 162, 235, 1)',      // 最新の1つ前は青
+                'rgba(255, 99, 132, 1)'       // 最新は赤（目立つ色）
+            ];
+
+            sortedDates.forEach((date, index) => {
+                const dayData = data[date];
+                if (!dayData.detailed) return;
+
+                // 日付のフォーマット: 12/9（月）
+                const d = new Date(date + 'T00:00:00');
+                const month = d.getMonth() + 1;
+                const day = d.getDate();
+                const dayOfWeek = DAY_NAMES[dayData.dayOfWeek];
+                const label = `${month}/${day}（${dayOfWeek}）`;
+
+                // データを取得
+                const lineData = DETAILED_TIME_SLOTS.map(slot => {
+                    return dayData.detailed[slot.label] !== undefined ? dayData.detailed[slot.label] : null;
+                });
+
+                // 最新のデータは太線で目立たせる
+                const isLatest = index === sortedDates.length - 1;
+                const colorIndex = Math.min(index, colors.length - 1);
+
+                datasets.push({
+                    label: label,
+                    data: lineData,
+                    borderColor: colors[colorIndex],
+                    backgroundColor: colors[colorIndex].replace('1)', '0.1)'),
+                    tension: 0.3,
+                    fill: false,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    borderWidth: isLatest ? 3 : 2
+                });
+            });
+
+            // X軸ラベル（1時間ごとに表示）
+            const labels = DETAILED_TIME_SLOTS.map(slot => {
+                if (slot.minute === 0) {
+                    return slot.label;
+                }
+                if (slot.label === '18:30') {
+                    return '18:30';
+                }
+                return '';
+            });
+
+            weeklyProgressChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    const index = context[0].dataIndex;
+                                    return DETAILED_TIME_SLOTS[index].label;
+                                },
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + (context.parsed.y !== null ? context.parsed.y + '枠' : 'データなし');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '空き枠数'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '時刻（前日18:30 → 当日18:00）'
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 0,
+                                autoSkip: false,
+                                callback: function(value, index) {
                                     return labels[index] || null;
                                 }
                             }
@@ -1971,8 +2134,12 @@
         function updateRecentDataTable(data) {
             const container = document.getElementById('recentDataContainer');
 
-            // 日付でソートして直近20件
-            const sortedDates = Object.keys(data).sort().reverse().slice(0, 20);
+            // 日付でソートして直近20件（水曜日は除外）
+            const sortedDates = Object.keys(data)
+                .filter(date => data[date].dayOfWeek !== 3) // 水曜日を除外
+                .sort()
+                .reverse()
+                .slice(0, 20);
 
             if (sortedDates.length === 0) {
                 container.innerHTML = '<div class="no-data">データがありません</div>';
@@ -2061,6 +2228,34 @@
                     <div class="tip">
                         <strong>線が急降下する時間帯</strong> = 予約が集中しやすい時間帯<br>
                         例えば07:00〜10:00で急に下がるなら、朝の予約が多いということです。
+                    </div>
+                `
+            },
+            weeklyProgress: {
+                title: '📈 直近1週間の空き枠推移（日別）',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>直近1週間の<strong>各日のデータ</strong>を個別の折れ線グラフで表示します。</p>
+                    <p>上の「曜日別平均」グラフとは異なり、実際の各日のデータをそのまま表示します。</p>
+
+                    <h3>表示される日</h3>
+                    <ul>
+                        <li>直近1週間の営業日（水曜日は休診のため除外）</li>
+                        <li>最大7日分のデータを表示</li>
+                        <li>ラベルは「12/9（月）」のような日付+曜日形式</li>
+                    </ul>
+
+                    <h3>色の見方</h3>
+                    <ul>
+                        <li><span style="color:rgba(255, 99, 132, 1);font-weight:bold;">赤い太線</span> = 最新の日（最も目立つ）</li>
+                        <li><span style="color:rgba(54, 162, 235, 1);font-weight:bold;">青い線</span> = 最新の1つ前の日</li>
+                        <li><span style="color:rgba(150, 150, 150, 1);">グレーの線</span> = それ以前の日（古いほど薄い）</li>
+                    </ul>
+
+                    <h3>活用方法</h3>
+                    <div class="tip">
+                        <strong>日によるばらつきを確認</strong><br>
+                        曜日別平均では見えない、特定の日の異常な動き（イベント日、天候の影響など）を確認できます。
                     </div>
                 `
             },
