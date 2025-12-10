@@ -183,60 +183,83 @@
       padding: 15px;
     }
 
-    /* タイムラインバー（2本構成：午前/午後） */
+    /* タイムラインバー（セルバー形式：午前/午後） */
     .timeline-container {
       margin-top: 12px;
-      padding: 8px 4px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
+    }
+
+    .timeline-block {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+    }
+
+    .timeline-block.am {
+      background: linear-gradient(135deg, #fff9f0, #fff3e0);
+    }
+
+    .timeline-block.pm {
+      background: linear-gradient(135deg, #f0f7ff, #e3f2fd);
+    }
+
+    .timeline-period {
+      font-size: 13px;
+      font-weight: 700;
+      color: #555;
+      min-width: 32px;
+      flex-shrink: 0;
+    }
+
+    .timeline-content {
+      flex: 1;
+      min-width: 0;
     }
 
     .timeline-bar {
-      position: relative;
+      display: flex;
+      width: 100%;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid #ccc;
+    }
+
+    .timeline-cell {
+      flex: 1;
       height: 24px;
-      border-radius: 12px;
-      overflow: visible;
-      border: 1px solid #ddd;
+      border-right: 1px solid #ddd;
+      box-sizing: border-box;
     }
 
-    .timeline-bar-am {
-      background: #3498db;
-      border-color: #2980b9;
+    .timeline-cell:last-child {
+      border-right: none;
     }
 
-    .timeline-bar-pm {
-      background: #e67e22;
-      border-color: #d35400;
-    }
-
-    /* ドット: 白抜き（テーマカラーの太い枠線 + 白い中心） */
-    .timeline-dot {
-      position: absolute;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
+    .timeline-cell.general.available {
       background: white;
-      border: 3px solid;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-      z-index: 2;
     }
 
-    .timeline-dot.general {
-      border-color: #CC6600;
+    .timeline-cell.general.filled {
+      background: #CC6600;
     }
 
-    .timeline-dot.shiya {
-      border-color: #006633;
+    .timeline-cell.shiya.available {
+      background: white;
+    }
+
+    .timeline-cell.shiya.filled {
+      background: #006633;
     }
 
     .timeline-labels {
       display: flex;
       justify-content: space-between;
       margin-top: 4px;
-      padding: 0 2px;
+      padding: 0;
     }
 
     .timeline-label {
@@ -617,27 +640,37 @@
               <div id="day-text-general" class="day-text"></div>
             </div>
           </div>
-          <!-- タイムラインバー（2本構成：午前/午後） -->
+          <!-- タイムラインバー（セルバー形式：午前/午後） -->
           <div class="timeline-container">
-            <!-- 午前バー -->
-            <div id="timeline-bar-general-am" class="timeline-bar timeline-bar-am">
-              <!-- ドットはJSで動的に追加 -->
+            <!-- 午前ブロック -->
+            <div class="timeline-block am">
+              <span class="timeline-period">午前</span>
+              <div class="timeline-content">
+                <div id="timeline-bar-general-am" class="timeline-bar">
+                  <!-- JSで動的に生成 -->
+                </div>
+                <div class="timeline-labels">
+                  <span class="timeline-label">10</span>
+                  <span class="timeline-label">11</span>
+                  <span class="timeline-label">12</span>
+                  <span class="timeline-label">13</span>
+                </div>
+              </div>
             </div>
-            <div class="timeline-labels" id="timeline-labels-general-am">
-              <span class="timeline-label">10</span>
-              <span class="timeline-label">11</span>
-              <span class="timeline-label">12</span>
-              <span class="timeline-label">13</span>
-            </div>
-            <!-- 午後バー -->
-            <div id="timeline-bar-general-pm" class="timeline-bar timeline-bar-pm">
-              <!-- ドットはJSで動的に追加 -->
-            </div>
-            <div class="timeline-labels" id="timeline-labels-general-pm">
-              <span class="timeline-label">15</span>
-              <span class="timeline-label">16</span>
-              <span class="timeline-label">17</span>
-              <span class="timeline-label">18</span>
+            <!-- 午後ブロック -->
+            <div class="timeline-block pm">
+              <span class="timeline-period">午後</span>
+              <div class="timeline-content">
+                <div id="timeline-bar-general-pm" class="timeline-bar">
+                  <!-- JSで動的に生成 -->
+                </div>
+                <div class="timeline-labels">
+                  <span class="timeline-label">15</span>
+                  <span class="timeline-label">16</span>
+                  <span class="timeline-label">17</span>
+                  <span class="timeline-label">18</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -668,27 +701,37 @@
               <div id="day-text-shiya" class="day-text"></div>
             </div>
           </div>
-          <!-- タイムラインバー（2本構成：午前/午後） -->
+          <!-- タイムラインバー（セルバー形式：午前/午後） -->
           <div class="timeline-container">
-            <!-- 午前バー -->
-            <div id="timeline-bar-shiya-am" class="timeline-bar timeline-bar-am">
-              <!-- ドットはJSで動的に追加 -->
+            <!-- 午前ブロック -->
+            <div class="timeline-block am">
+              <span class="timeline-period">午前</span>
+              <div class="timeline-content">
+                <div id="timeline-bar-shiya-am" class="timeline-bar">
+                  <!-- JSで動的に生成 -->
+                </div>
+                <div class="timeline-labels">
+                  <span class="timeline-label">10</span>
+                  <span class="timeline-label">11</span>
+                  <span class="timeline-label">12</span>
+                  <span class="timeline-label">13</span>
+                </div>
+              </div>
             </div>
-            <div class="timeline-labels" id="timeline-labels-shiya-am">
-              <span class="timeline-label">10</span>
-              <span class="timeline-label">11</span>
-              <span class="timeline-label">12</span>
-              <span class="timeline-label">13</span>
-            </div>
-            <!-- 午後バー -->
-            <div id="timeline-bar-shiya-pm" class="timeline-bar timeline-bar-pm">
-              <!-- ドットはJSで動的に追加 -->
-            </div>
-            <div class="timeline-labels" id="timeline-labels-shiya-pm">
-              <span class="timeline-label">15</span>
-              <span class="timeline-label">16</span>
-              <span class="timeline-label">17</span>
-              <span class="timeline-label">18</span>
+            <!-- 午後ブロック -->
+            <div class="timeline-block pm">
+              <span class="timeline-period">午後</span>
+              <div class="timeline-content">
+                <div id="timeline-bar-shiya-pm" class="timeline-bar">
+                  <!-- JSで動的に生成 -->
+                </div>
+                <div class="timeline-labels">
+                  <span class="timeline-label">15</span>
+                  <span class="timeline-label">16</span>
+                  <span class="timeline-label">17</span>
+                  <span class="timeline-label">18</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1048,54 +1091,43 @@
       }
     }
 
+    // 15分刻みの時間帯定義
+    const AM_SLOTS = ['10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30', '11:45', '12:00', '12:15', '12:30', '12:45', '13:00'];
+    const PM_SLOTS = ['15:00', '15:15', '15:30', '15:45', '16:00', '16:15', '16:30', '16:45', '17:00', '17:15', '17:30', '17:45', '18:00'];
+
     /**
-     * タイムラインバー（2本：午前/午後）にドットを描画
+     * タイムラインバー（セルバー形式：午前/午後）を描画
      * @param {string} type - 'general' または 'shiya'
-     * @param {string[]} slots - 時間枠の配列（例: ["10:00", "11:30", "15:00"]）
-     * @param {string} themeColor - テーマカラー
+     * @param {string[]} slots - 空き時間枠の配列（例: ["10:00", "11:30", "15:00"]）
+     * @param {string} themeColor - テーマカラー（未使用、CSSで定義）
      */
     function renderTimeline(type, slots, themeColor) {
       const amBarElement = document.getElementById(`timeline-bar-${type}-am`);
       const pmBarElement = document.getElementById(`timeline-bar-${type}-pm`);
       if (!amBarElement || !pmBarElement) return;
 
-      // スロットを午前/午後に分類
-      const { amSlots, pmSlots } = splitSlots(slots);
+      // 既存のセルを削除
+      amBarElement.innerHTML = '';
+      pmBarElement.innerHTML = '';
 
-      // 午前/午後それぞれの終了時刻を決定
-      const amEndMinutes = getAmEndMinutes(amSlots);
-      const pmEndMinutes = getPmEndMinutes(pmSlots);
-
-      // ラベルを更新
-      updateAmLabels(type, amEndMinutes > 13 * 60);
-      updatePmLabels(type, pmEndMinutes > 18 * 60);
-
-      // 既存のドットを削除
-      amBarElement.querySelectorAll('.timeline-dot').forEach(dot => dot.remove());
-      pmBarElement.querySelectorAll('.timeline-dot').forEach(dot => dot.remove());
-
-      // 午前バーにドットを追加
-      amSlots.forEach(slot => {
-        const position = timeToPositionAm(slot, amEndMinutes);
-        if (position === null) return;
-
-        const dot = document.createElement('div');
-        dot.className = `timeline-dot ${type}`;
-        dot.style.left = `${position}%`;
-        dot.title = slot;
-        amBarElement.appendChild(dot);
+      // 午前バーにセルを追加
+      AM_SLOTS.forEach(slot => {
+        const cell = document.createElement('div');
+        cell.className = `timeline-cell ${type}`;
+        const isAvailable = slots.includes(slot);
+        cell.classList.add(isAvailable ? 'available' : 'filled');
+        cell.title = slot + (isAvailable ? ' (空き)' : ' (埋まり)');
+        amBarElement.appendChild(cell);
       });
 
-      // 午後バーにドットを追加
-      pmSlots.forEach(slot => {
-        const position = timeToPositionPm(slot, pmEndMinutes);
-        if (position === null) return;
-
-        const dot = document.createElement('div');
-        dot.className = `timeline-dot ${type}`;
-        dot.style.left = `${position}%`;
-        dot.title = slot;
-        pmBarElement.appendChild(dot);
+      // 午後バーにセルを追加
+      PM_SLOTS.forEach(slot => {
+        const cell = document.createElement('div');
+        cell.className = `timeline-cell ${type}`;
+        const isAvailable = slots.includes(slot);
+        cell.classList.add(isAvailable ? 'available' : 'filled');
+        cell.title = slot + (isAvailable ? ' (空き)' : ' (埋まり)');
+        pmBarElement.appendChild(cell);
       });
     }
 

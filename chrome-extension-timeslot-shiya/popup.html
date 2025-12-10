@@ -147,62 +147,84 @@
       padding: 10px;
     }
 
-    /* タイムラインバー（2本構成：午前/午後） */
+    /* タイムラインバー（セルバー形式：午前/午後） */
     .timeline-section {
       margin-bottom: 10px;
     }
 
     .timeline-container {
-      padding: 6px 2px;
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
 
+    .timeline-block {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+    }
+
+    .timeline-block.am {
+      background: linear-gradient(135deg, #fff9f0, #fff3e0);
+    }
+
+    .timeline-block.pm {
+      background: linear-gradient(135deg, #f0f7ff, #e3f2fd);
+    }
+
+    .timeline-period {
+      font-size: 12px;
+      font-weight: 700;
+      color: #555;
+      min-width: 28px;
+      flex-shrink: 0;
+    }
+
+    .timeline-content {
+      flex: 1;
+      min-width: 0;
+    }
+
     .timeline-bar {
-      position: relative;
-      height: 26px;
-      border-radius: 13px;
-      overflow: visible;
-      border: 1px solid #ddd;
+      display: flex;
+      width: 100%;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid #ccc;
     }
 
-    .timeline-bar-am {
-      background: #3498db;
-      border-color: #2980b9;
+    .timeline-cell {
+      flex: 1;
+      height: 22px;
+      border-right: 1px solid #ddd;
+      box-sizing: border-box;
     }
 
-    .timeline-bar-pm {
-      background: #e67e22;
-      border-color: #d35400;
+    .timeline-cell:last-child {
+      border-right: none;
     }
 
-    /* ドット: 白抜き（テーマカラーの太い枠線 + 白い中心） */
-    .timeline-dot {
-      position: absolute;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
+    .timeline-cell.available {
       background: white;
-      border: 3px solid #006633;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-      z-index: 2;
+    }
+
+    .timeline-cell.filled {
+      background: #006633;
     }
 
     .timeline-labels {
       display: flex;
       justify-content: space-between;
       margin-top: 3px;
-      padding: 0 2px;
+      padding: 0;
     }
 
     .timeline-label {
-      font-size: 18px;
+      font-size: 14px;
       color: #333;
       font-weight: 700;
-      width: 32px;
       text-align: center;
     }
 
@@ -211,18 +233,31 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 12px;
       margin-top: 8px;
       font-size: 11px;
       color: #666;
     }
 
-    .legend-dot {
-      width: 12px;
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .legend-cell {
+      width: 16px;
       height: 12px;
-      border-radius: 50%;
+      border-radius: 2px;
+      border: 1px solid #ccc;
+    }
+
+    .legend-cell.available {
       background: white;
-      border: 2px solid #006633;
+    }
+
+    .legend-cell.filled {
+      background: #006633;
     }
 
     /* フッター */
@@ -331,34 +366,50 @@
       </div>
     </div>
 
-    <!-- タイムラインバー（2本構成：午前/午後） -->
+    <!-- タイムラインバー（セルバー形式：午前/午後） -->
     <div class="timeline-section" id="timeline-section" style="display: none;">
       <div class="timeline-container">
-        <!-- 午前バー -->
-        <div id="timeline-bar-am" class="timeline-bar timeline-bar-am">
-          <!-- ドットはJSで動的に追加 -->
+        <!-- 午前ブロック -->
+        <div class="timeline-block am">
+          <span class="timeline-period">午前</span>
+          <div class="timeline-content">
+            <div id="timeline-bar-am" class="timeline-bar">
+              <!-- JSで動的に生成 -->
+            </div>
+            <div class="timeline-labels">
+              <span class="timeline-label">10</span>
+              <span class="timeline-label">11</span>
+              <span class="timeline-label">12</span>
+              <span class="timeline-label">13</span>
+            </div>
+          </div>
         </div>
-        <div class="timeline-labels" id="timeline-labels-am">
-          <span class="timeline-label">10</span>
-          <span class="timeline-label">11</span>
-          <span class="timeline-label">12</span>
-          <span class="timeline-label">13</span>
-        </div>
-        <!-- 午後バー -->
-        <div id="timeline-bar-pm" class="timeline-bar timeline-bar-pm">
-          <!-- ドットはJSで動的に追加 -->
-        </div>
-        <div class="timeline-labels" id="timeline-labels-pm">
-          <span class="timeline-label">15</span>
-          <span class="timeline-label">16</span>
-          <span class="timeline-label">17</span>
-          <span class="timeline-label">18</span>
+        <!-- 午後ブロック -->
+        <div class="timeline-block pm">
+          <span class="timeline-period">午後</span>
+          <div class="timeline-content">
+            <div id="timeline-bar-pm" class="timeline-bar">
+              <!-- JSで動的に生成 -->
+            </div>
+            <div class="timeline-labels">
+              <span class="timeline-label">15</span>
+              <span class="timeline-label">16</span>
+              <span class="timeline-label">17</span>
+              <span class="timeline-label">18</span>
+            </div>
+          </div>
         </div>
       </div>
       <!-- 凡例（タイムライン下） -->
       <div class="timeline-legend">
-        <span class="legend-dot"></span>
-        <span>空き枠</span>
+        <div class="legend-item">
+          <span class="legend-cell available"></span>
+          <span>空き</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-cell filled"></span>
+          <span>埋まり</span>
+        </div>
       </div>
     </div>
 

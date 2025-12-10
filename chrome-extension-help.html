@@ -82,75 +82,85 @@
       gap: 10px;
     }
 
-    .timeline-row {
+    .timeline-block {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+    }
+
+    .timeline-block.am {
+      background: linear-gradient(135deg, #fff9f0, #fff3e0);
+    }
+
+    .timeline-block.pm {
+      background: linear-gradient(135deg, #f0f7ff, #e3f2fd);
+    }
+
+    .timeline-period {
+      font-size: 12px;
+      font-weight: 700;
+      color: #555;
+      min-width: 28px;
+      flex-shrink: 0;
+    }
+
+    .timeline-content {
+      flex: 1;
+      min-width: 0;
     }
 
     .timeline-bar {
-      position: relative;
+      display: flex;
+      width: 100%;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid #ccc;
+    }
+
+    .timeline-cell {
       flex: 1;
-      height: 26px;
-      border-radius: 13px;
-      overflow: visible;
-      border: 1px solid #ddd;
+      height: 22px;
+      border-right: 1px solid #ddd;
+      box-sizing: border-box;
     }
 
-    .timeline-bar-am {
-      background: #3498db;
-      border-color: #2980b9;
+    .timeline-cell:last-child {
+      border-right: none;
     }
 
-    .timeline-bar-pm {
-      background: #e67e22;
-      border-color: #d35400;
-    }
-
-    .timeline-dot {
-      position: absolute;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
+    .timeline-cell.available {
       background: white;
-      border: 3px solid #CC6600;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-      z-index: 2;
     }
 
-    .timeline-dot.shiya {
-      border-color: #006633;
+    .timeline-cell.filled.general {
+      background: #CC6600;
+    }
+
+    .timeline-cell.filled.shiya {
+      background: #006633;
     }
 
     .timeline-labels {
       display: flex;
       justify-content: space-between;
-      margin-top: 5px;
-      padding: 0 5px;
+      margin-top: 3px;
+      padding: 0;
     }
 
     .timeline-label {
       font-size: 14px;
       color: #333;
       font-weight: 700;
-      width: 25px;
       text-align: center;
-    }
-
-    .bar-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: #666;
-      width: 50px;
     }
 
     /* 凡例説明 */
     .legend-demo {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       padding: 15px;
       background: #fff;
       border: 1px solid #ddd;
@@ -158,17 +168,29 @@
       margin: 10px 0;
     }
 
-    .legend-dot {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: white;
-      border: 3px solid #CC6600;
-      flex-shrink: 0;
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    .legend-dot.shiya {
-      border-color: #006633;
+    .legend-cell {
+      width: 24px;
+      height: 18px;
+      border-radius: 3px;
+      border: 1px solid #ccc;
+    }
+
+    .legend-cell.available {
+      background: white;
+    }
+
+    .legend-cell.filled.general {
+      background: #CC6600;
+    }
+
+    .legend-cell.filled.shiya {
+      background: #006633;
     }
 
     .legend-text {
@@ -318,59 +340,147 @@
 
     <div class="section">
       <h2>タイムラインバーの見方</h2>
-      <p>タイムラインバーは午前と午後の2本構成で、空き枠のある時間帯を白い丸（ドット）で表示します。</p>
+      <p>タイムラインバーは午前と午後の2本構成で、15分ごとのセルで予約状況を表示します。白色のセルは空き枠、色付きのセルは埋まっている枠を示します。</p>
 
       <div class="demo-box">
-        <div class="demo-label">午前バー（10:00〜13:00）</div>
+        <div class="demo-label">一般予約の例</div>
         <div class="timeline-demo">
-          <div class="timeline-row">
-            <span class="bar-label">青色</span>
-            <div class="timeline-bar timeline-bar-am">
-              <div class="timeline-dot" style="left: 0%"></div>
-              <div class="timeline-dot" style="left: 33%"></div>
+          <!-- 午前ブロック -->
+          <div class="timeline-block am">
+            <span class="timeline-period">午前</span>
+            <div class="timeline-content">
+              <div class="timeline-bar">
+                <div class="timeline-cell available"></div>
+                <div class="timeline-cell available"></div>
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell available"></div>
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell available"></div>
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell filled general"></div>
+              </div>
+              <div class="timeline-labels">
+                <span class="timeline-label">10</span>
+                <span class="timeline-label">11</span>
+                <span class="timeline-label">12</span>
+                <span class="timeline-label">13</span>
+              </div>
             </div>
           </div>
-          <div class="timeline-labels" style="margin-left: 65px;">
-            <span class="timeline-label">10</span>
-            <span class="timeline-label">11</span>
-            <span class="timeline-label">12</span>
-            <span class="timeline-label">13</span>
+          <!-- 午後ブロック -->
+          <div class="timeline-block pm">
+            <span class="timeline-period">午後</span>
+            <div class="timeline-content">
+              <div class="timeline-bar">
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell available"></div>
+                <div class="timeline-cell available"></div>
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell available"></div>
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell filled general"></div>
+                <div class="timeline-cell filled general"></div>
+              </div>
+              <div class="timeline-labels">
+                <span class="timeline-label">15</span>
+                <span class="timeline-label">16</span>
+                <span class="timeline-label">17</span>
+                <span class="timeline-label">18</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="demo-label" style="margin-top: 20px;">午後バー（15:00〜18:00）</div>
+        <div class="demo-label" style="margin-top: 20px;">視野予約の例</div>
         <div class="timeline-demo">
-          <div class="timeline-row">
-            <span class="bar-label">オレンジ</span>
-            <div class="timeline-bar timeline-bar-pm">
-              <div class="timeline-dot" style="left: 33%"></div>
-              <div class="timeline-dot" style="left: 66%"></div>
-              <div class="timeline-dot" style="left: 100%"></div>
+          <!-- 午前ブロック -->
+          <div class="timeline-block am">
+            <span class="timeline-period">午前</span>
+            <div class="timeline-content">
+              <div class="timeline-bar">
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell available"></div>
+                <div class="timeline-cell available"></div>
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell available"></div>
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell available"></div>
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell filled shiya"></div>
+              </div>
+              <div class="timeline-labels">
+                <span class="timeline-label">10</span>
+                <span class="timeline-label">11</span>
+                <span class="timeline-label">12</span>
+                <span class="timeline-label">13</span>
+              </div>
             </div>
           </div>
-          <div class="timeline-labels" style="margin-left: 65px;">
-            <span class="timeline-label">15</span>
-            <span class="timeline-label">16</span>
-            <span class="timeline-label">17</span>
-            <span class="timeline-label">18</span>
+          <!-- 午後ブロック -->
+          <div class="timeline-block pm">
+            <span class="timeline-period">午後</span>
+            <div class="timeline-content">
+              <div class="timeline-bar">
+                <div class="timeline-cell available"></div>
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell available"></div>
+                <div class="timeline-cell available"></div>
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell filled shiya"></div>
+                <div class="timeline-cell filled shiya"></div>
+              </div>
+              <div class="timeline-labels">
+                <span class="timeline-label">15</span>
+                <span class="timeline-label">16</span>
+                <span class="timeline-label">17</span>
+                <span class="timeline-label">18</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <div class="section">
-      <h2>白い丸（ドット）の意味</h2>
-      <p>白抜きの丸は「その時間帯に空き枠がある」ことを示しています。</p>
+      <h2>セルの色の意味</h2>
+      <p>タイムラインバーのセルの色で予約状況がわかります。</p>
 
       <div class="legend-demo">
-        <span class="legend-dot"></span>
-        <span class="legend-text">= 空き枠あり（一般予約: オレンジ枠）</span>
+        <div class="legend-item">
+          <span class="legend-cell available"></span>
+          <span class="legend-text">空き枠あり</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-cell filled general"></span>
+          <span class="legend-text">埋まり（一般）</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-cell filled shiya"></span>
+          <span class="legend-text">埋まり（視野）</span>
+        </div>
       </div>
 
-      <div class="legend-demo">
-        <span class="legend-dot shiya"></span>
-        <span class="legend-text">= 空き枠あり（視野予約: 緑枠）</span>
-      </div>
+      <p style="margin-top: 15px;">午前（10:00〜13:00）と午後（15:00〜18:00）はそれぞれ背景色で区別されています。</p>
     </div>
 
     <div class="section">
