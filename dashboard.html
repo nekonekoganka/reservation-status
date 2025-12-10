@@ -482,7 +482,7 @@
         }
 
         .timeline-time-labels span {
-            font-size: 12px;
+            font-size: 16px;
             font-weight: 600;
             color: #555;
             text-align: center;
@@ -901,7 +901,7 @@
             }
 
             .timeline-time-labels span {
-                font-size: 11px;
+                font-size: 14px;
             }
 
             header h1 {
@@ -1158,7 +1158,7 @@
             }
 
             .timeline-time-labels span {
-                font-size: 10px;
+                font-size: 13px;
             }
 
             .current-status-footer {
@@ -1504,7 +1504,7 @@
             }
 
             .timeline-time-labels span {
-                font-size: 9px;
+                font-size: 12px;
             }
 
             .timeline-period {
@@ -1979,12 +1979,12 @@
         // 時間帯の区切り（分単位に変換して比較用）- サマリー用
         const TIME_SLOTS = [
             { label: '18:30', hour: 18, minute: 30, prevDay: true },
+            { label: '22:00', hour: 22, minute: 0, prevDay: true },
             { label: '02:00', hour: 2, minute: 0, prevDay: false },
             { label: '07:00', hour: 7, minute: 0, prevDay: false },
             { label: '10:00', hour: 10, minute: 0, prevDay: false },
             { label: '14:00', hour: 14, minute: 0, prevDay: false },
-            { label: '16:00', hour: 16, minute: 0, prevDay: false },
-            { label: '18:00', hour: 18, minute: 0, prevDay: false }
+            { label: '16:00', hour: 16, minute: 0, prevDay: false }
         ];
 
         // 10分刻みの詳細時間帯（折れ線グラフ用）
