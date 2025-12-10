@@ -457,17 +457,33 @@
 
         /* タイムライン（四角いセルバー） */
         .timeline-block {
-            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding: 8px 10px;
+            border-radius: 8px;
         }
 
-        .timeline-header {
-            margin-bottom: 4px;
+        .timeline-block.am {
+            background: linear-gradient(135deg, #fff9f0, #fff3e0);
+        }
+
+        .timeline-block.pm {
+            background: linear-gradient(135deg, #f0f7ff, #e3f2fd);
         }
 
         .timeline-period {
-            font-size: 12px;
-            font-weight: 600;
-            color: #666;
+            font-size: 11px;
+            font-weight: 700;
+            color: #555;
+            min-width: 28px;
+            flex-shrink: 0;
+        }
+
+        .timeline-content {
+            flex: 1;
+            min-width: 0;
         }
 
         .timeline-bar {
@@ -510,7 +526,7 @@
         .timeline-time-labels {
             display: flex;
             justify-content: space-between;
-            margin-top: 4px;
+            margin-top: 3px;
             padding: 0;
         }
 
@@ -927,7 +943,13 @@
             }
 
             .timeline-block {
-                margin-bottom: 10px;
+                padding: 6px 8px;
+                margin-bottom: 6px;
+            }
+
+            .timeline-period {
+                font-size: 10px;
+                min-width: 24px;
             }
 
             .timeline-cell {
@@ -1172,15 +1194,14 @@
             }
 
             .timeline-block {
-                margin-bottom: 8px;
-            }
-
-            .timeline-header {
-                margin-bottom: 3px;
+                padding: 5px 6px;
+                margin-bottom: 5px;
+                gap: 6px;
             }
 
             .timeline-period {
-                font-size: 11px;
+                font-size: 10px;
+                min-width: 22px;
             }
 
             .timeline-cell {
@@ -1188,7 +1209,7 @@
             }
 
             .timeline-time-labels {
-                margin-top: 3px;
+                margin-top: 2px;
             }
 
             .timeline-time-labels span {
@@ -1533,16 +1554,22 @@
             }
 
             /* タイムライン - 超小型スマホ最適化 */
+            .timeline-block {
+                padding: 4px 5px;
+                gap: 4px;
+            }
+
             .timeline-cell {
                 height: 14px;
             }
 
             .timeline-time-labels span {
-                font-size: 12px;
+                font-size: 11px;
             }
 
             .timeline-period {
-                font-size: 10px;
+                font-size: 9px;
+                min-width: 20px;
             }
 
             .legend-cell {
@@ -1648,27 +1675,27 @@
                         </div>
                     </div>
                     <!-- 午前タイムライン -->
-                    <div class="timeline-block">
-                        <div class="timeline-header">
-                            <span class="timeline-period">午前</span>
-                        </div>
-                        <div class="timeline-bar" id="timelineAmGeneral">
-                            <!-- JSで動的に生成 -->
-                        </div>
-                        <div class="timeline-time-labels">
-                            <span>10</span><span>11</span><span>12</span><span>13</span>
+                    <div class="timeline-block am">
+                        <span class="timeline-period">午前</span>
+                        <div class="timeline-content">
+                            <div class="timeline-bar" id="timelineAmGeneral">
+                                <!-- JSで動的に生成 -->
+                            </div>
+                            <div class="timeline-time-labels">
+                                <span>10</span><span>11</span><span>12</span><span>13</span>
+                            </div>
                         </div>
                     </div>
                     <!-- 午後タイムライン -->
-                    <div class="timeline-block">
-                        <div class="timeline-header">
-                            <span class="timeline-period">午後</span>
-                        </div>
-                        <div class="timeline-bar" id="timelinePmGeneral">
-                            <!-- JSで動的に生成 -->
-                        </div>
-                        <div class="timeline-time-labels">
-                            <span>15</span><span>16</span><span>17</span><span>18</span>
+                    <div class="timeline-block pm">
+                        <span class="timeline-period">午後</span>
+                        <div class="timeline-content">
+                            <div class="timeline-bar" id="timelinePmGeneral">
+                                <!-- JSで動的に生成 -->
+                            </div>
+                            <div class="timeline-time-labels">
+                                <span>15</span><span>16</span><span>17</span><span>18</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1686,27 +1713,27 @@
                         </div>
                     </div>
                     <!-- 午前タイムライン -->
-                    <div class="timeline-block">
-                        <div class="timeline-header">
-                            <span class="timeline-period">午前</span>
-                        </div>
-                        <div class="timeline-bar" id="timelineAmShiya">
-                            <!-- JSで動的に生成 -->
-                        </div>
-                        <div class="timeline-time-labels">
-                            <span>10</span><span>11</span><span>12</span><span>13</span>
+                    <div class="timeline-block am">
+                        <span class="timeline-period">午前</span>
+                        <div class="timeline-content">
+                            <div class="timeline-bar" id="timelineAmShiya">
+                                <!-- JSで動的に生成 -->
+                            </div>
+                            <div class="timeline-time-labels">
+                                <span>10</span><span>11</span><span>12</span><span>13</span>
+                            </div>
                         </div>
                     </div>
                     <!-- 午後タイムライン -->
-                    <div class="timeline-block">
-                        <div class="timeline-header">
-                            <span class="timeline-period">午後</span>
-                        </div>
-                        <div class="timeline-bar" id="timelinePmShiya">
-                            <!-- JSで動的に生成 -->
-                        </div>
-                        <div class="timeline-time-labels">
-                            <span>15</span><span>16</span><span>17</span><span>18</span>
+                    <div class="timeline-block pm">
+                        <span class="timeline-period">午後</span>
+                        <div class="timeline-content">
+                            <div class="timeline-bar" id="timelinePmShiya">
+                                <!-- JSで動的に生成 -->
+                            </div>
+                            <div class="timeline-time-labels">
+                                <span>15</span><span>16</span><span>17</span><span>18</span>
+                            </div>
                         </div>
                     </div>
                 </div>

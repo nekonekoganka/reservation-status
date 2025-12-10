@@ -217,51 +217,11 @@ function timeToPositionPm(timeStr, endMinutes) {
   return position;
 }
 
-// 午前バーのラベルを更新
-function updateAmLabels(extended) {
-  const labelsElement = document.getElementById('timeline-labels-am');
-  if (!labelsElement) return;
-  if (extended) {
-    labelsElement.innerHTML = `
-      <span class="timeline-label">10</span>
-      <span class="timeline-label">11</span>
-      <span class="timeline-label">12</span>
-      <span class="timeline-label">13</span>
-      <span class="timeline-label">14</span>
-    `;
-  } else {
-    labelsElement.innerHTML = `
-      <span class="timeline-label">10</span>
-      <span class="timeline-label">11</span>
-      <span class="timeline-label">12</span>
-      <span class="timeline-label">13</span>
-    `;
-  }
-}
+// 15分間隔の時間枠定義
+const AM_SLOTS = ['10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30', '11:45', '12:00', '12:15', '12:30', '12:45', '13:00'];
+const PM_SLOTS = ['15:00', '15:15', '15:30', '15:45', '16:00', '16:15', '16:30', '16:45', '17:00', '17:15', '17:30', '17:45', '18:00'];
 
-// 午後バーのラベルを更新
-function updatePmLabels(extended) {
-  const labelsElement = document.getElementById('timeline-labels-pm');
-  if (!labelsElement) return;
-  if (extended) {
-    labelsElement.innerHTML = `
-      <span class="timeline-label">15</span>
-      <span class="timeline-label">16</span>
-      <span class="timeline-label">17</span>
-      <span class="timeline-label">18</span>
-      <span class="timeline-label" style="font-size: 8px;">:30</span>
-    `;
-  } else {
-    labelsElement.innerHTML = `
-      <span class="timeline-label">15</span>
-      <span class="timeline-label">16</span>
-      <span class="timeline-label">17</span>
-      <span class="timeline-label">18</span>
-    `;
-  }
-}
-
-// タイムラインバー（2本：午前/午後）にドットを描画
+// タイムラインバー（セルバー形式：午前/午後）を描画
 function renderTimeline(slots) {
   const timelineSection = document.getElementById('timeline-section');
   const amBarElement = document.getElementById('timeline-bar-am');
@@ -275,41 +235,28 @@ function renderTimeline(slots) {
   }
   timelineSection.style.display = 'block';
 
-  // スロットを午前/午後に分類
-  const { amSlots, pmSlots } = splitSlots(slots);
+  // 既存のセルをクリア
+  amBarElement.innerHTML = '';
+  pmBarElement.innerHTML = '';
 
-  // 午前/午後それぞれの終了時刻を決定
-  const amEndMinutes = getAmEndMinutes(amSlots);
-  const pmEndMinutes = getPmEndMinutes(pmSlots);
-
-  // ラベルを更新
-  updateAmLabels(amEndMinutes > 13 * 60);
-  updatePmLabels(pmEndMinutes > 18 * 60);
-
-  // 既存のドットを削除
-  amBarElement.querySelectorAll('.timeline-dot').forEach(dot => dot.remove());
-  pmBarElement.querySelectorAll('.timeline-dot').forEach(dot => dot.remove());
-
-  // 午前バーにドットを追加
-  amSlots.forEach(slot => {
-    const position = timeToPositionAm(slot, amEndMinutes);
-    if (position === null) return;
-    const dot = document.createElement('div');
-    dot.className = 'timeline-dot';
-    dot.style.left = `${position}%`;
-    dot.title = slot;
-    amBarElement.appendChild(dot);
+  // 午前バーにセルを追加
+  AM_SLOTS.forEach(slot => {
+    const cell = document.createElement('div');
+    cell.className = 'timeline-cell';
+    const isAvailable = slots.includes(slot);
+    cell.classList.add(isAvailable ? 'available' : 'filled');
+    cell.title = slot;
+    amBarElement.appendChild(cell);
   });
 
-  // 午後バーにドットを追加
-  pmSlots.forEach(slot => {
-    const position = timeToPositionPm(slot, pmEndMinutes);
-    if (position === null) return;
-    const dot = document.createElement('div');
-    dot.className = 'timeline-dot';
-    dot.style.left = `${position}%`;
-    dot.title = slot;
-    pmBarElement.appendChild(dot);
+  // 午後バーにセルを追加
+  PM_SLOTS.forEach(slot => {
+    const cell = document.createElement('div');
+    cell.className = 'timeline-cell';
+    const isAvailable = slots.includes(slot);
+    cell.classList.add(isAvailable ? 'available' : 'filled');
+    cell.title = slot;
+    pmBarElement.appendChild(cell);
   });
 }
 
