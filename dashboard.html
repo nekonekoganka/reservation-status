@@ -352,6 +352,172 @@
             font-size: 0.9em;
         }
 
+        /* ============================================
+           現在の空き状況セクション
+           ============================================ */
+        .current-status-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .current-status-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .status-card.general {
+            border-left: 4px solid #CC6600;
+        }
+
+        .status-card.shiya {
+            border-left: 4px solid #006633;
+        }
+
+        .status-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .status-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .status-card-count {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .status-card-count.general {
+            color: #CC6600;
+        }
+
+        .status-card-count.shiya {
+            color: #006633;
+        }
+
+        .status-card-count.full {
+            color: #dc3545;
+        }
+
+        /* タイムライン（丸の数珠繋ぎ） */
+        .timeline-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .timeline-period {
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            min-width: 28px;
+        }
+
+        .timeline-dots {
+            display: flex;
+            gap: 3px;
+            flex: 1;
+        }
+
+        .timeline-dot-item {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid;
+            flex-shrink: 0;
+        }
+
+        /* 一般予約の丸 */
+        .timeline-dot-item.general.available {
+            background: white;
+            border-color: #CC6600;
+        }
+
+        .timeline-dot-item.general.filled {
+            background: #CC6600;
+            border-color: #CC6600;
+        }
+
+        /* 視野予約の丸 */
+        .timeline-dot-item.shiya.available {
+            background: white;
+            border-color: #006633;
+        }
+
+        .timeline-dot-item.shiya.filled {
+            background: #006633;
+            border-color: #006633;
+        }
+
+        .timeline-end-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            min-width: 20px;
+            text-align: right;
+        }
+
+        .current-status-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .timeline-legend {
+            display: flex;
+            gap: 12px;
+        }
+
+        .timeline-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 2px solid #666;
+        }
+
+        .legend-dot.available {
+            background: white;
+        }
+
+        .legend-dot.filled {
+            background: #666;
+        }
+
         /* 予約傾向指標 */
         .metrics-grid {
             display: grid;
@@ -685,6 +851,48 @@
                 padding: 15px;
             }
 
+            /* スマホ版レイアウト順序変更 */
+            .container {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .container > header { order: 1; }
+            .container > .current-status-section { order: 2; }
+            .container > .charts-grid:first-of-type { order: 5; }
+            .container > .charts-grid:nth-of-type(2) { order: 3; }
+            .container > .controls { order: 4; }
+            .container > .charts-row { order: 6; }
+            .container > .chart-card { order: 7; }
+            .container > footer { order: 99; }
+
+            /* 現在の空き状況セクション */
+            .current-status-section {
+                padding: 15px;
+            }
+
+            .current-status-section h3 {
+                font-size: 1em;
+                margin-bottom: 12px;
+            }
+
+            .status-cards {
+                gap: 12px;
+            }
+
+            .status-card {
+                padding: 12px;
+            }
+
+            .timeline-dot-item {
+                width: 12px;
+                height: 12px;
+            }
+
+            .timeline-dots {
+                gap: 2px;
+            }
+
             header h1 {
                 font-size: 1.6em;
             }
@@ -874,7 +1082,7 @@
             }
 
             header {
-                margin-bottom: 20px;
+                margin-bottom: 15px;
             }
 
             header h1 {
@@ -883,6 +1091,79 @@
 
             header p {
                 font-size: 0.9em;
+            }
+
+            /* 現在の空き状況セクション - スマホ最適化 */
+            .current-status-section {
+                padding: 12px;
+                margin-bottom: 15px;
+                border-radius: 12px;
+            }
+
+            .current-status-section h3 {
+                font-size: 0.95em;
+                margin-bottom: 10px;
+            }
+
+            .status-cards {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .status-card {
+                padding: 10px;
+            }
+
+            .status-card-header {
+                margin-bottom: 8px;
+            }
+
+            .status-card-title {
+                font-size: 13px;
+            }
+
+            .status-card-count {
+                font-size: 18px;
+            }
+
+            .timeline-row {
+                gap: 4px;
+                margin-bottom: 6px;
+            }
+
+            .timeline-period {
+                font-size: 10px;
+                min-width: 24px;
+            }
+
+            .timeline-dot-item {
+                width: 10px;
+                height: 10px;
+                border-width: 1.5px;
+            }
+
+            .timeline-dots {
+                gap: 2px;
+            }
+
+            .timeline-end-label {
+                font-size: 10px;
+                min-width: 16px;
+            }
+
+            .current-status-footer {
+                margin-top: 10px;
+                padding-top: 10px;
+                font-size: 11px;
+            }
+
+            .timeline-legend {
+                gap: 8px;
+            }
+
+            .legend-dot {
+                width: 8px;
+                height: 8px;
             }
 
             /* コントロールパネル */
@@ -1288,6 +1569,73 @@
 
         <div class="error-message" id="errorMessage"></div>
 
+        <!-- 現在の空き状況セクション -->
+        <div class="current-status-section" id="currentStatusSection">
+            <h3>🔴 現在の空き状況</h3>
+            <div class="status-cards">
+                <!-- 一般予約 -->
+                <div class="status-card general">
+                    <div class="status-card-header">
+                        <span class="status-card-title">一般予約</span>
+                        <span class="status-card-count general" id="currentCountGeneral">--</span>
+                    </div>
+                    <!-- 午前タイムライン -->
+                    <div class="timeline-row">
+                        <span class="timeline-period">午前</span>
+                        <div class="timeline-dots" id="timelineAmGeneral">
+                            <!-- JSで動的に生成 -->
+                        </div>
+                        <span class="timeline-end-label">13</span>
+                    </div>
+                    <!-- 午後タイムライン -->
+                    <div class="timeline-row">
+                        <span class="timeline-period">午後</span>
+                        <div class="timeline-dots" id="timelinePmGeneral">
+                            <!-- JSで動的に生成 -->
+                        </div>
+                        <span class="timeline-end-label">18</span>
+                    </div>
+                </div>
+
+                <!-- 視野予約 -->
+                <div class="status-card shiya">
+                    <div class="status-card-header">
+                        <span class="status-card-title">視野予約</span>
+                        <span class="status-card-count shiya" id="currentCountShiya">--</span>
+                    </div>
+                    <!-- 午前タイムライン -->
+                    <div class="timeline-row">
+                        <span class="timeline-period">午前</span>
+                        <div class="timeline-dots" id="timelineAmShiya">
+                            <!-- JSで動的に生成 -->
+                        </div>
+                        <span class="timeline-end-label">13</span>
+                    </div>
+                    <!-- 午後タイムライン -->
+                    <div class="timeline-row">
+                        <span class="timeline-period">午後</span>
+                        <div class="timeline-dots" id="timelinePmShiya">
+                            <!-- JSで動的に生成 -->
+                        </div>
+                        <span class="timeline-end-label">18</span>
+                    </div>
+                </div>
+            </div>
+            <div class="current-status-footer">
+                <div class="timeline-legend">
+                    <div class="timeline-legend-item">
+                        <div class="legend-dot available"></div>
+                        <span>空き</span>
+                    </div>
+                    <div class="timeline-legend-item">
+                        <div class="legend-dot filled"></div>
+                        <span>埋まり</span>
+                    </div>
+                </div>
+                <span id="currentStatusTime">読み込み中...</span>
+            </div>
+        </div>
+
         <div class="controls">
             <div class="control-group">
                 <label>種別:</label>
@@ -1462,6 +1810,127 @@
         const SHIYA_HISTORY = `${STORAGE_BASE}/history/shiya`;
         const GENERAL_MONTHLY = `${STORAGE_BASE}/monthly-summary/general`;
         const SHIYA_MONTHLY = `${STORAGE_BASE}/monthly-summary/shiya`;
+
+        // 現在の空き状況用URL
+        const TIMESLOTS_URLS = {
+            general: `${STORAGE_BASE}/timeslots.json`,
+            shiya: `${STORAGE_BASE}/timeslots-shiya.json`
+        };
+
+        // 15分刻みの時間帯定義（午前10:00-13:00、午後15:00-18:00）
+        const AM_SLOTS = ['10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30', '11:45', '12:00', '12:15', '12:30', '12:45', '13:00'];
+        const PM_SLOTS = ['15:00', '15:15', '15:30', '15:45', '16:00', '16:15', '16:30', '16:45', '17:00', '17:15', '17:30', '17:45', '18:00'];
+
+        /**
+         * 現在の空き状況を取得してタイムラインを描画
+         */
+        async function loadCurrentStatus() {
+            try {
+                // 一般予約と視野予約を並列で取得
+                const [generalData, shiyaData] = await Promise.all([
+                    fetchCurrentSlots(TIMESLOTS_URLS.general),
+                    fetchCurrentSlots(TIMESLOTS_URLS.shiya)
+                ]);
+
+                // 一般予約の表示更新
+                if (generalData) {
+                    updateCurrentStatusCard('general', generalData);
+                } else {
+                    setStatusError('general');
+                }
+
+                // 視野予約の表示更新
+                if (shiyaData) {
+                    updateCurrentStatusCard('shiya', shiyaData);
+                } else {
+                    setStatusError('shiya');
+                }
+
+                // 更新時刻を表示
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+                document.getElementById('currentStatusTime').textContent = `最終更新: ${timeStr}`;
+
+            } catch (error) {
+                console.error('現在の空き状況の取得に失敗:', error);
+            }
+        }
+
+        /**
+         * Cloud Storageから現在の空き枠データを取得
+         */
+        async function fetchCurrentSlots(url) {
+            try {
+                const response = await fetch(url + '?t=' + Date.now());
+                if (!response.ok) return null;
+                return await response.json();
+            } catch (e) {
+                return null;
+            }
+        }
+
+        /**
+         * 現在の空き状況カードを更新
+         */
+        function updateCurrentStatusCard(type, data) {
+            const slots = data.slots || [];
+            const count = slots.length;
+
+            // 枠数を更新
+            const countElement = document.getElementById(`currentCount${type === 'general' ? 'General' : 'Shiya'}`);
+            if (count > 0) {
+                countElement.textContent = `残り${count}枠`;
+                countElement.classList.remove('full');
+            } else {
+                countElement.textContent = '満枠';
+                countElement.classList.add('full');
+            }
+
+            // タイムラインを描画
+            renderDotTimeline(type, 'Am', AM_SLOTS, slots);
+            renderDotTimeline(type, 'Pm', PM_SLOTS, slots);
+        }
+
+        /**
+         * 丸の数珠繋ぎタイムラインを描画
+         */
+        function renderDotTimeline(type, period, allSlots, availableSlots) {
+            const containerId = `timeline${period}${type === 'general' ? 'General' : 'Shiya'}`;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            // 既存の内容をクリア
+            container.innerHTML = '';
+
+            // 各時間帯に対してドットを生成
+            allSlots.forEach(slot => {
+                const dot = document.createElement('div');
+                dot.className = `timeline-dot-item ${type}`;
+
+                // 空き枠に含まれているかチェック
+                const isAvailable = availableSlots.includes(slot);
+                dot.classList.add(isAvailable ? 'available' : 'filled');
+                dot.title = slot + (isAvailable ? ' (空き)' : ' (埋まり)');
+
+                container.appendChild(dot);
+            });
+        }
+
+        /**
+         * エラー時の表示
+         */
+        function setStatusError(type) {
+            const countElement = document.getElementById(`currentCount${type === 'general' ? 'General' : 'Shiya'}`);
+            countElement.textContent = 'エラー';
+            countElement.classList.add('full');
+
+            // タイムラインをクリア
+            ['Am', 'Pm'].forEach(period => {
+                const containerId = `timeline${period}${type === 'general' ? 'General' : 'Shiya'}`;
+                const container = document.getElementById(containerId);
+                if (container) container.innerHTML = '<span style="font-size: 11px; color: #999;">データ取得エラー</span>';
+            });
+        }
 
         // 時間帯の区切り（分単位に変換して比較用）- サマリー用
         const TIME_SLOTS = [
@@ -1692,6 +2161,9 @@
                     btn.classList.add('active');
                 });
             });
+
+            // 現在の空き状況を読み込み
+            loadCurrentStatus();
 
             // 初回データ読み込み
             loadData();
