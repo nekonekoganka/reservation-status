@@ -394,9 +394,25 @@
 
         .status-card-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 12px;
             margin-bottom: 10px;
+        }
+
+        .status-icon-wrapper {
+            flex-shrink: 0;
+        }
+
+        .status-icon-wrapper canvas {
+            display: block;
+            width: 48px;
+            height: 48px;
+        }
+
+        .status-card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
 
         .status-card-title {
@@ -420,6 +436,23 @@
 
         .status-card-count.full {
             color: #dc3545;
+        }
+
+        .status-text {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-text.available {
+            color: #28a745;
+        }
+
+        .status-text.full {
+            color: #dc3545;
+        }
+
+        .status-text.error {
+            color: #FFA500;
         }
 
         /* タイムライン（四角いセルバー） */
@@ -864,15 +897,16 @@
                 flex-direction: column;
             }
 
-            .container > .weekly-progress-chart { order: 1; }
             .container > header { order: 2; }
             .container > .current-status-section { order: 3; }
             .container > .controls { order: 4; }
-            .container > .daily-progress-chart { order: 5; }
             .container > .charts-row { order: 6; }
             .container > .charts-grid { order: 7; }
             .container > .chart-card { order: 8; }
             .container > footer { order: 99; }
+            /* 特定グラフの順序（より後に記述して優先） */
+            .container > .weekly-progress-chart { order: 1; }
+            .container > .daily-progress-chart { order: 5; }
 
             /* 現在の空き状況セクション */
             .current-status-section {
@@ -1604,8 +1638,14 @@
                 <!-- 一般予約 -->
                 <div class="status-card general">
                     <div class="status-card-header">
-                        <span class="status-card-title">一般予約</span>
-                        <span class="status-card-count general" id="currentCountGeneral">--</span>
+                        <div class="status-icon-wrapper">
+                            <canvas id="iconCanvasGeneral" width="64" height="64"></canvas>
+                        </div>
+                        <div class="status-card-info">
+                            <span class="status-card-title">一般予約</span>
+                            <span class="status-card-count general" id="currentCountGeneral">--</span>
+                            <span class="status-text" id="statusTextGeneral">読み込み中...</span>
+                        </div>
                     </div>
                     <!-- 午前タイムライン -->
                     <div class="timeline-block">
@@ -1636,8 +1676,14 @@
                 <!-- 視野予約 -->
                 <div class="status-card shiya">
                     <div class="status-card-header">
-                        <span class="status-card-title">視野予約</span>
-                        <span class="status-card-count shiya" id="currentCountShiya">--</span>
+                        <div class="status-icon-wrapper">
+                            <canvas id="iconCanvasShiya" width="64" height="64"></canvas>
+                        </div>
+                        <div class="status-card-info">
+                            <span class="status-card-title">視野予約</span>
+                            <span class="status-card-count shiya" id="currentCountShiya">--</span>
+                            <span class="status-text" id="statusTextShiya">読み込み中...</span>
+                        </div>
                     </div>
                     <!-- 午前タイムライン -->
                     <div class="timeline-block">
@@ -1914,20 +1960,139 @@
         }
 
         /**
+         * アイコンを描画（予約状況チェッカーと同様）
+         */
+        function drawStatusIcon(canvasId, slotsCount, status, themeColor, text) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const size = canvas.width;
+            const borderRadius = size * 0.15;
+            const cellSize = size / 2;
+
+            ctx.clearRect(0, 0, size, size);
+
+            if (slotsCount > 0) {
+                // 空きありの場合: 数字を大きく表示
+                ctx.fillStyle = themeColor;
+                ctx.beginPath();
+                ctx.moveTo(borderRadius, 0);
+                ctx.lineTo(size - borderRadius, 0);
+                ctx.arcTo(size, 0, size, borderRadius, borderRadius);
+                ctx.lineTo(size, size - borderRadius);
+                ctx.arcTo(size, size, size - borderRadius, size, borderRadius);
+                ctx.lineTo(borderRadius, size);
+                ctx.arcTo(0, size, 0, size - borderRadius, borderRadius);
+                ctx.lineTo(0, borderRadius);
+                ctx.arcTo(0, 0, borderRadius, 0, borderRadius);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = 'white';
+                ctx.font = `bold ${size * 0.5}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(slotsCount.toString(), size / 2, size / 2);
+            } else {
+                // 満枠またはエラーの場合
+                let bgColor = status === 'error' ? '#FFA500' : '#dc3545';
+
+                // 左上3マス
+                ctx.fillStyle = bgColor;
+                ctx.beginPath();
+                ctx.moveTo(borderRadius, 0);
+                ctx.lineTo(cellSize, 0);
+                ctx.lineTo(cellSize, cellSize);
+                ctx.lineTo(0, cellSize);
+                ctx.lineTo(0, borderRadius);
+                ctx.arcTo(0, 0, borderRadius, 0, borderRadius);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(cellSize, 0);
+                ctx.lineTo(size - borderRadius, 0);
+                ctx.arcTo(size, 0, size, borderRadius, borderRadius);
+                ctx.lineTo(size, cellSize);
+                ctx.lineTo(cellSize, cellSize);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(0, cellSize);
+                ctx.lineTo(cellSize, cellSize);
+                ctx.lineTo(cellSize, size);
+                ctx.lineTo(borderRadius, size);
+                ctx.arcTo(0, size, 0, size - borderRadius, borderRadius);
+                ctx.lineTo(0, cellSize);
+                ctx.closePath();
+                ctx.fill();
+
+                // 右下1マス（テーマカラー）
+                ctx.fillStyle = themeColor;
+                ctx.beginPath();
+                ctx.moveTo(cellSize, cellSize);
+                ctx.lineTo(size, cellSize);
+                ctx.lineTo(size, size - borderRadius);
+                ctx.arcTo(size, size, size - borderRadius, size, borderRadius);
+                ctx.lineTo(cellSize, size);
+                ctx.lineTo(cellSize, cellSize);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = 'white';
+                ctx.font = `bold ${cellSize * 0.7}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(text, cellSize + cellSize / 2, cellSize + cellSize / 2);
+
+                if (status === 'error') {
+                    ctx.fillStyle = 'white';
+                    ctx.font = `bold ${size * 0.6}px sans-serif`;
+                    ctx.fillText('⚠', size / 2, size / 2);
+                } else {
+                    // 満枠：バツマーク
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = size * 0.12;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(size * 0.3, size * 0.3);
+                    ctx.lineTo(size * 0.7, size * 0.7);
+                    ctx.moveTo(size * 0.7, size * 0.3);
+                    ctx.lineTo(size * 0.3, size * 0.7);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        /**
          * 現在の空き状況カードを更新
          */
         function updateCurrentStatusCard(type, data) {
             const slots = data.slots || [];
             const count = slots.length;
+            const isGeneral = type === 'general';
+            const suffix = isGeneral ? 'General' : 'Shiya';
+            const themeColor = isGeneral ? '#CC6600' : '#006633';
+            const text = isGeneral ? '一' : '視';
+
+            // アイコンを描画
+            drawStatusIcon(`iconCanvas${suffix}`, count, 'ok', themeColor, text);
 
             // 枠数を更新
-            const countElement = document.getElementById(`currentCount${type === 'general' ? 'General' : 'Shiya'}`);
+            const countElement = document.getElementById(`currentCount${suffix}`);
+            const statusTextElement = document.getElementById(`statusText${suffix}`);
+
             if (count > 0) {
                 countElement.textContent = `残り${count}枠`;
                 countElement.classList.remove('full');
+                statusTextElement.textContent = '○ 空きあり';
+                statusTextElement.className = 'status-text available';
             } else {
                 countElement.textContent = '満枠';
                 countElement.classList.add('full');
+                statusTextElement.textContent = '✕ 満枠';
+                statusTextElement.className = 'status-text full';
             }
 
             // タイムラインを描画
@@ -1964,13 +2129,25 @@
          * エラー時の表示
          */
         function setStatusError(type) {
-            const countElement = document.getElementById(`currentCount${type === 'general' ? 'General' : 'Shiya'}`);
+            const isGeneral = type === 'general';
+            const suffix = isGeneral ? 'General' : 'Shiya';
+            const themeColor = isGeneral ? '#CC6600' : '#006633';
+            const text = isGeneral ? '一' : '視';
+
+            // エラーアイコンを描画
+            drawStatusIcon(`iconCanvas${suffix}`, 0, 'error', themeColor, text);
+
+            const countElement = document.getElementById(`currentCount${suffix}`);
             countElement.textContent = 'エラー';
             countElement.classList.add('full');
 
+            const statusTextElement = document.getElementById(`statusText${suffix}`);
+            statusTextElement.textContent = '⚠ エラー';
+            statusTextElement.className = 'status-text error';
+
             // タイムラインをクリア
             ['Am', 'Pm'].forEach(period => {
-                const containerId = `timeline${period}${type === 'general' ? 'General' : 'Shiya'}`;
+                const containerId = `timeline${period}${suffix}`;
                 const container = document.getElementById(containerId);
                 if (container) container.innerHTML = '<span style="font-size: 11px; color: #999;">データ取得エラー</span>';
             });
