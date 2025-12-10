@@ -423,29 +423,29 @@
         }
 
         /* タイムライン（丸の数珠繋ぎ） */
-        .timeline-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 8px;
+        .timeline-block {
+            margin-bottom: 12px;
+        }
+
+        .timeline-header {
+            margin-bottom: 4px;
         }
 
         .timeline-period {
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
             color: #666;
-            min-width: 28px;
         }
 
         .timeline-dots {
             display: flex;
-            gap: 3px;
-            flex: 1;
+            justify-content: space-between;
+            width: 100%;
         }
 
         .timeline-dot-item {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
             border: 2px solid;
             flex-shrink: 0;
@@ -473,12 +473,19 @@
             border-color: #006633;
         }
 
-        .timeline-end-label {
-            font-size: 11px;
+        .timeline-time-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+            padding: 0 2px;
+        }
+
+        .timeline-time-labels span {
+            font-size: 10px;
             font-weight: 600;
-            color: #666;
-            min-width: 20px;
-            text-align: right;
+            color: #888;
+            width: 20px;
+            text-align: center;
         }
 
         .current-status-footer {
@@ -858,10 +865,10 @@
             }
 
             .container > header { order: 1; }
-            .container > .current-status-section { order: 2; }
-            .container > .charts-grid:first-of-type { order: 5; }
-            .container > .charts-grid:nth-of-type(2) { order: 3; }
+            .container > .charts-grid:nth-of-type(2) { order: 2; }
+            .container > .current-status-section { order: 3; }
             .container > .controls { order: 4; }
+            .container > .charts-grid:first-of-type { order: 5; }
             .container > .charts-row { order: 6; }
             .container > .chart-card { order: 7; }
             .container > footer { order: 99; }
@@ -884,13 +891,17 @@
                 padding: 12px;
             }
 
-            .timeline-dot-item {
-                width: 12px;
-                height: 12px;
+            .timeline-block {
+                margin-bottom: 10px;
             }
 
-            .timeline-dots {
-                gap: 2px;
+            .timeline-dot-item {
+                width: 14px;
+                height: 14px;
+            }
+
+            .timeline-time-labels span {
+                font-size: 9px;
             }
 
             header h1 {
@@ -1126,29 +1137,31 @@
                 font-size: 18px;
             }
 
-            .timeline-row {
-                gap: 4px;
-                margin-bottom: 6px;
+            .timeline-block {
+                margin-bottom: 8px;
+            }
+
+            .timeline-header {
+                margin-bottom: 3px;
             }
 
             .timeline-period {
-                font-size: 10px;
-                min-width: 24px;
+                font-size: 11px;
             }
 
             .timeline-dot-item {
-                width: 10px;
-                height: 10px;
+                width: 12px;
+                height: 12px;
                 border-width: 1.5px;
             }
 
-            .timeline-dots {
-                gap: 2px;
+            .timeline-time-labels {
+                margin-top: 3px;
             }
 
-            .timeline-end-label {
-                font-size: 10px;
-                min-width: 16px;
+            .timeline-time-labels span {
+                font-size: 9px;
+                width: 16px;
             }
 
             .current-status-footer {
@@ -1487,6 +1500,22 @@
                 flex-direction: column;
                 align-items: flex-start;
             }
+
+            /* タイムライン - 超小型スマホ最適化 */
+            .timeline-dot-item {
+                width: 10px;
+                height: 10px;
+                border-width: 1px;
+            }
+
+            .timeline-time-labels span {
+                font-size: 8px;
+                width: 14px;
+            }
+
+            .timeline-period {
+                font-size: 10px;
+            }
         }
 
         /* 詳細分析カード用グリッド */
@@ -1580,20 +1609,28 @@
                         <span class="status-card-count general" id="currentCountGeneral">--</span>
                     </div>
                     <!-- 午前タイムライン -->
-                    <div class="timeline-row">
-                        <span class="timeline-period">午前</span>
+                    <div class="timeline-block">
+                        <div class="timeline-header">
+                            <span class="timeline-period">午前</span>
+                        </div>
                         <div class="timeline-dots" id="timelineAmGeneral">
                             <!-- JSで動的に生成 -->
                         </div>
-                        <span class="timeline-end-label">13</span>
+                        <div class="timeline-time-labels">
+                            <span>10</span><span>11</span><span>12</span><span>13</span>
+                        </div>
                     </div>
                     <!-- 午後タイムライン -->
-                    <div class="timeline-row">
-                        <span class="timeline-period">午後</span>
+                    <div class="timeline-block">
+                        <div class="timeline-header">
+                            <span class="timeline-period">午後</span>
+                        </div>
                         <div class="timeline-dots" id="timelinePmGeneral">
                             <!-- JSで動的に生成 -->
                         </div>
-                        <span class="timeline-end-label">18</span>
+                        <div class="timeline-time-labels">
+                            <span>15</span><span>16</span><span>17</span><span>18</span>
+                        </div>
                     </div>
                 </div>
 
@@ -1604,20 +1641,28 @@
                         <span class="status-card-count shiya" id="currentCountShiya">--</span>
                     </div>
                     <!-- 午前タイムライン -->
-                    <div class="timeline-row">
-                        <span class="timeline-period">午前</span>
+                    <div class="timeline-block">
+                        <div class="timeline-header">
+                            <span class="timeline-period">午前</span>
+                        </div>
                         <div class="timeline-dots" id="timelineAmShiya">
                             <!-- JSで動的に生成 -->
                         </div>
-                        <span class="timeline-end-label">13</span>
+                        <div class="timeline-time-labels">
+                            <span>10</span><span>11</span><span>12</span><span>13</span>
+                        </div>
                     </div>
                     <!-- 午後タイムライン -->
-                    <div class="timeline-row">
-                        <span class="timeline-period">午後</span>
+                    <div class="timeline-block">
+                        <div class="timeline-header">
+                            <span class="timeline-period">午後</span>
+                        </div>
                         <div class="timeline-dots" id="timelinePmShiya">
                             <!-- JSで動的に生成 -->
                         </div>
-                        <span class="timeline-end-label">18</span>
+                        <div class="timeline-time-labels">
+                            <span>15</span><span>16</span><span>17</span><span>18</span>
+                        </div>
                     </div>
                 </div>
             </div>
