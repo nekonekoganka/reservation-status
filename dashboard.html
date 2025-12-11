@@ -36,8 +36,9 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
 
-        header p {
-            font-size: 1.1em;
+        .header-subtitle {
+            font-size: 0.5em;
+            font-weight: normal;
             opacity: 0.9;
         }
 
@@ -964,8 +965,8 @@
                 font-size: 1.6em;
             }
 
-            header p {
-                font-size: 1em;
+            .header-subtitle {
+                font-size: 0.55em;
             }
 
             /* コントロールパネル - 縦並び */
@@ -1156,8 +1157,10 @@
                 font-size: 1.3em;
             }
 
-            header p {
-                font-size: 0.9em;
+            .header-subtitle {
+                display: block;
+                font-size: 0.65em;
+                margin-top: 5px;
             }
 
             /* 現在の空き状況セクション - スマホ最適化 */
@@ -1652,8 +1655,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>📊 予約傾向ダッシュボード</h1>
-            <p>予約の埋まり方パターンを分析</p>
+            <h1>📊 予約傾向ダッシュボード <span class="header-subtitle">- 予約の埋まり方パターンを分析</span></h1>
         </header>
 
         <div class="error-message" id="errorMessage"></div>
