@@ -1925,6 +1925,8 @@
         const STORAGE_BASE = 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari';
         const GENERAL_HISTORY = `${STORAGE_BASE}/history/general`;
         const SHIYA_HISTORY = `${STORAGE_BASE}/history/shiya`;
+        const GENERAL_DAILY_SUMMARY = `${STORAGE_BASE}/daily-summary/general`;
+        const SHIYA_DAILY_SUMMARY = `${STORAGE_BASE}/daily-summary/shiya`;
         const GENERAL_MONTHLY = `${STORAGE_BASE}/monthly-summary/general`;
         const SHIYA_MONTHLY = `${STORAGE_BASE}/monthly-summary/shiya`;
 
@@ -2442,6 +2444,31 @@
 
         async function fetchDateData(baseUrl, dateStr) {
             try {
+                // まず日次サマリーを試す
+                const dailySummaryBase = baseUrl.includes('/history/general')
+                    ? GENERAL_DAILY_SUMMARY
+                    : baseUrl.includes('/history/shiya')
+                        ? SHIYA_DAILY_SUMMARY
+                        : null;
+
+                if (dailySummaryBase) {
+                    const summaryUrl = `${dailySummaryBase}/${dateStr}.json?t=${Date.now()}`;
+                    const summaryResponse = await fetch(summaryUrl);
+                    if (summaryResponse.ok) {
+                        const summaryData = await summaryResponse.json();
+                        // 日次サマリーのdataPointsを履歴データ形式に変換
+                        if (summaryData.dataPoints && Array.isArray(summaryData.dataPoints)) {
+                            return summaryData.dataPoints.map(entry => ({
+                                time: entry.time,
+                                count: entry.count,
+                                status: 'summary',
+                                date: dateStr
+                            }));
+                        }
+                    }
+                }
+
+                // 日次サマリーがなければ履歴データを使用
                 const url = `${baseUrl}/${dateStr}.json?t=${Date.now()}`;
                 const response = await fetch(url);
                 if (!response.ok) {
