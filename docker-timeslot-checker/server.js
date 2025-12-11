@@ -659,6 +659,274 @@ app.get('/test', async (req, res) => {
 });
 
 /**
+ * 日次サマリーを生成するエンドポイント
+ * 毎分の履歴データを10分刻みに間引いて軽量化
+ * Cloud Schedulerから毎日深夜に呼び出すことを想定
+ *
+ * クエリパラメータ:
+ *   - date: 対象日（YYYY-MM-DD形式）。省略時は前日
+ */
+app.get('/generate-daily-summary', async (req, res) => {
+  console.log('=== 日次サマリー生成開始 ===');
+
+  try {
+    const japanTime = getJapanTime();
+
+    // 対象日を決定（指定がなければ前日）
+    let targetDateStr;
+    if (req.query.date) {
+      targetDateStr = req.query.date;
+    } else {
+      // 前日を計算
+      const yesterday = new Date(japanTime.year, japanTime.month - 1, japanTime.date - 1);
+      targetDateStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+    }
+
+    console.log(`対象日: ${targetDateStr}`);
+
+    // 履歴データを読み込み
+    const historyFileName = `${HISTORY_PREFIX}/${targetDateStr}.json`;
+    const historyFile = bucket.file(historyFileName);
+
+    const [exists] = await historyFile.exists();
+    if (!exists) {
+      console.log(`履歴データが存在しません: ${historyFileName}`);
+      return res.status(404).json({
+        success: false,
+        message: `履歴データが存在しません: ${targetDateStr}`
+      });
+    }
+
+    const [content] = await historyFile.download();
+    const historyData = JSON.parse(content.toString());
+
+    console.log(`履歴データ: ${historyData.length}件`);
+
+    // 10分刻みのタイムスロットを生成（18:30〜翌18:00）
+    const timeSlots = [];
+    // 18:30〜23:50
+    for (let h = 18; h <= 23; h++) {
+      for (let m = (h === 18 ? 30 : 0); m < 60; m += 10) {
+        timeSlots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+      }
+    }
+    // 00:00〜18:00
+    for (let h = 0; h <= 18; h++) {
+      for (let m = 0; m < 60; m += 10) {
+        timeSlots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+        if (h === 18 && m === 0) break; // 18:00まで
+      }
+    }
+
+    // 各タイムスロットに最も近いデータを取得
+    const dataPoints = [];
+    timeSlots.forEach(slot => {
+      const [slotH, slotM] = slot.split(':').map(Number);
+      const slotMinutes = slotH * 60 + slotM;
+
+      // 最も近いエントリを探す
+      let closestEntry = null;
+      let minDiff = Infinity;
+
+      historyData.forEach(entry => {
+        const [entryH, entryM] = entry.time.split(':').map(Number);
+        const entryMinutes = entryH * 60 + entryM;
+
+        // 時間差を計算（日をまたぐ場合を考慮）
+        let diff = Math.abs(entryMinutes - slotMinutes);
+        if (diff > 720) {
+          diff = 1440 - diff; // 日をまたぐ場合
+        }
+
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestEntry = entry;
+        }
+      });
+
+      // 5分以内のデータがあれば採用
+      if (closestEntry && minDiff <= 5) {
+        dataPoints.push({
+          time: slot,
+          count: closestEntry.count
+        });
+      }
+    });
+
+    console.log(`生成されたデータポイント: ${dataPoints.length}件`);
+
+    // 日次サマリーを作成
+    const summaryData = {
+      date: targetDateStr,
+      type: 'general',
+      generatedAt: new Date().toISOString(),
+      dataPoints: dataPoints
+    };
+
+    // Cloud Storageに保存
+    const summaryFileName = `daily-summary/general/${targetDateStr}.json`;
+    const summaryFile = bucket.file(summaryFileName);
+
+    await summaryFile.save(JSON.stringify(summaryData, null, 2), {
+      contentType: 'application/json',
+      metadata: {
+        cacheControl: 'public, max-age=86400', // 24時間キャッシュ
+      },
+    });
+
+    await summaryFile.makePublic();
+
+    console.log(`日次サマリーを保存しました: gs://${BUCKET_NAME}/${summaryFileName}`);
+    console.log('=== 日次サマリー生成完了 ===');
+
+    res.status(200).json({
+      success: true,
+      message: '日次サマリーを生成しました',
+      date: targetDateStr,
+      originalDataPoints: historyData.length,
+      summaryDataPoints: dataPoints.length,
+      publicUrl: `https://storage.googleapis.com/${BUCKET_NAME}/${summaryFileName}`
+    });
+
+  } catch (error) {
+    console.error('日次サマリー生成エラー:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * 過去の全日次サマリーを一括生成するエンドポイント（初回セットアップ用）
+ * クエリパラメータ:
+ *   - days: 遡る日数（デフォルト: 365）
+ */
+app.get('/generate-all-daily-summaries', async (req, res) => {
+  console.log('=== 全日次サマリー一括生成開始 ===');
+
+  try {
+    const japanTime = getJapanTime();
+    const daysToGenerate = parseInt(req.query.days) || 365;
+    const results = [];
+
+    for (let i = 1; i <= daysToGenerate; i++) {
+      const targetDate = new Date(japanTime.year, japanTime.month - 1, japanTime.date - i);
+      const targetDateStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${String(targetDate.getDate()).padStart(2, '0')}`;
+
+      try {
+        // 履歴データを読み込み
+        const historyFileName = `${HISTORY_PREFIX}/${targetDateStr}.json`;
+        const historyFile = bucket.file(historyFileName);
+
+        const [exists] = await historyFile.exists();
+        if (!exists) {
+          results.push({ date: targetDateStr, success: true, message: 'データなし' });
+          continue;
+        }
+
+        const [content] = await historyFile.download();
+        const historyData = JSON.parse(content.toString());
+
+        // 10分刻みのタイムスロットを生成（18:30〜翌18:00）
+        const timeSlots = [];
+        for (let h = 18; h <= 23; h++) {
+          for (let m = (h === 18 ? 30 : 0); m < 60; m += 10) {
+            timeSlots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+          }
+        }
+        for (let h = 0; h <= 18; h++) {
+          for (let m = 0; m < 60; m += 10) {
+            timeSlots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+            if (h === 18 && m === 0) break;
+          }
+        }
+
+        // 各タイムスロットに最も近いデータを取得
+        const dataPoints = [];
+        timeSlots.forEach(slot => {
+          const [slotH, slotM] = slot.split(':').map(Number);
+          const slotMinutes = slotH * 60 + slotM;
+
+          let closestEntry = null;
+          let minDiff = Infinity;
+
+          historyData.forEach(entry => {
+            const [entryH, entryM] = entry.time.split(':').map(Number);
+            const entryMinutes = entryH * 60 + entryM;
+
+            let diff = Math.abs(entryMinutes - slotMinutes);
+            if (diff > 720) {
+              diff = 1440 - diff;
+            }
+
+            if (diff < minDiff) {
+              minDiff = diff;
+              closestEntry = entry;
+            }
+          });
+
+          if (closestEntry && minDiff <= 5) {
+            dataPoints.push({
+              time: slot,
+              count: closestEntry.count
+            });
+          }
+        });
+
+        // 日次サマリーを作成
+        const summaryData = {
+          date: targetDateStr,
+          type: 'general',
+          generatedAt: new Date().toISOString(),
+          dataPoints: dataPoints
+        };
+
+        // Cloud Storageに保存
+        const summaryFileName = `daily-summary/general/${targetDateStr}.json`;
+        const summaryFile = bucket.file(summaryFileName);
+
+        await summaryFile.save(JSON.stringify(summaryData, null, 2), {
+          contentType: 'application/json',
+          metadata: {
+            cacheControl: 'public, max-age=86400',
+          },
+        });
+
+        await summaryFile.makePublic();
+
+        results.push({
+          date: targetDateStr,
+          success: true,
+          originalDataPoints: historyData.length,
+          summaryDataPoints: dataPoints.length
+        });
+
+        console.log(`${targetDateStr}: ${historyData.length}件 → ${dataPoints.length}件`);
+
+      } catch (dayError) {
+        results.push({ date: targetDateStr, success: false, error: dayError.message });
+      }
+    }
+
+    console.log('=== 全日次サマリー一括生成完了 ===');
+
+    res.status(200).json({
+      success: true,
+      message: `${daysToGenerate}日分の日次サマリーを生成しました`,
+      results
+    });
+
+  } catch (error) {
+    console.error('一括生成エラー:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
  * 月次集計データを生成するエンドポイント
  * Cloud Schedulerから毎日深夜に呼び出すことを想定
  *
