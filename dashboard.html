@@ -2248,6 +2248,9 @@
 
         // データ格納
         let rawData = [];
+        let cachedGeneralData = [];
+        let cachedShiyaData = [];
+        let cachedDateList = [];
 
         // モバイル判定とレスポンシブ設定
         function isMobile() {
@@ -2402,6 +2405,8 @@
             if (rawData.length > 0) {
                 updateAllCharts();
             }
+            // デバッグ表示も更新
+            updateRawDataDebug();
         }
 
         // 初期化
@@ -2617,8 +2622,11 @@
                     shiyaData = shiyaResults.filter(d => d !== null).flat();
                 }
 
-                // デバッグ用: 取得した生データを表示
-                updateRawDataDebug(generalData, shiyaData, dateList);
+                // デバッグ用: 取得した生データをキャッシュして表示
+                cachedGeneralData = generalData;
+                cachedShiyaData = shiyaData;
+                cachedDateList = dateList;
+                updateRawDataDebug();
 
                 if (generalData.length === 0 && shiyaData.length === 0) {
                     showError('選択期間にデータがありません。Cloud Runがデータを記録し始めるまでお待ちください。');
@@ -2755,22 +2763,23 @@
         }
 
         // デバッグ用: 取得した生データを表示
-        function updateRawDataDebug(generalData, shiyaData, dateList) {
+        function updateRawDataDebug() {
             const container = document.getElementById('rawDataDebugContainer');
             if (!container) return;
+            if (cachedDateList.length === 0) return;
 
             let html = '';
 
             // 取得状況サマリー
             html += `<div style="margin-bottom: 10px; padding: 10px; background: #fff; border-radius: 4px;">`;
             html += `<strong>📊 取得状況</strong><br>`;
-            html += `取得対象日: ${dateList.length}日分 (${dateList[0]} 〜 ${dateList[dateList.length - 1]})<br>`;
-            html += `一般予約データ: <span style="color: ${generalData.length > 0 ? 'green' : 'red'};">${generalData.length}件</span><br>`;
-            html += `視野予約データ: <span style="color: ${shiyaData.length > 0 ? 'green' : 'red'};">${shiyaData.length}件</span>`;
+            html += `取得対象日: ${cachedDateList.length}日分 (${cachedDateList[0]} 〜 ${cachedDateList[cachedDateList.length - 1]})<br>`;
+            html += `一般予約データ: <span style="color: ${cachedGeneralData.length > 0 ? 'green' : 'red'};">${cachedGeneralData.length}件</span><br>`;
+            html += `視野予約データ: <span style="color: ${cachedShiyaData.length > 0 ? 'green' : 'red'};">${cachedShiyaData.length}件</span>`;
             html += `</div>`;
 
-            // 一般予約の直近50件
-            const currentData = currentType === 'general' ? generalData : shiyaData;
+            // 選択中のデータを表示
+            const currentData = currentType === 'general' ? cachedGeneralData : cachedShiyaData;
             const typeName = currentType === 'general' ? '一般予約' : '視野予約';
 
             if (currentData.length > 0) {
