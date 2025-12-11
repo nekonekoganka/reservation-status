@@ -488,9 +488,11 @@
       }
 
       .timeline-bar {
-        height: 2.5vw;
-        min-height: 24px;
-        border-radius: 1.25vw;
+        border-radius: 4px;
+      }
+
+      .timeline-cell {
+        height: max(2.5vw, 24px);
       }
 
       .timeline-dot {
@@ -616,8 +618,8 @@
         width: 27px;
       }
 
-      /* バー高さもドットに合わせて拡大 */
-      .timeline-bar {
+      /* セル高さを拡大 */
+      .timeline-cell {
         height: 28px;
       }
     }
