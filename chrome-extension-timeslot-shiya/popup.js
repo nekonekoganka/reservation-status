@@ -239,22 +239,20 @@ function renderTimeline(slots) {
   const pmBarElement = document.getElementById('timeline-bar-pm');
   if (!amBarElement || !pmBarElement) return;
 
-  // スロットがある場合のみ表示
-  if (!slots || slots.length === 0) {
-    timelineSection.style.display = 'none';
-    return;
-  }
+  // 常に表示（空き枠がなくても全部埋まりとして表示）
   timelineSection.style.display = 'block';
 
   // 既存のセルをクリア
   amBarElement.innerHTML = '';
   pmBarElement.innerHTML = '';
 
+  const availableSlots = slots || [];
+
   // 午前バーにセルを追加（15分刻み固定）
   AM_SLOTS.forEach(slot => {
     const cell = document.createElement('div');
     cell.className = 'timeline-cell';
-    const isAvailable = isSlotAvailable(slot, slots);
+    const isAvailable = isSlotAvailable(slot, availableSlots);
     cell.classList.add(isAvailable ? 'available' : 'filled');
     cell.title = getSlotTooltip(slot, isAvailable);
     amBarElement.appendChild(cell);
@@ -264,7 +262,7 @@ function renderTimeline(slots) {
   PM_SLOTS.forEach(slot => {
     const cell = document.createElement('div');
     cell.className = 'timeline-cell';
-    const isAvailable = isSlotAvailable(slot, slots);
+    const isAvailable = isSlotAvailable(slot, availableSlots);
     cell.classList.add(isAvailable ? 'available' : 'filled');
     cell.title = getSlotTooltip(slot, isAvailable);
     pmBarElement.appendChild(cell);
