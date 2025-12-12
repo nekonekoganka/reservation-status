@@ -252,36 +252,31 @@ function updatePmLabels(extended) {
   }
 }
 
-// 15分刻みの時間帯定義（当院ルール: 13:00と18:00は予約枠なし、代わりに12:55と17:55を使用）
-const AM_SLOTS = ['10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30', '11:45', '12:00', '12:15', '12:30', '12:45', '12:55'];
-const PM_SLOTS = ['15:00', '15:15', '15:30', '15:45', '16:00', '16:15', '16:30', '16:45', '17:00', '17:15', '17:30', '17:45', '17:55'];
+// 15分刻みの時間帯定義（午前10:00-13:00、午後15:00-18:00）
+// 当院ルール: 13:00セルは12:55を、18:00セルは17:55を表示
+const AM_SLOTS = ['10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30', '11:45', '12:00', '12:15', '12:30', '12:45', '13:00'];
+const PM_SLOTS = ['15:00', '15:15', '15:30', '15:45', '16:00', '16:15', '16:30', '16:45', '17:00', '17:15', '17:30', '17:45', '18:00'];
 
-// 時間文字列を分単位に変換（ソート用）
-function timeToMinutes(timeStr) {
-  const [h, m] = timeStr.split(':').map(Number);
-  return h * 60 + m;
+// スロットが空きかどうかをチェック（当院ルール: 13:00は12:55を、18:00は17:55をチェック）
+function isSlotAvailable(slot, availableSlots) {
+  if (slot === '13:00') {
+    return availableSlots.includes('12:55') || availableSlots.includes('13:00');
+  }
+  if (slot === '18:00') {
+    return availableSlots.includes('17:55') || availableSlots.includes('18:00');
+  }
+  return availableSlots.includes(slot);
 }
 
-// ベースの15分刻みスロットと不規則な空き枠をマージ
-function mergeSlots(baseSlots, availableSlots, rangeStart, rangeEnd) {
-  const baseSet = new Set(baseSlots);
-  const merged = [...baseSlots];
-
-  // 空き枠から不規則な時間を抽出して追加
-  availableSlots.forEach(slot => {
-    const minutes = timeToMinutes(slot);
-    // 範囲内で、ベースに含まれていない時間を追加
-    if (minutes >= rangeStart && minutes <= rangeEnd && !baseSet.has(slot)) {
-      merged.push(slot);
-    }
-  });
-
-  // 時間順にソート
-  merged.sort((a, b) => timeToMinutes(a) - timeToMinutes(b));
-  return merged;
+// スロットの表示用ツールチップを取得
+function getSlotTooltip(slot, isAvailable) {
+  let displaySlot = slot;
+  if (slot === '13:00') displaySlot = '12:55';
+  if (slot === '18:00') displaySlot = '17:55';
+  return displaySlot + (isAvailable ? ' (空き)' : ' (埋まり)');
 }
 
-// タイムラインバー（セルバー形式：午前/午後）を描画（動的セル方式）
+// タイムラインバー（セルバー形式：午前/午後）を描画（15分刻み固定）
 function renderTimeline(slots) {
   const timelineSection = document.getElementById('timeline-section');
   const amBarElement = document.getElementById('timeline-bar-am');
@@ -297,28 +292,23 @@ function renderTimeline(slots) {
 
   const availableSlots = slots || [];
 
-  // ベースの15分刻みスロットと不規則な空き枠をマージ
-  // 午前: 10:00-13:00 (600-780分), 午後: 15:00-18:00 (900-1080分)
-  const amSlots = mergeSlots(AM_SLOTS, availableSlots, 600, 780);
-  const pmSlots = mergeSlots(PM_SLOTS, availableSlots, 900, 1080);
-
-  // 午前バーにセルを追加
-  amSlots.forEach(slot => {
+  // 午前バーにセルを追加（15分刻み固定）
+  AM_SLOTS.forEach(slot => {
     const cell = document.createElement('div');
     cell.className = 'timeline-cell';
-    const isAvailable = availableSlots.includes(slot);
+    const isAvailable = isSlotAvailable(slot, availableSlots);
     cell.classList.add(isAvailable ? 'available' : 'filled');
-    cell.title = slot + (isAvailable ? ' (空き)' : ' (埋まり)');
+    cell.title = getSlotTooltip(slot, isAvailable);
     amBarElement.appendChild(cell);
   });
 
-  // 午後バーにセルを追加
-  pmSlots.forEach(slot => {
+  // 午後バーにセルを追加（15分刻み固定）
+  PM_SLOTS.forEach(slot => {
     const cell = document.createElement('div');
     cell.className = 'timeline-cell';
-    const isAvailable = availableSlots.includes(slot);
+    const isAvailable = isSlotAvailable(slot, availableSlots);
     cell.classList.add(isAvailable ? 'available' : 'filled');
-    cell.title = slot + (isAvailable ? ' (空き)' : ' (埋まり)');
+    cell.title = getSlotTooltip(slot, isAvailable);
     pmBarElement.appendChild(cell);
   });
 }
