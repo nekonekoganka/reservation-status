@@ -1943,6 +1943,40 @@
         const PM_SLOTS = ['15:00', '15:15', '15:30', '15:45', '16:00', '16:15', '16:30', '16:45', '17:00', '17:15', '17:30', '17:45', '18:00'];
 
         /**
+         * 時間文字列を分単位に変換（ソート用）
+         */
+        function timeToMinutes(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        /**
+         * ベースの15分刻みスロットと不規則な空き枠をマージ
+         * @param {string[]} baseSlots - ベースの15分刻みスロット
+         * @param {string[]} availableSlots - 実際の空き枠リスト
+         * @param {number} rangeStart - 時間範囲の開始（分）
+         * @param {number} rangeEnd - 時間範囲の終了（分）
+         * @returns {string[]} - マージされソートされたスロットリスト
+         */
+        function mergeSlots(baseSlots, availableSlots, rangeStart, rangeEnd) {
+            const baseSet = new Set(baseSlots);
+            const merged = [...baseSlots];
+
+            // 空き枠から不規則な時間を抽出して追加
+            availableSlots.forEach(slot => {
+                const minutes = timeToMinutes(slot);
+                // 範囲内で、ベースに含まれていない時間を追加
+                if (minutes >= rangeStart && minutes <= rangeEnd && !baseSet.has(slot)) {
+                    merged.push(slot);
+                }
+            });
+
+            // 時間順にソート
+            merged.sort((a, b) => timeToMinutes(a) - timeToMinutes(b));
+            return merged;
+        }
+
+        /**
          * 現在の空き状況を取得してタイムラインを描画
          */
         async function loadCurrentStatus() {
@@ -2132,12 +2166,19 @@
         }
 
         /**
-         * セルバータイムラインを描画
+         * セルバータイムラインを描画（動的セル方式）
          */
-        function renderDotTimeline(type, period, allSlots, availableSlots) {
+        function renderDotTimeline(type, period, baseSlots, availableSlots) {
             const containerId = `timeline${period}${type === 'general' ? 'General' : 'Shiya'}`;
             const container = document.getElementById(containerId);
             if (!container) return;
+
+            // 時間範囲を決定（午前: 10:00-13:00, 午後: 15:00-18:00）
+            const rangeStart = period === 'Am' ? 600 : 900;  // 10:00=600分, 15:00=900分
+            const rangeEnd = period === 'Am' ? 780 : 1080;   // 13:00=780分, 18:00=1080分
+
+            // ベースの15分刻みスロットと不規則な空き枠をマージ
+            const allSlots = mergeSlots(baseSlots, availableSlots, rangeStart, rangeEnd);
 
             // 既存の内容をクリア
             container.innerHTML = '';

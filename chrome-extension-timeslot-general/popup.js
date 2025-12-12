@@ -256,7 +256,32 @@ function updatePmLabels(extended) {
 const AM_SLOTS = ['10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30', '11:45', '12:00', '12:15', '12:30', '12:45', '13:00'];
 const PM_SLOTS = ['15:00', '15:15', '15:30', '15:45', '16:00', '16:15', '16:30', '16:45', '17:00', '17:15', '17:30', '17:45', '18:00'];
 
-// タイムラインバー（セルバー形式：午前/午後）を描画
+// 時間文字列を分単位に変換（ソート用）
+function timeToMinutes(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  return h * 60 + m;
+}
+
+// ベースの15分刻みスロットと不規則な空き枠をマージ
+function mergeSlots(baseSlots, availableSlots, rangeStart, rangeEnd) {
+  const baseSet = new Set(baseSlots);
+  const merged = [...baseSlots];
+
+  // 空き枠から不規則な時間を抽出して追加
+  availableSlots.forEach(slot => {
+    const minutes = timeToMinutes(slot);
+    // 範囲内で、ベースに含まれていない時間を追加
+    if (minutes >= rangeStart && minutes <= rangeEnd && !baseSet.has(slot)) {
+      merged.push(slot);
+    }
+  });
+
+  // 時間順にソート
+  merged.sort((a, b) => timeToMinutes(a) - timeToMinutes(b));
+  return merged;
+}
+
+// タイムラインバー（セルバー形式：午前/午後）を描画（動的セル方式）
 function renderTimeline(slots) {
   const timelineSection = document.getElementById('timeline-section');
   const amBarElement = document.getElementById('timeline-bar-am');
@@ -272,8 +297,13 @@ function renderTimeline(slots) {
 
   const availableSlots = slots || [];
 
+  // ベースの15分刻みスロットと不規則な空き枠をマージ
+  // 午前: 10:00-13:00 (600-780分), 午後: 15:00-18:00 (900-1080分)
+  const amSlots = mergeSlots(AM_SLOTS, availableSlots, 600, 780);
+  const pmSlots = mergeSlots(PM_SLOTS, availableSlots, 900, 1080);
+
   // 午前バーにセルを追加
-  AM_SLOTS.forEach(slot => {
+  amSlots.forEach(slot => {
     const cell = document.createElement('div');
     cell.className = 'timeline-cell';
     const isAvailable = availableSlots.includes(slot);
@@ -283,7 +313,7 @@ function renderTimeline(slots) {
   });
 
   // 午後バーにセルを追加
-  PM_SLOTS.forEach(slot => {
+  pmSlots.forEach(slot => {
     const cell = document.createElement('div');
     cell.className = 'timeline-cell';
     const isAvailable = availableSlots.includes(slot);
