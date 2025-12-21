@@ -612,12 +612,13 @@
                 const settings = loadDebugSettings();
                 const maxSlots = settings.maxSlots;
 
-                // 時間枠を「・」で区切って表示（設定した数まで、それ以上の場合は「…」を追加）
+                // 時間枠を「・」で区切って表示（3枠以下は「のみ」、4枠以上は「ほか」）
                 let timeslotsText;
-                if (data.slots.length > maxSlots) {
-                    timeslotsText = data.slots.slice(0, maxSlots).join('・') + '…';
+                const displaySlots = data.slots.slice(0, maxSlots);
+                if (data.slots.length <= 3) {
+                    timeslotsText = displaySlots.join('・') + ' のみ';
                 } else {
-                    timeslotsText = data.slots.join('・');
+                    timeslotsText = displaySlots.join('・') + ' ほか';
                 }
 
                 container.className = 'display-container available';
