@@ -3177,7 +3177,7 @@
                     return dayData.detailed[slot.label] !== undefined ? dayData.detailed[slot.label] : null;
                 });
 
-                // 最新のデータは太線で目立たせる
+                // 最新のデータは太線で目立たせる、それ以外は非表示をデフォルトに
                 const isLatest = index === sortedDates.length - 1;
                 const colorIndex = Math.min(index, colors.length - 1);
 
@@ -3190,7 +3190,8 @@
                     fill: false,
                     pointRadius: 0,
                     pointHoverRadius: 4,
-                    borderWidth: isLatest ? 3 : 2
+                    borderWidth: isLatest ? 3 : 2,
+                    hidden: !isLatest  // 当日以外は非表示をデフォルトに
                 });
             });
 
