@@ -4102,12 +4102,13 @@
                 container.style.animation = '';
             }
 
-            // 時間枠を「・」で区切って表示（直近3つまで、4つ以上の場合は「…」を追加）
+            // 時間枠を「・」で区切って表示（3枠以下は「のみ」、4枠以上は「ほか」）
             let timeslotsText;
-            if (testState.slots.length > 3) {
-                timeslotsText = testState.slots.slice(0, 3).join('・') + '…';
+            const displaySlots = testState.slots.slice(0, 3);
+            if (testState.slots.length <= 3) {
+                timeslotsText = displaySlots.join('・') + ' のみ';
             } else {
-                timeslotsText = testState.slots.join('・');
+                timeslotsText = displaySlots.join('・') + ' ほか';
             }
 
             container.innerHTML = `
@@ -4291,12 +4292,13 @@
                 container.style.animation = '';
             }
 
-            // 時間枠を「・」で区切って表示（直近3つまで、4つ以上の場合は「…」を追加）
+            // 時間枠を「・」で区切って表示（3枠以下は「のみ」、4枠以上は「ほか」）
             let timeslotsText;
-            if (data.slots.length > 3) {
-                timeslotsText = data.slots.slice(0, 3).join('・') + '…';
+            const displaySlots = data.slots.slice(0, 3);
+            if (data.slots.length <= 3) {
+                timeslotsText = displaySlots.join('・') + ' のみ';
             } else {
-                timeslotsText = data.slots.join('・');
+                timeslotsText = displaySlots.join('・') + ' ほか';
             }
 
             container.innerHTML = `
