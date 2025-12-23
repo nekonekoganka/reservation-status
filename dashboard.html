@@ -2617,8 +2617,17 @@
             }, 5000);
         }
 
+        // 今日の日付を取得（キャッシュ制御用）
+        function isToday(dateStr) {
+            const today = formatDate(new Date());
+            return dateStr === today;
+        }
+
         async function fetchDateData(baseUrl, dateStr) {
             try {
+                // 当日のみキャッシュバイパス、過去はキャッシュ許可
+                const cacheBuster = isToday(dateStr) ? `?t=${Date.now()}` : '';
+
                 // まず日次サマリーを試す
                 const dailySummaryBase = baseUrl.includes('/history/general')
                     ? GENERAL_DAILY_SUMMARY
@@ -2627,7 +2636,7 @@
                         : null;
 
                 if (dailySummaryBase) {
-                    const summaryUrl = `${dailySummaryBase}/${dateStr}.json?t=${Date.now()}`;
+                    const summaryUrl = `${dailySummaryBase}/${dateStr}.json${cacheBuster}`;
                     const summaryResponse = await fetch(summaryUrl);
                     if (summaryResponse.ok) {
                         const summaryData = await summaryResponse.json();
@@ -2644,7 +2653,7 @@
                 }
 
                 // 日次サマリーがなければ履歴データを使用
-                const url = `${baseUrl}/${dateStr}.json?t=${Date.now()}`;
+                const url = `${baseUrl}/${dateStr}.json${cacheBuster}`;
                 const response = await fetch(url);
                 if (!response.ok) {
                     return null;
@@ -2707,7 +2716,7 @@
         async function loadData() {
             const loadBtn = document.getElementById('loadBtn');
             loadBtn.disabled = true;
-            loadBtn.textContent = '読み込み中...';
+            loadBtn.textContent = '当日読み込み中...';
 
             const activePreset = document.querySelector('.preset-btn.active');
             const days = parseInt(activePreset.dataset.days);
@@ -2717,95 +2726,165 @@
             startDate.setDate(startDate.getDate() - days);
 
             try {
-                let generalData = [];
-                let shiyaData = [];
-                let dateList = [];
+                // === PHASE 1: 当日+直近1週間を先に取得して表示 ===
+                const phase1Days = Math.min(days, 7);
+                const phase1StartDate = new Date();
+                phase1StartDate.setDate(phase1StartDate.getDate() - phase1Days);
 
-                // 60日以上の場合は月次サマリーを使用
-                if (days >= 60) {
-                    // 月リストを取得（当月を除く）
-                    const currentMonth = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}`;
-                    const monthList = getMonthList(startDate, endDate).filter(m => m !== currentMonth);
-
-                    // 月次サマリーを取得
-                    const generalMonthlyPromises = monthList.map(m => fetchMonthlySummary(GENERAL_MONTHLY, m));
-                    const shiyaMonthlyPromises = monthList.map(m => fetchMonthlySummary(SHIYA_MONTHLY, m));
-
-                    // 当月の日付リストを生成
-                    const currentMonthStart = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
-                    const dailyStartDate = currentMonthStart > startDate ? currentMonthStart : startDate;
-                    const dailyDateList = [];
-                    const currentDate = new Date(dailyStartDate);
-                    while (currentDate <= endDate) {
-                        dailyDateList.push(formatDate(currentDate));
-                        currentDate.setDate(currentDate.getDate() + 1);
-                    }
-
-                    // 当月の日次データを取得
-                    const generalDailyPromises = dailyDateList.map(d => fetchDateData(GENERAL_HISTORY, d));
-                    const shiyaDailyPromises = dailyDateList.map(d => fetchDateData(SHIYA_HISTORY, d));
-
-                    const [generalMonthlyResults, shiyaMonthlyResults, generalDailyResults, shiyaDailyResults] = await Promise.all([
-                        Promise.all(generalMonthlyPromises),
-                        Promise.all(shiyaMonthlyPromises),
-                        Promise.all(generalDailyPromises),
-                        Promise.all(shiyaDailyPromises)
-                    ]);
-
-                    // 月次データと日次データを結合
-                    generalData = [
-                        ...generalMonthlyResults.filter(d => d !== null).flat(),
-                        ...generalDailyResults.filter(d => d !== null).flat()
-                    ];
-                    shiyaData = [
-                        ...shiyaMonthlyResults.filter(d => d !== null).flat(),
-                        ...shiyaDailyResults.filter(d => d !== null).flat()
-                    ];
-
-                    // 日付リストを生成（デバッグ用）
-                    const tempDate = new Date(startDate);
-                    while (tempDate <= endDate) {
-                        dateList.push(formatDate(tempDate));
-                        tempDate.setDate(tempDate.getDate() + 1);
-                    }
-
-                    console.log(`月次サマリー使用: ${monthList.length}ヶ月 + 日次${dailyDateList.length}日`);
-                } else {
-                    // 従来通り日次データを取得
-                    const currentDate = new Date(startDate);
-                    while (currentDate <= endDate) {
-                        dateList.push(formatDate(currentDate));
-                        currentDate.setDate(currentDate.getDate() + 1);
-                    }
-
-                    const generalPromises = dateList.map(d => fetchDateData(GENERAL_HISTORY, d));
-                    const shiyaPromises = dateList.map(d => fetchDateData(SHIYA_HISTORY, d));
-
-                    const [generalResults, shiyaResults] = await Promise.all([
-                        Promise.all(generalPromises),
-                        Promise.all(shiyaPromises)
-                    ]);
-
-                    generalData = generalResults.filter(d => d !== null).flat();
-                    shiyaData = shiyaResults.filter(d => d !== null).flat();
+                const phase1DateList = [];
+                const tempDate1 = new Date(phase1StartDate);
+                while (tempDate1 <= endDate) {
+                    phase1DateList.push(formatDate(tempDate1));
+                    tempDate1.setDate(tempDate1.getDate() + 1);
                 }
 
-                // デバッグ用: 取得した生データをキャッシュして表示
-                cachedGeneralData = generalData;
-                cachedShiyaData = shiyaData;
-                cachedDateList = dateList;
-                updateRawDataDebug();
+                console.log(`Phase 1: 直近${phase1DateList.length}日を取得中...`);
 
-                if (generalData.length === 0 && shiyaData.length === 0) {
-                    showError('選択期間にデータがありません。Cloud Runがデータを記録し始めるまでお待ちください。');
-                } else {
-                    // データを処理
+                const [phase1GeneralResults, phase1ShiyaResults] = await Promise.all([
+                    Promise.all(phase1DateList.map(d => fetchDateData(GENERAL_HISTORY, d))),
+                    Promise.all(phase1DateList.map(d => fetchDateData(SHIYA_HISTORY, d)))
+                ]);
+
+                let generalData = phase1GeneralResults.filter(d => d !== null).flat();
+                let shiyaData = phase1ShiyaResults.filter(d => d !== null).flat();
+                let dateList = [...phase1DateList];
+
+                // Phase 1のデータで先に表示
+                if (generalData.length > 0 || shiyaData.length > 0) {
+                    cachedGeneralData = generalData;
+                    cachedShiyaData = shiyaData;
+                    cachedDateList = dateList;
+                    updateRawDataDebug();
+
                     processedData = {
                         general: processRawData(generalData),
                         shiya: processRawData(shiyaData)
                     };
                     rawData = currentType === 'general' ? generalData : shiyaData;
                     updateAllCharts();
+                    console.log('Phase 1 完了: グラフを表示しました');
+                }
+
+                // === PHASE 2: 残りの過去データをバックグラウンドで取得 ===
+                if (days > 7) {
+                    loadBtn.textContent = '過去データ読み込み中...';
+
+                    const phase2EndDate = new Date(phase1StartDate);
+                    phase2EndDate.setDate(phase2EndDate.getDate() - 1);
+
+                    // 60日以上の場合は月次サマリーを使用
+                    if (days >= 60) {
+                        const currentMonth = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}`;
+                        const monthList = getMonthList(startDate, phase2EndDate).filter(m => m !== currentMonth);
+
+                        // 月次サマリーを取得
+                        const [generalMonthlyResults, shiyaMonthlyResults] = await Promise.all([
+                            Promise.all(monthList.map(m => fetchMonthlySummary(GENERAL_MONTHLY, m))),
+                            Promise.all(monthList.map(m => fetchMonthlySummary(SHIYA_MONTHLY, m)))
+                        ]);
+
+                        // 月次サマリーに含まれない期間の日次データを取得
+                        const monthlyStartDate = monthList.length > 0
+                            ? new Date(monthList[0] + '-01')
+                            : null;
+
+                        const dailyDateList = [];
+                        if (monthlyStartDate) {
+                            // 月次サマリーより前の日付
+                            const tempDate = new Date(startDate);
+                            while (tempDate < monthlyStartDate) {
+                                dailyDateList.push(formatDate(tempDate));
+                                tempDate.setDate(tempDate.getDate() + 1);
+                            }
+                            // 月次サマリー最終月の残り日付〜phase2EndDate
+                            const lastMonthEnd = new Date(monthList[monthList.length - 1] + '-01');
+                            lastMonthEnd.setMonth(lastMonthEnd.getMonth() + 1);
+                            lastMonthEnd.setDate(0); // 月末
+                            const gapStart = new Date(lastMonthEnd);
+                            gapStart.setDate(gapStart.getDate() + 1);
+                            const gapDate = new Date(gapStart);
+                            while (gapDate <= phase2EndDate) {
+                                dailyDateList.push(formatDate(gapDate));
+                                gapDate.setDate(gapDate.getDate() + 1);
+                            }
+                        } else {
+                            // 月次サマリーがない場合は全日付
+                            const tempDate = new Date(startDate);
+                            while (tempDate <= phase2EndDate) {
+                                dailyDateList.push(formatDate(tempDate));
+                                tempDate.setDate(tempDate.getDate() + 1);
+                            }
+                        }
+
+                        const [generalDailyResults, shiyaDailyResults] = await Promise.all([
+                            Promise.all(dailyDateList.map(d => fetchDateData(GENERAL_HISTORY, d))),
+                            Promise.all(dailyDateList.map(d => fetchDateData(SHIYA_HISTORY, d)))
+                        ]);
+
+                        // データを結合
+                        generalData = [
+                            ...generalMonthlyResults.filter(d => d !== null).flat(),
+                            ...generalDailyResults.filter(d => d !== null).flat(),
+                            ...generalData
+                        ];
+                        shiyaData = [
+                            ...shiyaMonthlyResults.filter(d => d !== null).flat(),
+                            ...shiyaDailyResults.filter(d => d !== null).flat(),
+                            ...shiyaData
+                        ];
+
+                        console.log(`Phase 2 完了: 月次${monthList.length}ヶ月 + 日次${dailyDateList.length}日を追加`);
+                    } else {
+                        // 日次データを取得
+                        const phase2DateList = [];
+                        const tempDate2 = new Date(startDate);
+                        while (tempDate2 <= phase2EndDate) {
+                            phase2DateList.push(formatDate(tempDate2));
+                            tempDate2.setDate(tempDate2.getDate() + 1);
+                        }
+
+                        const [phase2GeneralResults, phase2ShiyaResults] = await Promise.all([
+                            Promise.all(phase2DateList.map(d => fetchDateData(GENERAL_HISTORY, d))),
+                            Promise.all(phase2DateList.map(d => fetchDateData(SHIYA_HISTORY, d)))
+                        ]);
+
+                        generalData = [
+                            ...phase2GeneralResults.filter(d => d !== null).flat(),
+                            ...generalData
+                        ];
+                        shiyaData = [
+                            ...phase2ShiyaResults.filter(d => d !== null).flat(),
+                            ...shiyaData
+                        ];
+                        dateList = [...phase2DateList, ...dateList];
+
+                        console.log(`Phase 2 完了: ${phase2DateList.length}日分を追加`);
+                    }
+
+                    // 全日付リストを再生成
+                    dateList = [];
+                    const tempDateFinal = new Date(startDate);
+                    while (tempDateFinal <= endDate) {
+                        dateList.push(formatDate(tempDateFinal));
+                        tempDateFinal.setDate(tempDateFinal.getDate() + 1);
+                    }
+
+                    // 全データでグラフを更新
+                    cachedGeneralData = generalData;
+                    cachedShiyaData = shiyaData;
+                    cachedDateList = dateList;
+                    updateRawDataDebug();
+
+                    processedData = {
+                        general: processRawData(generalData),
+                        shiya: processRawData(shiyaData)
+                    };
+                    rawData = currentType === 'general' ? generalData : shiyaData;
+                    updateAllCharts();
+                }
+
+                if (generalData.length === 0 && shiyaData.length === 0) {
+                    showError('選択期間にデータがありません。Cloud Runがデータを記録し始めるまでお待ちください。');
                 }
             } catch (e) {
                 showError('データの読み込みに失敗しました: ' + e.message);
