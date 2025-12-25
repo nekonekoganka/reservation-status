@@ -663,6 +663,37 @@
             }
         }
 
+        /* 視野予約用の凡例スタイル */
+        .timeline-legend.shiya .legend-cell.just-now {
+            background: #006633;
+            box-shadow: inset 0 0 0 2px white;
+            animation: pulse-legend-shiya 1.5s ease-in-out infinite;
+        }
+
+        .timeline-legend.shiya .legend-cell.within-1h {
+            background: #006633;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.8);
+        }
+
+        .timeline-legend.shiya .legend-cell.within-2h {
+            background: #339966;
+        }
+
+        .timeline-legend.shiya .legend-cell.before {
+            background: #99CCAA;
+        }
+
+        @keyframes pulse-legend-shiya {
+            0%, 100% {
+                background: #006633;
+                box-shadow: inset 0 0 0 2px white;
+            }
+            50% {
+                background: #228855;
+                box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);
+            }
+        }
+
         /* 空き時間枠リスト */
         .timeslots-container {
             margin-top: 8px;
@@ -1916,7 +1947,7 @@
                 </div>
             </div>
             <div class="current-status-footer">
-                <div class="timeline-legend">
+                <div class="timeline-legend" id="timelineLegend">
                     <div class="timeline-legend-item">
                         <div class="legend-cell available"></div>
                         <span>空き</span>
@@ -2812,6 +2843,16 @@
             }
             // デバッグ表示も更新
             updateRawDataDebug();
+
+            // 凡例の色を切り替え
+            const legend = document.getElementById('timelineLegend');
+            if (legend) {
+                if (type === 'shiya') {
+                    legend.classList.add('shiya');
+                } else {
+                    legend.classList.remove('shiya');
+                }
+            }
         }
 
         // 初期化
