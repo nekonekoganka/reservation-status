@@ -524,6 +524,46 @@
             background: #006633;
         }
 
+        /* 埋まった時刻に応じた色（一般予約） */
+        .timeline-cell.general.filled.just-now {
+            background: #ff4444;
+            animation: pulse-general 1.5s ease-in-out infinite;
+        }
+        .timeline-cell.general.filled.within-1h {
+            background: #ff7744;
+        }
+        .timeline-cell.general.filled.within-2h {
+            background: #ffaa44;
+        }
+        .timeline-cell.general.filled.before {
+            background: #CC6600;
+        }
+
+        /* 埋まった時刻に応じた色（視野予約） */
+        .timeline-cell.shiya.filled.just-now {
+            background: #00aa55;
+            animation: pulse-shiya 1.5s ease-in-out infinite;
+        }
+        .timeline-cell.shiya.filled.within-1h {
+            background: #00885a;
+        }
+        .timeline-cell.shiya.filled.within-2h {
+            background: #007750;
+        }
+        .timeline-cell.shiya.filled.before {
+            background: #006633;
+        }
+
+        /* 点滅アニメーション */
+        @keyframes pulse-general {
+            0%, 100% { background: #ff4444; }
+            50% { background: #ff8888; }
+        }
+        @keyframes pulse-shiya {
+            0%, 100% { background: #00aa55; }
+            50% { background: #44cc88; }
+        }
+
         .timeline-time-labels {
             display: flex;
             justify-content: space-between;
@@ -551,13 +591,15 @@
 
         .timeline-legend {
             display: flex;
-            gap: 12px;
+            flex-wrap: wrap;
+            gap: 8px 12px;
         }
 
         .timeline-legend-item {
             display: flex;
             align-items: center;
             gap: 4px;
+            font-size: 12px;
         }
 
         .legend-cell {
@@ -573,6 +615,28 @@
 
         .legend-cell.filled {
             background: #666;
+        }
+
+        .legend-cell.just-now {
+            background: #ff4444;
+            animation: pulse-legend 1.5s ease-in-out infinite;
+        }
+
+        .legend-cell.within-1h {
+            background: #ff7744;
+        }
+
+        .legend-cell.within-2h {
+            background: #ffaa44;
+        }
+
+        .legend-cell.before {
+            background: #999;
+        }
+
+        @keyframes pulse-legend {
+            0%, 100% { background: #ff4444; }
+            50% { background: #ff8888; }
         }
 
         /* 空き時間枠リスト */
@@ -1834,8 +1898,20 @@
                         <span>空き</span>
                     </div>
                     <div class="timeline-legend-item">
-                        <div class="legend-cell filled"></div>
-                        <span>埋まり</span>
+                        <div class="legend-cell just-now"></div>
+                        <span>直近</span>
+                    </div>
+                    <div class="timeline-legend-item">
+                        <div class="legend-cell within-1h"></div>
+                        <span>1h内</span>
+                    </div>
+                    <div class="timeline-legend-item">
+                        <div class="legend-cell within-2h"></div>
+                        <span>2h内</span>
+                    </div>
+                    <div class="timeline-legend-item">
+                        <div class="legend-cell before"></div>
+                        <span>以前</span>
                     </div>
                 </div>
                 <span id="currentStatusTime">読み込み中...</span>
@@ -2059,11 +2135,21 @@
          */
         async function loadCurrentStatus() {
             try {
-                // 一般予約と視野予約を並列で取得
-                const [generalData, shiyaData] = await Promise.all([
+                // 一般予約と視野予約、および履歴データを並列で取得
+                const [generalData, shiyaData, generalHistory, shiyaHistory] = await Promise.all([
                     fetchCurrentSlots(TIMESLOTS_URLS.general),
-                    fetchCurrentSlots(TIMESLOTS_URLS.shiya)
+                    fetchCurrentSlots(TIMESLOTS_URLS.shiya),
+                    fetchTodayHistory('general'),
+                    fetchTodayHistory('shiya')
                 ]);
+
+                // 履歴データから埋まり時刻を計算
+                if (generalHistory) {
+                    analyzeSlotFillTimes(generalHistory, 'general');
+                }
+                if (shiyaHistory) {
+                    analyzeSlotFillTimes(shiyaHistory, 'shiya');
+                }
 
                 // 一般予約の表示更新
                 if (generalData) {
@@ -2099,6 +2185,114 @@
                 return await response.json();
             } catch (e) {
                 return null;
+            }
+        }
+
+        // 各スロットの埋まった時刻を保持（type -> slot -> filledAt）
+        const slotFillTimes = {
+            general: {},
+            shiya: {}
+        };
+
+        /**
+         * 当日の履歴データを取得
+         */
+        async function fetchTodayHistory(type) {
+            try {
+                const today = formatDate(new Date());
+                const baseUrl = type === 'general' ? GENERAL_HISTORY : SHIYA_HISTORY;
+                const url = `${baseUrl}/${today}.json?t=${Date.now()}`;
+                const response = await fetch(url);
+                if (!response.ok) return null;
+                return await response.json();
+            } catch (e) {
+                return null;
+            }
+        }
+
+        /**
+         * 履歴データから各スロットの「埋まった時刻」を計算
+         * 履歴データ形式: [{ time: "18:30", slots: ["10:00", ...], count: 5 }, ...]
+         */
+        function analyzeSlotFillTimes(historyData, type) {
+            if (!historyData || !Array.isArray(historyData)) return;
+
+            // 時間順にソート
+            const sortedData = [...historyData].sort((a, b) => {
+                const timeA = a.time || '';
+                const timeB = b.time || '';
+                return timeA.localeCompare(timeB);
+            });
+
+            // 全スロットを追跡
+            const allSlots = [...AM_SLOTS, ...PM_SLOTS];
+            const mappedSlots = allSlots.map(slot => {
+                // 13:00 → 12:55, 18:00 → 17:55 のマッピング
+                if (slot === '13:00') return '12:55';
+                if (slot === '18:00') return '17:55';
+                return slot;
+            });
+
+            // 各スロットの状態を追跡
+            let prevSlots = null;
+
+            sortedData.forEach(entry => {
+                const currentSlots = entry.slots || [];
+                const recordTime = entry.time;
+
+                if (prevSlots !== null) {
+                    // 前回存在したが今回消えたスロット = 埋まった
+                    mappedSlots.forEach((mappedSlot, index) => {
+                        const displaySlot = allSlots[index];
+                        const wasAvailable = prevSlots.includes(mappedSlot);
+                        const isNowAvailable = currentSlots.includes(mappedSlot);
+
+                        if (wasAvailable && !isNowAvailable) {
+                            // このスロットが埋まった
+                            slotFillTimes[type][displaySlot] = recordTime;
+                        } else if (!wasAvailable && isNowAvailable) {
+                            // スロットが復活した（キャンセル等）→ 埋まり時刻をクリア
+                            delete slotFillTimes[type][displaySlot];
+                        }
+                    });
+                }
+
+                prevSlots = currentSlots;
+            });
+
+            // 現在埋まっているが記録がないスロット（最初から埋まっていた）は before として扱う
+            // → 特に何もしない（slotFillTimesに記録がないと before 扱いになる）
+
+            console.log(`${type} の埋まり時刻:`, slotFillTimes[type]);
+        }
+
+        /**
+         * 埋まった時刻に基づいてクラス名を取得
+         */
+        function getFilledTimeClass(slot, type) {
+            const filledAt = slotFillTimes[type][slot];
+            if (!filledAt) return 'before'; // 記録なし = 最初から埋まっていた
+
+            const now = new Date();
+            const [filledHour, filledMin] = filledAt.split(':').map(Number);
+            const filledTime = new Date();
+            filledTime.setHours(filledHour, filledMin, 0, 0);
+
+            const diffMinutes = (now - filledTime) / (1000 * 60);
+
+            // 最も最近埋まったスロットを特定
+            const allFilledTimes = Object.values(slotFillTimes[type]);
+            const sortedTimes = allFilledTimes.sort().reverse();
+            const isJustNow = sortedTimes[0] === filledAt;
+
+            if (isJustNow && diffMinutes <= 60) {
+                return 'just-now';
+            } else if (diffMinutes <= 60) {
+                return 'within-1h';
+            } else if (diffMinutes <= 120) {
+                return 'within-2h';
+            } else {
+                return 'before';
             }
         }
 
@@ -2318,7 +2512,26 @@
                 // 空き枠チェック（13:00→12:55、18:00→17:55の変換込み）
                 const isAvailable = isSlotAvailable(slot, availableSlots);
                 cell.classList.add(isAvailable ? 'available' : 'filled');
-                cell.title = getSlotTooltip(slot, isAvailable);
+
+                // 埋まっている場合は、埋まり時刻に応じたクラスを追加
+                if (!isAvailable) {
+                    const timeClass = getFilledTimeClass(slot, type);
+                    cell.classList.add(timeClass);
+
+                    // ツールチップに埋まった時刻を表示
+                    const filledAt = slotFillTimes[type][slot];
+                    let displaySlot = slot;
+                    if (slot === '13:00') displaySlot = '12:55';
+                    if (slot === '18:00') displaySlot = '17:55';
+
+                    if (filledAt) {
+                        cell.title = `${displaySlot} (${filledAt}に埋まり)`;
+                    } else {
+                        cell.title = `${displaySlot} (元から埋まり)`;
+                    }
+                } else {
+                    cell.title = getSlotTooltip(slot, isAvailable);
+                }
 
                 container.appendChild(cell);
             });
