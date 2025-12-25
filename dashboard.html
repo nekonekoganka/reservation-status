@@ -524,60 +524,36 @@
             background: #006633;
         }
 
-        /* 埋まった時刻に応じた色（一般予約 - オレンジ系を維持） */
-        .timeline-cell.general.filled.just-now {
-            background: #CC6600;
-            box-shadow: inset 0 0 0 3px white;
+        /* 埋まった時刻に応じた色（一般予約） */
+        /* 2時間以内: 赤 + 点滅 */
+        .timeline-cell.general.filled.recent {
+            background: #EE3333;
             animation: pulse-general 1.5s ease-in-out infinite;
         }
-        .timeline-cell.general.filled.within-1h {
-            background: #CC6600;
-            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.8);
-        }
-        .timeline-cell.general.filled.within-2h {
-            background: #DD9955;
-        }
+        /* 2時間以上前: 基本色（オレンジ） */
         .timeline-cell.general.filled.before {
-            background: #EECCAA;
+            background: #CC6600;
         }
 
-        /* 埋まった時刻に応じた色（視野予約 - 緑系を維持） */
-        .timeline-cell.shiya.filled.just-now {
-            background: #006633;
-            box-shadow: inset 0 0 0 3px white;
+        /* 埋まった時刻に応じた色（視野予約） */
+        /* 2時間以内: 黄緑 + 点滅 */
+        .timeline-cell.shiya.filled.recent {
+            background: #88CC00;
             animation: pulse-shiya 1.5s ease-in-out infinite;
         }
-        .timeline-cell.shiya.filled.within-1h {
-            background: #006633;
-            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.8);
-        }
-        .timeline-cell.shiya.filled.within-2h {
-            background: #339966;
-        }
+        /* 2時間以上前: 基本色（緑） */
         .timeline-cell.shiya.filled.before {
-            background: #99CCAA;
+            background: #006633;
         }
 
-        /* 点滅アニメーション（基本カラー維持） */
+        /* 点滅アニメーション */
         @keyframes pulse-general {
-            0%, 100% {
-                background: #CC6600;
-                box-shadow: inset 0 0 0 3px white;
-            }
-            50% {
-                background: #DD8833;
-                box-shadow: inset 0 0 0 3px rgba(255,255,255,0.5);
-            }
+            0%, 100% { background: #EE3333; }
+            50% { background: #FF6666; }
         }
         @keyframes pulse-shiya {
-            0%, 100% {
-                background: #006633;
-                box-shadow: inset 0 0 0 3px white;
-            }
-            50% {
-                background: #228855;
-                box-shadow: inset 0 0 0 3px rgba(255,255,255,0.5);
-            }
+            0%, 100% { background: #88CC00; }
+            50% { background: #AADD44; }
         }
 
         .timeline-time-labels {
@@ -633,65 +609,34 @@
             background: #666;
         }
 
-        .legend-cell.just-now {
-            background: #CC6600;
-            box-shadow: inset 0 0 0 2px white;
+        /* 一般予約の凡例（デフォルト） */
+        .legend-cell.recent {
+            background: #EE3333;
             animation: pulse-legend 1.5s ease-in-out infinite;
         }
 
-        .legend-cell.within-1h {
-            background: #CC6600;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.8);
-        }
-
-        .legend-cell.within-2h {
-            background: #DD9955;
-        }
-
         .legend-cell.before {
-            background: #EECCAA;
+            background: #CC6600;
         }
 
         @keyframes pulse-legend {
-            0%, 100% {
-                background: #CC6600;
-                box-shadow: inset 0 0 0 2px white;
-            }
-            50% {
-                background: #DD8833;
-                box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);
-            }
+            0%, 100% { background: #EE3333; }
+            50% { background: #FF6666; }
         }
 
         /* 視野予約用の凡例スタイル */
-        .timeline-legend.shiya .legend-cell.just-now {
-            background: #006633;
-            box-shadow: inset 0 0 0 2px white;
+        .timeline-legend.shiya .legend-cell.recent {
+            background: #88CC00;
             animation: pulse-legend-shiya 1.5s ease-in-out infinite;
         }
 
-        .timeline-legend.shiya .legend-cell.within-1h {
-            background: #006633;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.8);
-        }
-
-        .timeline-legend.shiya .legend-cell.within-2h {
-            background: #339966;
-        }
-
         .timeline-legend.shiya .legend-cell.before {
-            background: #99CCAA;
+            background: #006633;
         }
 
         @keyframes pulse-legend-shiya {
-            0%, 100% {
-                background: #006633;
-                box-shadow: inset 0 0 0 2px white;
-            }
-            50% {
-                background: #228855;
-                box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);
-            }
+            0%, 100% { background: #88CC00; }
+            50% { background: #AADD44; }
         }
 
         /* 空き時間枠リスト */
@@ -1953,16 +1898,8 @@
                         <span>空き</span>
                     </div>
                     <div class="timeline-legend-item">
-                        <div class="legend-cell just-now"></div>
-                        <span>直近</span>
-                    </div>
-                    <div class="timeline-legend-item">
-                        <div class="legend-cell within-1h"></div>
-                        <span>1h内</span>
-                    </div>
-                    <div class="timeline-legend-item">
-                        <div class="legend-cell within-2h"></div>
-                        <span>2h内</span>
+                        <div class="legend-cell recent"></div>
+                        <span>2h以内</span>
                     </div>
                     <div class="timeline-legend-item">
                         <div class="legend-cell before"></div>
@@ -2323,6 +2260,7 @@
 
         /**
          * 埋まった時刻に基づいてクラス名を取得
+         * 2時間以内: recent（点滅）、2時間以上前: before
          */
         function getFilledTimeClass(slot, type) {
             const filledAt = slotFillTimes[type][slot];
@@ -2335,17 +2273,9 @@
 
             const diffMinutes = (now - filledTime) / (1000 * 60);
 
-            // 最も最近埋まったスロットを特定
-            const allFilledTimes = Object.values(slotFillTimes[type]);
-            const sortedTimes = allFilledTimes.sort().reverse();
-            const isJustNow = sortedTimes[0] === filledAt;
-
-            if (isJustNow && diffMinutes <= 60) {
-                return 'just-now';
-            } else if (diffMinutes <= 60) {
-                return 'within-1h';
-            } else if (diffMinutes <= 120) {
-                return 'within-2h';
+            // 2時間以内ならrecent、それ以外はbefore
+            if (diffMinutes <= 120) {
+                return 'recent';
             } else {
                 return 'before';
             }
