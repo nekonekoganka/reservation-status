@@ -524,44 +524,60 @@
             background: #006633;
         }
 
-        /* 埋まった時刻に応じた色（一般予約） */
+        /* 埋まった時刻に応じた色（一般予約 - オレンジ系を維持） */
         .timeline-cell.general.filled.just-now {
-            background: #ff4444;
+            background: #CC6600;
+            box-shadow: inset 0 0 0 3px white;
             animation: pulse-general 1.5s ease-in-out infinite;
         }
         .timeline-cell.general.filled.within-1h {
-            background: #ff7744;
+            background: #CC6600;
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.8);
         }
         .timeline-cell.general.filled.within-2h {
-            background: #ffaa44;
+            background: #DD9955;
         }
         .timeline-cell.general.filled.before {
-            background: #CC6600;
+            background: #EECCAA;
         }
 
-        /* 埋まった時刻に応じた色（視野予約） */
+        /* 埋まった時刻に応じた色（視野予約 - 緑系を維持） */
         .timeline-cell.shiya.filled.just-now {
-            background: #00aa55;
+            background: #006633;
+            box-shadow: inset 0 0 0 3px white;
             animation: pulse-shiya 1.5s ease-in-out infinite;
         }
         .timeline-cell.shiya.filled.within-1h {
-            background: #00885a;
+            background: #006633;
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.8);
         }
         .timeline-cell.shiya.filled.within-2h {
-            background: #007750;
+            background: #339966;
         }
         .timeline-cell.shiya.filled.before {
-            background: #006633;
+            background: #99CCAA;
         }
 
-        /* 点滅アニメーション */
+        /* 点滅アニメーション（基本カラー維持） */
         @keyframes pulse-general {
-            0%, 100% { background: #ff4444; }
-            50% { background: #ff8888; }
+            0%, 100% {
+                background: #CC6600;
+                box-shadow: inset 0 0 0 3px white;
+            }
+            50% {
+                background: #DD8833;
+                box-shadow: inset 0 0 0 3px rgba(255,255,255,0.5);
+            }
         }
         @keyframes pulse-shiya {
-            0%, 100% { background: #00aa55; }
-            50% { background: #44cc88; }
+            0%, 100% {
+                background: #006633;
+                box-shadow: inset 0 0 0 3px white;
+            }
+            50% {
+                background: #228855;
+                box-shadow: inset 0 0 0 3px rgba(255,255,255,0.5);
+            }
         }
 
         .timeline-time-labels {
@@ -618,25 +634,33 @@
         }
 
         .legend-cell.just-now {
-            background: #ff4444;
+            background: #CC6600;
+            box-shadow: inset 0 0 0 2px white;
             animation: pulse-legend 1.5s ease-in-out infinite;
         }
 
         .legend-cell.within-1h {
-            background: #ff7744;
+            background: #CC6600;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.8);
         }
 
         .legend-cell.within-2h {
-            background: #ffaa44;
+            background: #DD9955;
         }
 
         .legend-cell.before {
-            background: #999;
+            background: #EECCAA;
         }
 
         @keyframes pulse-legend {
-            0%, 100% { background: #ff4444; }
-            50% { background: #ff8888; }
+            0%, 100% {
+                background: #CC6600;
+                box-shadow: inset 0 0 0 2px white;
+            }
+            50% {
+                background: #DD8833;
+                box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);
+            }
         }
 
         /* 空き時間枠リスト */
