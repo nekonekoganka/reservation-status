@@ -538,6 +538,7 @@ async function saveHistoryData(data) {
     const historyEntry = {
       time: timeStr,
       count: data.slots ? data.slots.length : 0,
+      slots: data.slots || [],  // 埋まり時刻の追跡用
       status: data.status,
       targetDate: data.date
     };
