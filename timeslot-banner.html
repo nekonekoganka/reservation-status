@@ -116,6 +116,26 @@
             border: 2px dashed #ccc;
         }
 
+        /* 年末年始休業のスタイル */
+        .reservation-banner.newyear {
+            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+            color: white;
+            border: 3px solid #8B0000;
+        }
+
+        .reservation-banner.newyear h2 {
+            font-size: 24px;
+        }
+
+        .reservation-banner.newyear .holiday-period {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin: 15px 0;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
         /* スマホ対応 */
         @media (max-width: 600px) {
             .reservation-banner {
@@ -164,6 +184,33 @@
 <script>
     // Cloud StorageのURL
     const API_URL = 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/timeslots.json';
+
+    /**
+     * 年末年始休業期間かどうかを判定する関数
+     * 12/30 18:30 〜 1/3 18:29 の間はtrue
+     */
+    function isNewYearPeriod() {
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        const day = now.getDate();
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const timeInMinutes = hour * 60 + minute;
+
+        // 12/30 18:30以降
+        if (month === 12 && day === 30 && timeInMinutes >= 18 * 60 + 30) return true;
+
+        // 12/31（終日）
+        if (month === 12 && day === 31) return true;
+
+        // 1/1〜1/2（終日）
+        if (month === 1 && (day === 1 || day === 2)) return true;
+
+        // 1/3 00:00〜18:29
+        if (month === 1 && day === 3 && timeInMinutes < 18 * 60 + 30) return true;
+
+        return false;
+    }
 
     /**
      * 日付を M/D 形式でフォーマット
@@ -222,6 +269,19 @@
      */
     async function updateTimeslots() {
         const banner = document.getElementById('reservationBanner');
+
+        // 年末年始チェック（12/30 18:30 〜 1/3 18:29）
+        if (isNewYearPeriod()) {
+            banner.className = 'reservation-banner newyear';
+            banner.innerHTML = `
+                <h2>🎍 年末年始休業のお知らせ</h2>
+                <div class="holiday-period">12月31日〜1月3日</div>
+                <p>年末年始は休診いたします</p>
+                <p>1月4日より通常診療いたします</p>
+                <p style="margin-top: 15px; font-size: 14px;">クリックして予約ページへ</p>
+            `;
+            return;
+        }
 
         try {
             // JSONデータを取得
