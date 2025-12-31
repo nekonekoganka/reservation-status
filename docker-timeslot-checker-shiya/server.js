@@ -319,6 +319,8 @@ async function checkTimeslots() {
 
       // 次月ボタンを複数のセレクターで試行
       const selectors = [
+        'button.q-btn--flat.text-primary',  // Quasarフラットボタン（新UI）
+        'button.q-btn.text-primary',        // Quasarボタン（新UI）
         '.fa-caret-right',           // FontAwesomeアイコン
         'i.fa-caret-right',          // iタグのFontAwesomeアイコン
         'button .fa-caret-right',    // ボタン内のアイコン
@@ -342,6 +344,30 @@ async function checkTimeslots() {
           }
         } catch (error) {
           console.log(`セレクター ${selector} で検索失敗:`, error.message);
+        }
+      }
+
+      // セレクターで見つからない場合、テキスト「>」で検索
+      if (!nextMonthButton) {
+        console.log('セレクターで見つからないため、テキスト「>」でボタンを検索');
+        nextMonthButton = await calendarFrame.evaluateHandle(() => {
+          const buttons = document.querySelectorAll('button');
+          for (const btn of buttons) {
+            const text = btn.textContent?.trim();
+            if (text === '>' || text === '›' || text === '→') {
+              return btn;
+            }
+          }
+          return null;
+        });
+
+        // evaluateHandleの結果がnullでないかチェック
+        const isValid = await nextMonthButton.evaluate(el => el !== null).catch(() => false);
+        if (isValid) {
+          usedSelector = 'テキスト「>」検索';
+          console.log('次月ボタンをテキスト検索で発見');
+        } else {
+          nextMonthButton = null;
         }
       }
 
