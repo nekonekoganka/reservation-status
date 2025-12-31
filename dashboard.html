@@ -556,6 +556,25 @@
             50% { background: #AADD44; }
         }
 
+        /* 空きになったセル（キャンセル）のグローエフェクト */
+        .timeline-cell.general.available.recently-opened {
+            background: white;
+            animation: glow-general 2s ease-in-out infinite;
+        }
+        .timeline-cell.shiya.available.recently-opened {
+            background: white;
+            animation: glow-shiya 2s ease-in-out infinite;
+        }
+
+        @keyframes glow-general {
+            0%, 100% { box-shadow: 0 0 5px 2px rgba(76, 175, 80, 0.6); }
+            50% { box-shadow: 0 0 12px 4px rgba(76, 175, 80, 0.9); }
+        }
+        @keyframes glow-shiya {
+            0%, 100% { box-shadow: 0 0 5px 2px rgba(33, 150, 243, 0.6); }
+            50% { box-shadow: 0 0 12px 4px rgba(33, 150, 243, 0.9); }
+        }
+
         .timeline-time-labels {
             display: flex;
             justify-content: space-between;
@@ -637,6 +656,25 @@
         @keyframes pulse-legend-shiya {
             0%, 100% { background: #88CC00; }
             50% { background: #AADD44; }
+        }
+
+        /* 空きになった凡例（グロー） */
+        .legend-cell.recently-opened-general {
+            background: white;
+            animation: glow-legend-general 2s ease-in-out infinite;
+        }
+        .legend-cell.recently-opened-shiya {
+            background: white;
+            animation: glow-legend-shiya 2s ease-in-out infinite;
+        }
+
+        @keyframes glow-legend-general {
+            0%, 100% { box-shadow: 0 0 3px 1px rgba(76, 175, 80, 0.6); }
+            50% { box-shadow: 0 0 6px 2px rgba(76, 175, 80, 0.9); }
+        }
+        @keyframes glow-legend-shiya {
+            0%, 100% { box-shadow: 0 0 3px 1px rgba(33, 150, 243, 0.6); }
+            50% { box-shadow: 0 0 6px 2px rgba(33, 150, 243, 0.9); }
         }
 
         /* 空き時間枠リスト */
@@ -1893,17 +1931,42 @@
             </div>
             <div class="current-status-footer">
                 <div class="timeline-legend" id="timelineLegend">
+                    <!-- 共通 -->
                     <div class="timeline-legend-item">
                         <div class="legend-cell available"></div>
                         <span>空き</span>
                     </div>
-                    <div class="timeline-legend-item">
-                        <div class="legend-cell recent"></div>
-                        <span>2h以内</span>
+                    <!-- 一般予約 -->
+                    <div class="timeline-legend-item" style="margin-left: 8px; padding-left: 8px; border-left: 1px solid #ddd;">
+                        <span style="font-weight: bold; color: #CC6600; margin-right: 4px;">一般:</span>
                     </div>
                     <div class="timeline-legend-item">
-                        <div class="legend-cell before"></div>
-                        <span>以前</span>
+                        <div class="legend-cell recent" style="background: #EE3333; animation: pulse-legend 1.5s ease-in-out infinite;"></div>
+                        <span>2h以内埋</span>
+                    </div>
+                    <div class="timeline-legend-item">
+                        <div class="legend-cell before" style="background: #CC6600;"></div>
+                        <span>以前埋</span>
+                    </div>
+                    <div class="timeline-legend-item">
+                        <div class="legend-cell recently-opened-general"></div>
+                        <span>2h以内空</span>
+                    </div>
+                    <!-- 視野予約 -->
+                    <div class="timeline-legend-item" style="margin-left: 8px; padding-left: 8px; border-left: 1px solid #ddd;">
+                        <span style="font-weight: bold; color: #006633; margin-right: 4px;">視野:</span>
+                    </div>
+                    <div class="timeline-legend-item">
+                        <div class="legend-cell recent" style="background: #88CC00; animation: pulse-legend-shiya 1.5s ease-in-out infinite;"></div>
+                        <span>2h以内埋</span>
+                    </div>
+                    <div class="timeline-legend-item">
+                        <div class="legend-cell before" style="background: #006633;"></div>
+                        <span>以前埋</span>
+                    </div>
+                    <div class="timeline-legend-item">
+                        <div class="legend-cell recently-opened-shiya"></div>
+                        <span>2h以内空</span>
                     </div>
                 </div>
                 <span id="currentStatusTime">読み込み中...</span>
@@ -2020,11 +2083,11 @@
             </div>
         </div>
 
-        <!-- 人気時間枠ランキング & 埋まり推移グラフ -->
+        <!-- 空きやすい時間枠ランキング & 埋まり推移グラフ -->
         <div class="charts-row">
-            <!-- 人気時間枠ランキング -->
+            <!-- 空きやすい時間枠ランキング -->
             <div class="chart-card">
-                <h3>🎯 人気時間枠ランキング<span class="help-icon" onclick="openHelpModal('popularSlots')">?<span class="tooltip">早く埋まる時間枠をランキング表示</span></span></h3>
+                <h3>🕐 空きやすい時間枠ランキング<span class="help-icon" onclick="openHelpModal('availableSlots')">?<span class="tooltip">最後まで空いている時間枠をランキング表示</span></span></h3>
                 <div id="popularSlotsContainer">
                     <div class="loading">
                         <div class="spinner"></div>
@@ -2213,6 +2276,12 @@
             shiya: {}
         };
 
+        // 各スロットの空きになった時刻を保持（type -> slot -> openedAt）
+        const slotOpenTimes = {
+            general: {},
+            shiya: {}
+        };
+
         /**
          * 当日の履歴データを取得
          */
@@ -2269,8 +2338,12 @@
                         if (wasAvailable && !isNowAvailable) {
                             // このスロットが埋まった
                             slotFillTimes[type][displaySlot] = recordTime;
+                            // 空き時刻をクリア
+                            delete slotOpenTimes[type][displaySlot];
                         } else if (!wasAvailable && isNowAvailable) {
-                            // スロットが復活した（キャンセル等）→ 埋まり時刻をクリア
+                            // スロットが復活した（キャンセル等）→ 空きになった時刻を記録
+                            slotOpenTimes[type][displaySlot] = recordTime;
+                            // 埋まり時刻をクリア
                             delete slotFillTimes[type][displaySlot];
                         }
                     });
@@ -2283,6 +2356,7 @@
             // → 特に何もしない（slotFillTimesに記録がないと before 扱いになる）
 
             console.log(`${type} の埋まり時刻:`, slotFillTimes[type]);
+            console.log(`${type} の空き時刻:`, slotOpenTimes[type]);
         }
 
         /**
@@ -2306,6 +2380,28 @@
             } else {
                 return 'before';
             }
+        }
+
+        /**
+         * 空きになった時刻に基づいてクラス名を取得
+         * 2時間以内: recently-opened（グロー）、それ以外: null
+         */
+        function getOpenedTimeClass(slot, type) {
+            const openedAt = slotOpenTimes[type][slot];
+            if (!openedAt) return null; // 記録なし = 元から空き or 追跡対象外
+
+            const now = new Date();
+            const [openedHour, openedMin] = openedAt.split(':').map(Number);
+            const openedTime = new Date();
+            openedTime.setHours(openedHour, openedMin, 0, 0);
+
+            const diffMinutes = (now - openedTime) / (1000 * 60);
+
+            // 2時間以内ならrecently-opened（グローエフェクト）
+            if (diffMinutes <= 120) {
+                return 'recently-opened';
+            }
+            return null;
         }
 
         /**
@@ -2542,7 +2638,19 @@
                         cell.title = `${displaySlot} (元から埋まり)`;
                     }
                 } else {
-                    cell.title = getSlotTooltip(slot, isAvailable);
+                    // 空きセルの場合、最近空きになったかチェック
+                    const openedClass = getOpenedTimeClass(slot, type);
+                    if (openedClass) {
+                        cell.classList.add(openedClass);
+                        // ツールチップに空きになった時刻を表示
+                        const openedAt = slotOpenTimes[type][slot];
+                        let displaySlot = slot;
+                        if (slot === '13:00') displaySlot = '12:55';
+                        if (slot === '18:00') displaySlot = '17:55';
+                        cell.title = `${displaySlot} (${openedAt}に空き)`;
+                    } else {
+                        cell.title = getSlotTooltip(slot, isAvailable);
+                    }
                 }
 
                 container.appendChild(cell);
@@ -4343,27 +4451,30 @@
                 }
             });
 
-            // 埋まり率でソート（高い順）
+            // 空き率でソート（空きやすい順 = 埋まり率が低い順）
             const ranked = allSlots
                 .map(slot => ({
                     slot,
                     ...slotStats[slot],
                     fillRate: slotStats[slot].totalDays > 0
                         ? (slotStats[slot].fillCount / slotStats[slot].totalDays * 100).toFixed(1)
-                        : 0
+                        : 0,
+                    availableRate: slotStats[slot].totalDays > 0
+                        ? (100 - (slotStats[slot].fillCount / slotStats[slot].totalDays * 100)).toFixed(1)
+                        : 100
                 }))
                 .filter(s => s.totalDays > 0)
                 .sort((a, b) => {
-                    // 埋まり率が高い順、同率なら早く埋まる順
-                    if (b.fillRate !== a.fillRate) return b.fillRate - a.fillRate;
+                    // 空き率が高い順（埋まり率が低い順）、同率なら遅く埋まる順
+                    if (a.fillRate !== b.fillRate) return a.fillRate - b.fillRate;
                     if (a.avgFillTime && b.avgFillTime) {
-                        return a.avgFillTime.localeCompare(b.avgFillTime);
+                        return b.avgFillTime.localeCompare(a.avgFillTime);
                     }
                     return 0;
                 });
 
             // HTML生成
-            let html = '<div class="popular-slots-ranking" style="font-size: 14px;">';
+            let html = '<div class="available-slots-ranking" style="font-size: 14px;">';
 
             // 午前・午後に分けて表示
             const amRanked = ranked.filter(s => AM_SLOTS.includes(s.slot)).slice(0, 5);
@@ -4373,21 +4484,21 @@
 
             // 午前ランキング
             html += '<div style="flex: 1; min-width: 200px;">';
-            html += '<h4 style="margin: 0 0 10px 0; color: #667eea;">🌅 午前TOP5</h4>';
+            html += '<h4 style="margin: 0 0 10px 0; color: #4CAF50;">🌅 午前TOP5</h4>';
             if (amRanked.length > 0) {
                 amRanked.forEach((item, idx) => {
                     const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
-                    const barWidth = Math.min(item.fillRate, 100);
+                    const barWidth = Math.min(item.availableRate, 100);
                     html += `
                         <div style="margin-bottom: 8px;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <span>${medal} <strong>${item.slot}</strong></span>
-                                <span style="font-size: 12px; color: #888;">埋まり率 ${item.fillRate}%</span>
+                                <span style="font-size: 12px; color: #888;">空き残り率 ${item.availableRate}%</span>
                             </div>
                             <div style="background: #eee; border-radius: 4px; height: 8px; margin-top: 3px;">
-                                <div style="background: linear-gradient(90deg, #667eea, #764ba2); width: ${barWidth}%; height: 100%; border-radius: 4px;"></div>
+                                <div style="background: linear-gradient(90deg, #4CAF50, #8BC34A); width: ${barWidth}%; height: 100%; border-radius: 4px;"></div>
                             </div>
-                            ${item.avgFillTime ? `<div style="font-size: 11px; color: #666; margin-top: 2px;">平均 ${item.avgFillTime} に埋まる</div>` : ''}
+                            ${item.avgFillTime ? `<div style="font-size: 11px; color: #666; margin-top: 2px;">埋まる場合は平均 ${item.avgFillTime}</div>` : '<div style="font-size: 11px; color: #4CAF50; margin-top: 2px;">ほぼ埋まらない</div>'}
                         </div>
                     `;
                 });
@@ -4398,21 +4509,21 @@
 
             // 午後ランキング
             html += '<div style="flex: 1; min-width: 200px;">';
-            html += '<h4 style="margin: 0 0 10px 0; color: #764ba2;">🌆 午後TOP5</h4>';
+            html += '<h4 style="margin: 0 0 10px 0; color: #8BC34A;">🌆 午後TOP5</h4>';
             if (pmRanked.length > 0) {
                 pmRanked.forEach((item, idx) => {
                     const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
-                    const barWidth = Math.min(item.fillRate, 100);
+                    const barWidth = Math.min(item.availableRate, 100);
                     html += `
                         <div style="margin-bottom: 8px;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <span>${medal} <strong>${item.slot}</strong></span>
-                                <span style="font-size: 12px; color: #888;">埋まり率 ${item.fillRate}%</span>
+                                <span style="font-size: 12px; color: #888;">空き残り率 ${item.availableRate}%</span>
                             </div>
                             <div style="background: #eee; border-radius: 4px; height: 8px; margin-top: 3px;">
-                                <div style="background: linear-gradient(90deg, #764ba2, #667eea); width: ${barWidth}%; height: 100%; border-radius: 4px;"></div>
+                                <div style="background: linear-gradient(90deg, #8BC34A, #4CAF50); width: ${barWidth}%; height: 100%; border-radius: 4px;"></div>
                             </div>
-                            ${item.avgFillTime ? `<div style="font-size: 11px; color: #666; margin-top: 2px;">平均 ${item.avgFillTime} に埋まる</div>` : ''}
+                            ${item.avgFillTime ? `<div style="font-size: 11px; color: #666; margin-top: 2px;">埋まる場合は平均 ${item.avgFillTime}</div>` : '<div style="font-size: 11px; color: #4CAF50; margin-top: 2px;">ほぼ埋まらない</div>'}
                         </div>
                     `;
                 });
@@ -4690,28 +4801,28 @@
                     <p><strong>※</strong> すべての指標は「満枠判定」設定に連動します。設定を変えると値も変わります。</p>
                 `
             },
-            popularSlots: {
-                title: '🎯 人気時間枠ランキング',
+            availableSlots: {
+                title: '🕐 空きやすい時間枠ランキング',
                 content: `
                     <h3>表示内容</h3>
-                    <p>どの予約時間枠が<strong>早く埋まりやすいか</strong>をランキング形式で表示します。</p>
+                    <p>どの予約時間枠が<strong>最後まで空いているか</strong>をランキング形式で表示します。</p>
 
                     <h3>指標の説明</h3>
-                    <h4>埋まり率</h4>
-                    <p>その時間枠が「埋まった日」の割合です。</p>
+                    <h4>空き残り率</h4>
+                    <p>その時間枠が「最後まで空いていた日」の割合です。</p>
                     <div class="example">
-                        例: 80% → 10日中8日でこの時間枠が埋まった
+                        例: 80% → 10日中8日でこの時間枠は埋まらなかった
                     </div>
 
-                    <h4>平均埋まり時刻</h4>
-                    <p>その時間枠が平均して何時頃に埋まるかを示します。</p>
+                    <h4>埋まる場合の平均時刻</h4>
+                    <p>埋まる場合、平均して何時頃に埋まるかを示します。</p>
                     <div class="example">
-                        例: 平均 09:30 に埋まる → 朝9時半頃には予約が入ることが多い
+                        例: 平均 15:30 → 埋まる場合でも午後まで空いていることが多い
                     </div>
 
                     <h3>活用方法</h3>
                     <div class="tip">
-                        人気の高い時間枠は、患者さんへの案内時に「早めの予約をおすすめ」する参考になります。
+                        空きやすい時間枠を把握しておくと、「この時間帯なら比較的予約が取りやすいですよ」と患者さんに案内できます。
                     </div>
                 `
             },
