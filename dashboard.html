@@ -2020,6 +2020,33 @@
             </div>
         </div>
 
+        <!-- 人気時間枠ランキング & 埋まり推移グラフ -->
+        <div class="charts-row">
+            <!-- 人気時間枠ランキング -->
+            <div class="chart-card">
+                <h3>🎯 人気時間枠ランキング<span class="help-icon" onclick="openHelpModal('popularSlots')">?<span class="tooltip">早く埋まる時間枠をランキング表示</span></span></h3>
+                <div id="popularSlotsContainer">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <span>データを読み込んでください</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 時間枠別埋まり推移グラフ -->
+            <div class="chart-card">
+                <h3>📉 時間枠別 埋まり推移<span class="help-icon" onclick="openHelpModal('slotFillProgress')">?<span class="tooltip">各時間枠がいつ埋まったかを表示</span></span></h3>
+                <div class="slot-fill-controls" style="margin-bottom: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <select id="slotFillDateSelect" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                        <option value="">日付を選択...</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="slotFillProgressChart"></canvas>
+                </div>
+            </div>
+        </div>
+
         <!-- 2列グラフ -->
         <div class="charts-row">
             <!-- 月別の平均空き枠 -->
@@ -3160,11 +3187,30 @@
 
                 if (Object.keys(slotData).length > 0) {
                     const date = parseDate(targetDate);
+
+                    // slotHistory: slots配列の時系列データを抽出
+                    const slotHistory = entries
+                        .filter(e => e.slots && Array.isArray(e.slots))
+                        .sort((a, b) => {
+                            // 時間順にソート（18:30から翌18:00の順）
+                            let aMin = a.hour * 60 + a.minute;
+                            let bMin = b.hour * 60 + b.minute;
+                            if (a.hour < 18 || (a.hour === 18 && a.minute < 30)) aMin += 24 * 60;
+                            if (b.hour < 18 || (b.hour === 18 && b.minute < 30)) bMin += 24 * 60;
+                            return aMin - bMin;
+                        })
+                        .map(e => ({
+                            time: e.time,
+                            slots: e.slots,
+                            count: e.count
+                        }));
+
                     result[targetDate] = {
                         ...slotData,
                         detailed: detailedSlotData,
                         dayOfWeek: date.getDay(),
-                        month: date.getMonth() + 1
+                        month: date.getMonth() + 1,
+                        slotHistory: slotHistory
                     };
                 }
             });
@@ -3286,6 +3332,8 @@
             updateMonthlyChart(data);
             updateDayFullRateChart(data);
             updateRecentDataTable(data);
+            updatePopularSlotsRanking(data);
+            updateSlotFillProgressChart(data);
         }
 
         // 1日の空き枠推移グラフ（10分刻み）
@@ -4204,6 +4252,325 @@
         }
 
         // ========================================
+        // 人気時間枠ランキング
+        // ========================================
+
+        // スロットごとの埋まり時刻データを保存
+        let slotFillAnalysisData = {};
+
+        function updatePopularSlotsRanking(data) {
+            const container = document.getElementById('popularSlotsContainer');
+
+            if (!data || Object.keys(data).length === 0) {
+                container.innerHTML = '<div class="no-data">データがありません</div>';
+                return;
+            }
+
+            // 全スロット（午前・午後）
+            const allSlots = [...AM_SLOTS, ...PM_SLOTS].filter(s => s !== '13:00' && s !== '18:00');
+
+            // 各スロットの「埋まりやすさ」を計算
+            // 埋まり時刻が早いほど人気が高い
+            const slotStats = {};
+            allSlots.forEach(slot => {
+                slotStats[slot] = {
+                    fillCount: 0,        // 埋まった回数
+                    totalDays: 0,        // 計測日数
+                    avgFillTime: null,   // 平均埋まり時刻
+                    fillTimes: []        // 埋まった時刻のリスト
+                };
+            });
+
+            // 日付ごとにslotsの変化を分析
+            const sortedDates = Object.keys(data).sort();
+            slotFillAnalysisData = {}; // リセット
+
+            sortedDates.forEach(date => {
+                const dayData = data[date];
+                if (!dayData.slotHistory || dayData.slotHistory.length < 2) return;
+
+                slotFillAnalysisData[date] = {};
+                const history = dayData.slotHistory;
+
+                allSlots.forEach(slot => {
+                    slotStats[slot].totalDays++;
+
+                    // スロットが最初にあったか、いつ消えたかを追跡
+                    let wasAvailable = false;
+                    let filledAt = null;
+
+                    for (let i = 0; i < history.length; i++) {
+                        const entry = history[i];
+                        const slots = entry.slots || [];
+                        const hasSlot = slots.includes(slot) ||
+                            (slot === '12:55' && slots.includes('13:00')) ||
+                            (slot === '17:55' && slots.includes('18:00'));
+
+                        if (i === 0 && hasSlot) {
+                            wasAvailable = true;
+                        } else if (wasAvailable && !hasSlot) {
+                            filledAt = entry.time;
+                            break;
+                        } else if (hasSlot) {
+                            wasAvailable = true;
+                        }
+                    }
+
+                    if (wasAvailable && filledAt) {
+                        slotStats[slot].fillCount++;
+                        slotStats[slot].fillTimes.push(filledAt);
+                        slotFillAnalysisData[date][slot] = filledAt;
+                    } else if (wasAvailable && !filledAt) {
+                        slotFillAnalysisData[date][slot] = '未埋まり';
+                    }
+                });
+            });
+
+            // 平均埋まり時刻を計算
+            allSlots.forEach(slot => {
+                const times = slotStats[slot].fillTimes;
+                if (times.length > 0) {
+                    const totalMinutes = times.reduce((sum, time) => {
+                        const [h, m] = time.split(':').map(Number);
+                        let minutes = h * 60 + m;
+                        if (h < 18) minutes += 24 * 60; // 翌日の場合
+                        return sum + minutes;
+                    }, 0);
+                    const avgMinutes = totalMinutes / times.length;
+                    const avgH = Math.floor(avgMinutes / 60) % 24;
+                    const avgM = Math.floor(avgMinutes % 60);
+                    slotStats[slot].avgFillTime = `${String(avgH).padStart(2, '0')}:${String(avgM).padStart(2, '0')}`;
+                }
+            });
+
+            // 埋まり率でソート（高い順）
+            const ranked = allSlots
+                .map(slot => ({
+                    slot,
+                    ...slotStats[slot],
+                    fillRate: slotStats[slot].totalDays > 0
+                        ? (slotStats[slot].fillCount / slotStats[slot].totalDays * 100).toFixed(1)
+                        : 0
+                }))
+                .filter(s => s.totalDays > 0)
+                .sort((a, b) => {
+                    // 埋まり率が高い順、同率なら早く埋まる順
+                    if (b.fillRate !== a.fillRate) return b.fillRate - a.fillRate;
+                    if (a.avgFillTime && b.avgFillTime) {
+                        return a.avgFillTime.localeCompare(b.avgFillTime);
+                    }
+                    return 0;
+                });
+
+            // HTML生成
+            let html = '<div class="popular-slots-ranking" style="font-size: 14px;">';
+
+            // 午前・午後に分けて表示
+            const amRanked = ranked.filter(s => AM_SLOTS.includes(s.slot)).slice(0, 5);
+            const pmRanked = ranked.filter(s => PM_SLOTS.includes(s.slot)).slice(0, 5);
+
+            html += '<div style="display: flex; gap: 20px; flex-wrap: wrap;">';
+
+            // 午前ランキング
+            html += '<div style="flex: 1; min-width: 200px;">';
+            html += '<h4 style="margin: 0 0 10px 0; color: #667eea;">🌅 午前TOP5</h4>';
+            if (amRanked.length > 0) {
+                amRanked.forEach((item, idx) => {
+                    const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+                    const barWidth = Math.min(item.fillRate, 100);
+                    html += `
+                        <div style="margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span>${medal} <strong>${item.slot}</strong></span>
+                                <span style="font-size: 12px; color: #888;">埋まり率 ${item.fillRate}%</span>
+                            </div>
+                            <div style="background: #eee; border-radius: 4px; height: 8px; margin-top: 3px;">
+                                <div style="background: linear-gradient(90deg, #667eea, #764ba2); width: ${barWidth}%; height: 100%; border-radius: 4px;"></div>
+                            </div>
+                            ${item.avgFillTime ? `<div style="font-size: 11px; color: #666; margin-top: 2px;">平均 ${item.avgFillTime} に埋まる</div>` : ''}
+                        </div>
+                    `;
+                });
+            } else {
+                html += '<div style="color: #888;">データ不足</div>';
+            }
+            html += '</div>';
+
+            // 午後ランキング
+            html += '<div style="flex: 1; min-width: 200px;">';
+            html += '<h4 style="margin: 0 0 10px 0; color: #764ba2;">🌆 午後TOP5</h4>';
+            if (pmRanked.length > 0) {
+                pmRanked.forEach((item, idx) => {
+                    const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+                    const barWidth = Math.min(item.fillRate, 100);
+                    html += `
+                        <div style="margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span>${medal} <strong>${item.slot}</strong></span>
+                                <span style="font-size: 12px; color: #888;">埋まり率 ${item.fillRate}%</span>
+                            </div>
+                            <div style="background: #eee; border-radius: 4px; height: 8px; margin-top: 3px;">
+                                <div style="background: linear-gradient(90deg, #764ba2, #667eea); width: ${barWidth}%; height: 100%; border-radius: 4px;"></div>
+                            </div>
+                            ${item.avgFillTime ? `<div style="font-size: 11px; color: #666; margin-top: 2px;">平均 ${item.avgFillTime} に埋まる</div>` : ''}
+                        </div>
+                    `;
+                });
+            } else {
+                html += '<div style="color: #888;">データ不足</div>';
+            }
+            html += '</div>';
+
+            html += '</div>';
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
+        // ========================================
+        // 時間枠別埋まり推移グラフ
+        // ========================================
+
+        let slotFillProgressChart = null;
+
+        function updateSlotFillProgressChart(data) {
+            const dateSelect = document.getElementById('slotFillDateSelect');
+            const ctx = document.getElementById('slotFillProgressChart').getContext('2d');
+
+            // 日付セレクトを更新
+            const dates = Object.keys(data).sort().reverse().slice(0, 14);
+            dateSelect.innerHTML = '<option value="">日付を選択...</option>';
+            dates.forEach(date => {
+                const dayData = data[date];
+                const dayName = DAY_NAMES[dayData.dayOfWeek];
+                dateSelect.innerHTML += `<option value="${date}">${date} (${dayName})</option>`;
+            });
+
+            // 日付選択時のイベント
+            dateSelect.onchange = () => {
+                const selectedDate = dateSelect.value;
+                if (selectedDate && data[selectedDate]) {
+                    drawSlotFillChart(data[selectedDate], selectedDate, ctx);
+                }
+            };
+
+            // 最新日を自動選択
+            if (dates.length > 0) {
+                dateSelect.value = dates[0];
+                drawSlotFillChart(data[dates[0]], dates[0], ctx);
+            }
+        }
+
+        function drawSlotFillChart(dayData, date, ctx) {
+            if (slotFillProgressChart) {
+                slotFillProgressChart.destroy();
+            }
+
+            if (!dayData.slotHistory || dayData.slotHistory.length === 0) {
+                slotFillProgressChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: { labels: [], datasets: [] },
+                    options: {
+                        plugins: {
+                            title: { display: true, text: 'スロット履歴データがありません' }
+                        }
+                    }
+                });
+                return;
+            }
+
+            const history = dayData.slotHistory;
+            const allSlots = [...AM_SLOTS, ...PM_SLOTS].filter(s => s !== '13:00' && s !== '18:00');
+
+            // 時間軸のラベル（履歴データの時刻）
+            const timeLabels = history.map(h => h.time);
+
+            // 各スロットの状態を時系列で追跡
+            const datasets = [];
+            const colors = [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                '#FF9F40', '#FF6384', '#C9CBCF', '#7BC225', '#E74C3C',
+                '#3498DB', '#9B59B6', '#1ABC9C', '#F39C12', '#E67E22'
+            ];
+
+            // 午前枠と午後枠を分けて処理
+            const amSlots = allSlots.filter(s => AM_SLOTS.includes(s));
+            const pmSlots = allSlots.filter(s => PM_SLOTS.includes(s));
+
+            [...amSlots, ...pmSlots].forEach((slot, idx) => {
+                const statusData = history.map(entry => {
+                    const slots = entry.slots || [];
+                    const hasSlot = slots.includes(slot) ||
+                        (slot === '12:55' && slots.includes('13:00')) ||
+                        (slot === '17:55' && slots.includes('18:00'));
+                    return hasSlot ? 1 : 0;
+                });
+
+                datasets.push({
+                    label: slot,
+                    data: statusData,
+                    borderColor: colors[idx % colors.length],
+                    backgroundColor: colors[idx % colors.length] + '40',
+                    fill: false,
+                    stepped: true,
+                    tension: 0,
+                    pointRadius: 2,
+                    borderWidth: 2
+                });
+            });
+
+            slotFillProgressChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${date} の時間枠状態推移（1=空き, 0=埋まり）`
+                        },
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 10 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    return `${context.dataset.label}: ${context.raw === 1 ? '空き' : '埋まり'}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: -0.1,
+                            max: 1.1,
+                            ticks: {
+                                stepSize: 1,
+                                callback: (value) => value === 1 ? '空き' : value === 0 ? '埋まり' : ''
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: { size: 9 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ========================================
         // ヘルプモーダル機能
         // ========================================
 
@@ -4321,6 +4688,51 @@
                     </div>
 
                     <p><strong>※</strong> すべての指標は「満枠判定」設定に連動します。設定を変えると値も変わります。</p>
+                `
+            },
+            popularSlots: {
+                title: '🎯 人気時間枠ランキング',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>どの予約時間枠が<strong>早く埋まりやすいか</strong>をランキング形式で表示します。</p>
+
+                    <h3>指標の説明</h3>
+                    <h4>埋まり率</h4>
+                    <p>その時間枠が「埋まった日」の割合です。</p>
+                    <div class="example">
+                        例: 80% → 10日中8日でこの時間枠が埋まった
+                    </div>
+
+                    <h4>平均埋まり時刻</h4>
+                    <p>その時間枠が平均して何時頃に埋まるかを示します。</p>
+                    <div class="example">
+                        例: 平均 09:30 に埋まる → 朝9時半頃には予約が入ることが多い
+                    </div>
+
+                    <h3>活用方法</h3>
+                    <div class="tip">
+                        人気の高い時間枠は、患者さんへの案内時に「早めの予約をおすすめ」する参考になります。
+                    </div>
+                `
+            },
+            slotFillProgress: {
+                title: '📉 時間枠別 埋まり推移',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>特定の日における<strong>各時間枠の状態変化</strong>を時系列グラフで表示します。</p>
+
+                    <h3>グラフの見方</h3>
+                    <ul>
+                        <li><strong>1（上）</strong>: 空き状態</li>
+                        <li><strong>0（下）</strong>: 埋まり状態</li>
+                        <li>線が下がった時点 = その時間枠が埋まったタイミング</li>
+                    </ul>
+
+                    <h3>活用方法</h3>
+                    <div class="tip">
+                        <strong>どの時間枠が先に埋まるか</strong>が一目でわかります。<br>
+                        例: 10:00枠が7時に埋まり、11:00枠は12時に埋まった → 10:00が人気
+                    </div>
                 `
             },
             detailedAnalysis: {
