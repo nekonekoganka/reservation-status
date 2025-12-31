@@ -173,12 +173,6 @@ function calculateDisplayTextWithDate(targetDate) {
 // ステータスを読み込んで表示
 async function loadStatus() {
   try {
-    // 履歴データを取得して分析
-    const historyData = await fetchTodayHistory();
-    if (historyData) {
-      analyzeSlotFillTimes(historyData);
-    }
-
     const data = await chrome.storage.local.get([
       'lastUpdate',
       'slots',
@@ -210,12 +204,21 @@ async function loadStatus() {
     const displayText = calculateDisplayTextWithDate(data.date);
     document.getElementById('day-text').textContent = displayText;
 
-    // 時間枠リストを表示
+    // 時間枠リストを表示（まず即座に表示）
     currentSlots = data.slots || [];
     displayTimeslots(currentSlots, slotsCount);
 
     // アイコンを描画
     drawIcon(slotsCount, data.status);
+
+    // 履歴データを非同期で取得してアニメーションを適用（待たない）
+    fetchTodayHistory().then(historyData => {
+      if (historyData) {
+        analyzeSlotFillTimes(historyData);
+        // タイムラインを再描画してアニメーションクラスを適用
+        renderTimeline(currentSlots);
+      }
+    });
 
     // 最終更新時刻
     if (data.lastUpdate) {
