@@ -556,6 +556,25 @@
             50% { background: #AADD44; }
         }
 
+        /* 空きになったセル（キャンセル）のグローエフェクト */
+        .timeline-cell.general.available.recently-opened {
+            background: white;
+            animation: glow-general 2s ease-in-out infinite;
+        }
+        .timeline-cell.shiya.available.recently-opened {
+            background: white;
+            animation: glow-shiya 2s ease-in-out infinite;
+        }
+
+        @keyframes glow-general {
+            0%, 100% { box-shadow: 0 0 5px 2px rgba(76, 175, 80, 0.6); }
+            50% { box-shadow: 0 0 12px 4px rgba(76, 175, 80, 0.9); }
+        }
+        @keyframes glow-shiya {
+            0%, 100% { box-shadow: 0 0 5px 2px rgba(33, 150, 243, 0.6); }
+            50% { box-shadow: 0 0 12px 4px rgba(33, 150, 243, 0.9); }
+        }
+
         .timeline-time-labels {
             display: flex;
             justify-content: space-between;
@@ -637,6 +656,25 @@
         @keyframes pulse-legend-shiya {
             0%, 100% { background: #88CC00; }
             50% { background: #AADD44; }
+        }
+
+        /* 空きになった凡例（グロー） */
+        .legend-cell.recently-opened-general {
+            background: white;
+            animation: glow-legend-general 2s ease-in-out infinite;
+        }
+        .legend-cell.recently-opened-shiya {
+            background: white;
+            animation: glow-legend-shiya 2s ease-in-out infinite;
+        }
+
+        @keyframes glow-legend-general {
+            0%, 100% { box-shadow: 0 0 3px 1px rgba(76, 175, 80, 0.6); }
+            50% { box-shadow: 0 0 6px 2px rgba(76, 175, 80, 0.9); }
+        }
+        @keyframes glow-legend-shiya {
+            0%, 100% { box-shadow: 0 0 3px 1px rgba(33, 150, 243, 0.6); }
+            50% { box-shadow: 0 0 6px 2px rgba(33, 150, 243, 0.9); }
         }
 
         /* 空き時間枠リスト */
@@ -1893,17 +1931,42 @@
             </div>
             <div class="current-status-footer">
                 <div class="timeline-legend" id="timelineLegend">
+                    <!-- 共通 -->
                     <div class="timeline-legend-item">
                         <div class="legend-cell available"></div>
                         <span>空き</span>
                     </div>
-                    <div class="timeline-legend-item">
-                        <div class="legend-cell recent"></div>
-                        <span>2h以内</span>
+                    <!-- 一般予約 -->
+                    <div class="timeline-legend-item" style="margin-left: 8px; padding-left: 8px; border-left: 1px solid #ddd;">
+                        <span style="font-weight: bold; color: #CC6600; margin-right: 4px;">一般:</span>
                     </div>
                     <div class="timeline-legend-item">
-                        <div class="legend-cell before"></div>
-                        <span>以前</span>
+                        <div class="legend-cell recent" style="background: #EE3333; animation: pulse-legend 1.5s ease-in-out infinite;"></div>
+                        <span>2h以内埋</span>
+                    </div>
+                    <div class="timeline-legend-item">
+                        <div class="legend-cell before" style="background: #CC6600;"></div>
+                        <span>以前埋</span>
+                    </div>
+                    <div class="timeline-legend-item">
+                        <div class="legend-cell recently-opened-general"></div>
+                        <span>2h以内空</span>
+                    </div>
+                    <!-- 視野予約 -->
+                    <div class="timeline-legend-item" style="margin-left: 8px; padding-left: 8px; border-left: 1px solid #ddd;">
+                        <span style="font-weight: bold; color: #006633; margin-right: 4px;">視野:</span>
+                    </div>
+                    <div class="timeline-legend-item">
+                        <div class="legend-cell recent" style="background: #88CC00; animation: pulse-legend-shiya 1.5s ease-in-out infinite;"></div>
+                        <span>2h以内埋</span>
+                    </div>
+                    <div class="timeline-legend-item">
+                        <div class="legend-cell before" style="background: #006633;"></div>
+                        <span>以前埋</span>
+                    </div>
+                    <div class="timeline-legend-item">
+                        <div class="legend-cell recently-opened-shiya"></div>
+                        <span>2h以内空</span>
                     </div>
                 </div>
                 <span id="currentStatusTime">読み込み中...</span>
@@ -2213,6 +2276,12 @@
             shiya: {}
         };
 
+        // 各スロットの空きになった時刻を保持（type -> slot -> openedAt）
+        const slotOpenTimes = {
+            general: {},
+            shiya: {}
+        };
+
         /**
          * 当日の履歴データを取得
          */
@@ -2269,8 +2338,12 @@
                         if (wasAvailable && !isNowAvailable) {
                             // このスロットが埋まった
                             slotFillTimes[type][displaySlot] = recordTime;
+                            // 空き時刻をクリア
+                            delete slotOpenTimes[type][displaySlot];
                         } else if (!wasAvailable && isNowAvailable) {
-                            // スロットが復活した（キャンセル等）→ 埋まり時刻をクリア
+                            // スロットが復活した（キャンセル等）→ 空きになった時刻を記録
+                            slotOpenTimes[type][displaySlot] = recordTime;
+                            // 埋まり時刻をクリア
                             delete slotFillTimes[type][displaySlot];
                         }
                     });
@@ -2283,6 +2356,7 @@
             // → 特に何もしない（slotFillTimesに記録がないと before 扱いになる）
 
             console.log(`${type} の埋まり時刻:`, slotFillTimes[type]);
+            console.log(`${type} の空き時刻:`, slotOpenTimes[type]);
         }
 
         /**
@@ -2306,6 +2380,28 @@
             } else {
                 return 'before';
             }
+        }
+
+        /**
+         * 空きになった時刻に基づいてクラス名を取得
+         * 2時間以内: recently-opened（グロー）、それ以外: null
+         */
+        function getOpenedTimeClass(slot, type) {
+            const openedAt = slotOpenTimes[type][slot];
+            if (!openedAt) return null; // 記録なし = 元から空き or 追跡対象外
+
+            const now = new Date();
+            const [openedHour, openedMin] = openedAt.split(':').map(Number);
+            const openedTime = new Date();
+            openedTime.setHours(openedHour, openedMin, 0, 0);
+
+            const diffMinutes = (now - openedTime) / (1000 * 60);
+
+            // 2時間以内ならrecently-opened（グローエフェクト）
+            if (diffMinutes <= 120) {
+                return 'recently-opened';
+            }
+            return null;
         }
 
         /**
@@ -2542,7 +2638,19 @@
                         cell.title = `${displaySlot} (元から埋まり)`;
                     }
                 } else {
-                    cell.title = getSlotTooltip(slot, isAvailable);
+                    // 空きセルの場合、最近空きになったかチェック
+                    const openedClass = getOpenedTimeClass(slot, type);
+                    if (openedClass) {
+                        cell.classList.add(openedClass);
+                        // ツールチップに空きになった時刻を表示
+                        const openedAt = slotOpenTimes[type][slot];
+                        let displaySlot = slot;
+                        if (slot === '13:00') displaySlot = '12:55';
+                        if (slot === '18:00') displaySlot = '17:55';
+                        cell.title = `${displaySlot} (${openedAt}に空き)`;
+                    } else {
+                        cell.title = getSlotTooltip(slot, isAvailable);
+                    }
                 }
 
                 container.appendChild(cell);
