@@ -400,7 +400,9 @@ async function checkTimeslots() {
       const cells = document.querySelectorAll('td');
 
       for (let cell of cells) {
-        const dateText = cell.textContent.trim();
+        // calendar-dayクラスのspanから日付を取得（Quasar UI対応）
+        const daySpan = cell.querySelector('.calendar-day');
+        const dateText = daySpan ? daySpan.textContent.trim() : cell.textContent.trim();
 
         if (dateText == targetDate) {
           // 対象日付のセルを見つけた
