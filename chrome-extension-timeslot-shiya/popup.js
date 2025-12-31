@@ -3,6 +3,114 @@
 let countdownInterval = null;
 let currentSlots = [];
 
+// 履歴データURL
+const HISTORY_URL = 'https://storage.googleapis.com/fujimino-reservation-status/history-shiya';
+
+// 埋まり時刻・空き時刻を追跡
+const slotFillTimes = {};
+const slotOpenTimes = {};
+
+// 日付フォーマット（YYYY-MM-DD）
+function formatDate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+// 当日の履歴データを取得
+async function fetchTodayHistory() {
+  try {
+    const today = formatDate(new Date());
+    const url = `${HISTORY_URL}/${today}.json?t=${Date.now()}`;
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    console.log('[視野予約枠数] 履歴データ取得失敗:', e);
+    return null;
+  }
+}
+
+// 履歴データから各スロットの「埋まった時刻」「空いた時刻」を計算
+function analyzeSlotFillTimes(historyData) {
+  if (!historyData || !Array.isArray(historyData)) return;
+
+  // 時間順にソート
+  const sortedData = [...historyData].sort((a, b) => {
+    const timeA = a.time || '';
+    const timeB = b.time || '';
+    return timeA.localeCompare(timeB);
+  });
+
+  // 全スロットを追跡
+  const allSlots = [...AM_SLOTS, ...PM_SLOTS];
+  const mappedSlots = allSlots.map(slot => {
+    if (slot === '13:00') return '12:55';
+    if (slot === '18:00') return '17:55';
+    return slot;
+  });
+
+  // 各スロットの状態を追跡
+  let prevSlots = null;
+
+  sortedData.forEach(entry => {
+    const currentSlots = entry.slots || [];
+    const recordTime = entry.time;
+
+    if (prevSlots !== null) {
+      mappedSlots.forEach((mappedSlot, index) => {
+        const displaySlot = allSlots[index];
+        const wasAvailable = prevSlots.includes(mappedSlot);
+        const isNowAvailable = currentSlots.includes(mappedSlot);
+
+        if (wasAvailable && !isNowAvailable) {
+          // このスロットが埋まった
+          slotFillTimes[displaySlot] = recordTime;
+          delete slotOpenTimes[displaySlot];
+        } else if (!wasAvailable && isNowAvailable) {
+          // スロットが復活した（キャンセル等）
+          slotOpenTimes[displaySlot] = recordTime;
+          delete slotFillTimes[displaySlot];
+        }
+      });
+    }
+
+    prevSlots = currentSlots;
+  });
+
+  console.log('[視野予約枠数] 埋まり時刻:', slotFillTimes);
+  console.log('[視野予約枠数] 空き時刻:', slotOpenTimes);
+}
+
+// 埋まった時刻に基づいてクラス名を取得
+function getFilledTimeClass(slot) {
+  const filledAt = slotFillTimes[slot];
+  if (!filledAt) return 'before';
+
+  const now = new Date();
+  const [filledHour, filledMin] = filledAt.split(':').map(Number);
+  const filledTime = new Date();
+  filledTime.setHours(filledHour, filledMin, 0, 0);
+
+  const diffMinutes = (now - filledTime) / (1000 * 60);
+  return diffMinutes <= 120 ? 'recent' : 'before';
+}
+
+// 空きになった時刻に基づいてクラス名を取得
+function getOpenedTimeClass(slot) {
+  const openedAt = slotOpenTimes[slot];
+  if (!openedAt) return null;
+
+  const now = new Date();
+  const [openedHour, openedMin] = openedAt.split(':').map(Number);
+  const openedTime = new Date();
+  openedTime.setHours(openedHour, openedMin, 0, 0);
+
+  const diffMinutes = (now - openedTime) / (1000 * 60);
+  return diffMinutes <= 120 ? 'recently-opened' : null;
+}
+
 // 初期化
 document.addEventListener('DOMContentLoaded', async () => {
   await loadStatus();
@@ -65,6 +173,12 @@ function calculateDisplayTextWithDate(targetDate) {
 // ステータスを読み込んで表示
 async function loadStatus() {
   try {
+    // 履歴データを取得して分析
+    const historyData = await fetchTodayHistory();
+    if (historyData) {
+      analyzeSlotFillTimes(historyData);
+    }
+
     const data = await chrome.storage.local.get([
       'lastUpdate',
       'slots',
@@ -254,7 +368,25 @@ function renderTimeline(slots) {
     cell.className = 'timeline-cell';
     const isAvailable = isSlotAvailable(slot, availableSlots);
     cell.classList.add(isAvailable ? 'available' : 'filled');
-    cell.title = getSlotTooltip(slot, isAvailable);
+
+    // 埋まり/空きの時刻に応じたクラスを追加
+    if (!isAvailable) {
+      const timeClass = getFilledTimeClass(slot);
+      cell.classList.add(timeClass);
+      const filledAt = slotFillTimes[slot];
+      let displaySlot = slot === '13:00' ? '12:55' : (slot === '18:00' ? '17:55' : slot);
+      cell.title = filledAt ? `${displaySlot} (${filledAt}に埋まり)` : `${displaySlot} (元から埋まり)`;
+    } else {
+      const openedClass = getOpenedTimeClass(slot);
+      if (openedClass) {
+        cell.classList.add(openedClass);
+        const openedAt = slotOpenTimes[slot];
+        let displaySlot = slot === '13:00' ? '12:55' : (slot === '18:00' ? '17:55' : slot);
+        cell.title = `${displaySlot} (${openedAt}に空き)`;
+      } else {
+        cell.title = getSlotTooltip(slot, isAvailable);
+      }
+    }
     amBarElement.appendChild(cell);
   });
 
@@ -264,7 +396,25 @@ function renderTimeline(slots) {
     cell.className = 'timeline-cell';
     const isAvailable = isSlotAvailable(slot, availableSlots);
     cell.classList.add(isAvailable ? 'available' : 'filled');
-    cell.title = getSlotTooltip(slot, isAvailable);
+
+    // 埋まり/空きの時刻に応じたクラスを追加
+    if (!isAvailable) {
+      const timeClass = getFilledTimeClass(slot);
+      cell.classList.add(timeClass);
+      const filledAt = slotFillTimes[slot];
+      let displaySlot = slot === '13:00' ? '12:55' : (slot === '18:00' ? '17:55' : slot);
+      cell.title = filledAt ? `${displaySlot} (${filledAt}に埋まり)` : `${displaySlot} (元から埋まり)`;
+    } else {
+      const openedClass = getOpenedTimeClass(slot);
+      if (openedClass) {
+        cell.classList.add(openedClass);
+        const openedAt = slotOpenTimes[slot];
+        let displaySlot = slot === '13:00' ? '12:55' : (slot === '18:00' ? '17:55' : slot);
+        cell.title = `${displaySlot} (${openedAt}に空き)`;
+      } else {
+        cell.title = getSlotTooltip(slot, isAvailable);
+      }
+    }
     pmBarElement.appendChild(cell);
   });
 }

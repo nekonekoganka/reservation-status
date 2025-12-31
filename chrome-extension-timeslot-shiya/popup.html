@@ -214,6 +214,33 @@
       background: #006633;
     }
 
+    /* 2時間以内に埋まったセル（点滅） */
+    .timeline-cell.filled.recent {
+      background: #88CC00;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    /* 2時間以上前に埋まったセル */
+    .timeline-cell.filled.before {
+      background: #006633;
+    }
+
+    /* 2時間以内に空きになったセル（グロー） */
+    .timeline-cell.available.recently-opened {
+      background: white;
+      animation: glow 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { background: #88CC00; }
+      50% { background: #AADD44; }
+    }
+
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 3px 1px rgba(0, 102, 51, 0.6); }
+      50% { box-shadow: 0 0 8px 3px rgba(0, 102, 51, 0.9); }
+    }
+
     .timeline-labels {
       display: flex;
       justify-content: space-between;
@@ -258,6 +285,30 @@
 
     .legend-cell.filled {
       background: #006633;
+    }
+
+    .legend-cell.recent {
+      background: #88CC00;
+      animation: pulse-legend 1.5s ease-in-out infinite;
+    }
+
+    .legend-cell.before {
+      background: #006633;
+    }
+
+    .legend-cell.recently-opened {
+      background: white;
+      animation: glow-legend 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-legend {
+      0%, 100% { background: #88CC00; }
+      50% { background: #AADD44; }
+    }
+
+    @keyframes glow-legend {
+      0%, 100% { box-shadow: 0 0 2px 1px rgba(0, 102, 51, 0.6); }
+      50% { box-shadow: 0 0 4px 2px rgba(0, 102, 51, 0.9); }
     }
 
     /* フッター */
@@ -403,11 +454,19 @@
       <div class="timeline-legend">
         <div class="legend-item">
           <span class="legend-cell available"></span>
-          <span>空き</span>
+          <span>予約可能</span>
         </div>
         <div class="legend-item">
-          <span class="legend-cell filled"></span>
-          <span>埋まり</span>
+          <span class="legend-cell recent"></span>
+          <span>最近埋まった</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-cell before"></span>
+          <span>以前から満枠</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-cell recently-opened"></span>
+          <span>キャンセル発生</span>
         </div>
       </div>
     </div>
