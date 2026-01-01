@@ -4682,31 +4682,67 @@
             const filledClass = currentType === 'shiya' ? 'cell-filled-shiya' : 'cell-filled-general';
             const filledColor = currentType === 'shiya' ? '#006633' : '#CC6600';
 
+            // 2時間刻みのターゲット時刻
+            const targetHours = ['19:00', '21:00', '23:00', '01:00', '03:00', '05:00', '07:00', '09:00', '11:00', '13:00', '15:00', '17:00'];
+
+            // 各ターゲット時刻に最も近いエントリを取得
+            const filteredHistory = [];
+            targetHours.forEach(targetTime => {
+                const [targetH, targetM] = targetTime.split(':').map(Number);
+                let targetMinutes = targetH * 60 + targetM;
+
+                let closest = null;
+                let closestDiff = Infinity;
+
+                history.forEach(entry => {
+                    const [h, m] = entry.time.split(':').map(Number);
+                    let entryMinutes = h * 60 + m;
+
+                    // 日をまたぐ場合の調整（18:30開始なので19時以降は同日、それ以前は翌日扱い）
+                    if (entryMinutes < 18 * 60) entryMinutes += 24 * 60;
+                    if (targetMinutes < 18 * 60) targetMinutes += 24 * 60;
+
+                    const diff = Math.abs(entryMinutes - targetMinutes);
+                    if (diff < closestDiff && diff <= 60) { // 1時間以内の誤差まで許容
+                        closestDiff = diff;
+                        closest = entry;
+                    }
+                });
+
+                if (closest && !filteredHistory.find(e => e.time === closest.time)) {
+                    filteredHistory.push({ ...closest, displayTime: targetTime });
+                }
+            });
+
+            if (filteredHistory.length === 0) {
+                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #666;">2時間刻みのデータがありません</div>';
+                return;
+            }
+
             // テーブル構築
             let html = `<table>`;
 
             // ヘッダー行（予約枠の時間）
             html += `<tr><th>時刻↓ / 枠→</th>`;
             allSlots.forEach(slot => {
-                // 13:00→12:55, 18:00→17:55 の変換を表示
                 const displaySlot = slot === '12:55' ? '12:55' : (slot === '17:55' ? '17:55' : slot);
                 const shortSlot = displaySlot.substring(0, 5);
                 html += `<th>${shortSlot}</th>`;
             });
             html += `</tr>`;
 
-            // データ行（各時刻の状態）
-            history.forEach(entry => {
-                const time = entry.time;
+            // データ行（2時間刻み）
+            filteredHistory.forEach(entry => {
+                const displayTime = entry.displayTime;
                 const slots = entry.slots || [];
 
-                html += `<tr><td>${time}</td>`;
+                html += `<tr><td>${displayTime}</td>`;
                 allSlots.forEach(slot => {
                     const hasSlot = slots.includes(slot) ||
                         (slot === '12:55' && slots.includes('13:00')) ||
                         (slot === '17:55' && slots.includes('18:00'));
                     const cellClass = hasSlot ? 'cell-available' : filledClass;
-                    html += `<td class="${cellClass}" title="${time} - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
+                    html += `<td class="${cellClass}" title="${displayTime} - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
                 });
                 html += `</tr>`;
             });
