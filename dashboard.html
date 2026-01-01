@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>予約傾向ダッシュボード</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -1078,6 +1079,11 @@
             .container > .weekly-progress-chart { order: 2; }
             .container > .daily-progress-chart { order: 5; }
 
+            /* 3Dグラフはスマホ版では非表示 */
+            #slotFillProgressSection {
+                display: none !important;
+            }
+
             /* 現在の空き状況セクション */
             .current-status-section {
                 padding: 15px;
@@ -2102,17 +2108,15 @@
                 </div>
             </div>
 
-            <!-- 時間枠別埋まり推移グラフ -->
-            <div class="chart-card">
-                <h3>📉 時間枠別 埋まり推移<span class="help-icon" onclick="openHelpModal('slotFillProgress')">?<span class="tooltip">各時間枠がいつ埋まったかを表示</span></span></h3>
+            <!-- 時間枠別埋まり推移グラフ（PC版のみ・3D） -->
+            <div class="chart-card" id="slotFillProgressSection">
+                <h3>📉 時間枠別 埋まり推移（3D）<span class="help-icon" onclick="openHelpModal('slotFillProgress')">?<span class="tooltip">各時間枠がいつ埋まったかを3Dで表示</span></span></h3>
                 <div class="slot-fill-controls" style="margin-bottom: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
                     <select id="slotFillDateSelect" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
                         <option value="">日付を選択...</option>
                     </select>
                 </div>
-                <div class="chart-container">
-                    <canvas id="slotFillProgressChart"></canvas>
-                </div>
+                <div id="slotFillProgress3D" style="width: 100%; height: 400px;"></div>
             </div>
         </div>
 
@@ -4562,14 +4566,11 @@
         }
 
         // ========================================
-        // 時間枠別埋まり推移グラフ
+        // 時間枠別埋まり推移グラフ（3D版・Plotly.js）
         // ========================================
-
-        let slotFillProgressChart = null;
 
         function updateSlotFillProgressChart(data) {
             const dateSelect = document.getElementById('slotFillDateSelect');
-            const ctx = document.getElementById('slotFillProgressChart').getContext('2d');
 
             // 日付セレクトを更新
             const dates = Object.keys(data).sort().reverse().slice(0, 14);
@@ -4584,124 +4585,109 @@
             dateSelect.onchange = () => {
                 const selectedDate = dateSelect.value;
                 if (selectedDate && data[selectedDate]) {
-                    drawSlotFillChart(data[selectedDate], selectedDate, ctx);
+                    draw3DSlotFillChart(data[selectedDate], selectedDate);
                 }
             };
 
             // 最新日を自動選択
             if (dates.length > 0) {
                 dateSelect.value = dates[0];
-                drawSlotFillChart(data[dates[0]], dates[0], ctx);
+                draw3DSlotFillChart(data[dates[0]], dates[0]);
             }
         }
 
-        function drawSlotFillChart(dayData, date, ctx) {
-            if (slotFillProgressChart) {
-                slotFillProgressChart.destroy();
-            }
+        function draw3DSlotFillChart(dayData, date) {
+            const container = document.getElementById('slotFillProgress3D');
 
             if (!dayData.slotHistory || dayData.slotHistory.length === 0) {
-                slotFillProgressChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: { labels: [], datasets: [] },
-                    options: {
-                        plugins: {
-                            title: { display: true, text: 'スロット履歴データがありません' }
-                        }
-                    }
-                });
+                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666;">スロット履歴データがありません</div>';
                 return;
             }
 
             const history = dayData.slotHistory;
             const allSlots = [...AM_SLOTS, ...PM_SLOTS].filter(s => s !== '13:00' && s !== '18:00');
 
-            // 時間軸のラベル（履歴データの時刻）
+            // X軸: 経過時間（履歴データの時刻）
             const timeLabels = history.map(h => h.time);
 
-            // 各スロットの状態を時系列で追跡
-            const datasets = [];
-            const colors = [
-                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-                '#FF9F40', '#FF6384', '#C9CBCF', '#7BC225', '#E74C3C',
-                '#3498DB', '#9B59B6', '#1ABC9C', '#F39C12', '#E67E22'
-            ];
+            // Y軸: 予約枠時間
+            const slotLabels = allSlots;
 
-            // 午前枠と午後枠を分けて処理
-            const amSlots = allSlots.filter(s => AM_SLOTS.includes(s));
-            const pmSlots = allSlots.filter(s => PM_SLOTS.includes(s));
+            // Z軸データ: 各スロットの各時刻での状態（1=空き, 0=埋まり）
+            const zData = [];
 
-            [...amSlots, ...pmSlots].forEach((slot, idx) => {
-                const statusData = history.map(entry => {
+            allSlots.forEach(slot => {
+                const rowData = history.map(entry => {
                     const slots = entry.slots || [];
                     const hasSlot = slots.includes(slot) ||
                         (slot === '12:55' && slots.includes('13:00')) ||
                         (slot === '17:55' && slots.includes('18:00'));
                     return hasSlot ? 1 : 0;
                 });
-
-                datasets.push({
-                    label: slot,
-                    data: statusData,
-                    borderColor: colors[idx % colors.length],
-                    backgroundColor: colors[idx % colors.length] + '40',
-                    fill: false,
-                    stepped: true,
-                    tension: 0,
-                    pointRadius: 2,
-                    borderWidth: 2
-                });
+                zData.push(rowData);
             });
 
-            slotFillProgressChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: timeLabels,
-                    datasets: datasets
+            // テーマカラーに基づいたカラースケール
+            const themeColor = currentType === 'shiya' ? '#006633' : '#CC6600';
+            const colorscale = [
+                [0, themeColor],     // 0 = 埋まり
+                [1, '#FFFFFF']       // 1 = 空き
+            ];
+
+            const surfaceData = [{
+                z: zData,
+                x: timeLabels,
+                y: slotLabels,
+                type: 'surface',
+                colorscale: colorscale,
+                showscale: true,
+                colorbar: {
+                    title: '状態',
+                    tickvals: [0, 1],
+                    ticktext: ['埋まり', '空き'],
+                    len: 0.5
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: `${date} の時間枠状態推移（1=空き, 0=埋まり）`
-                        },
-                        legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 12,
-                                font: { size: 10 }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => {
-                                    return `${context.dataset.label}: ${context.raw === 1 ? '空き' : '埋まり'}`;
-                                }
-                            }
-                        }
+                hovertemplate: '時刻: %{x}<br>予約枠: %{y}<br>状態: %{z}<extra></extra>'
+            }];
+
+            const layout = {
+                title: {
+                    text: `${date} の時間枠状態推移（3D）`,
+                    font: { size: 14 }
+                },
+                scene: {
+                    xaxis: {
+                        title: '経過時間',
+                        tickangle: -45,
+                        tickfont: { size: 10 }
                     },
-                    scales: {
-                        y: {
-                            min: -0.1,
-                            max: 1.1,
-                            ticks: {
-                                stepSize: 1,
-                                callback: (value) => value === 1 ? '空き' : value === 0 ? '埋まり' : ''
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 45,
-                                font: { size: 9 }
-                            }
-                        }
+                    yaxis: {
+                        title: '予約枠',
+                        tickfont: { size: 10 }
+                    },
+                    zaxis: {
+                        title: '状態',
+                        tickvals: [0, 1],
+                        ticktext: ['埋まり', '空き'],
+                        range: [-0.1, 1.1]
+                    },
+                    camera: {
+                        eye: { x: 1.5, y: 1.5, z: 1.2 }
                     }
-                }
-            });
+                },
+                margin: { l: 0, r: 0, t: 40, b: 0 },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)'
+            };
+
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['toImage', 'sendDataToCloud'],
+                displaylogo: false
+            };
+
+            Plotly.newPlot(container, surfaceData, layout, config);
         }
 
         // ========================================
