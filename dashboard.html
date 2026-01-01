@@ -2130,6 +2130,17 @@
             </div>
         </div>
 
+        <!-- 時間枠別埋まり推移ヒートマップ（横幅いっぱい） -->
+        <div class="chart-card" id="slotFillProgressSection">
+            <h3>📉 時間枠別 埋まり推移<span class="help-icon" onclick="openHelpModal('slotFillProgress')">?<span class="tooltip">各時間枠がいつ埋まったかをヒートマップで表示</span></span></h3>
+            <div class="slot-fill-controls" style="margin-bottom: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <select id="slotFillDateSelect" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                    <option value="">日付を選択...</option>
+                </select>
+            </div>
+            <div id="slotFillHeatmap" class="slot-fill-heatmap"></div>
+        </div>
+
         <!-- 2列グラフ -->
         <div class="charts-row">
             <!-- 曜日×時間帯ヒートマップ -->
@@ -2177,17 +2188,6 @@
                     <span>データを読み込んでください</span>
                 </div>
             </div>
-        </div>
-
-        <!-- 時間枠別埋まり推移ヒートマップ（横幅いっぱい） -->
-        <div class="chart-card" id="slotFillProgressSection">
-            <h3>📉 時間枠別 埋まり推移<span class="help-icon" onclick="openHelpModal('slotFillProgress')">?<span class="tooltip">各時間枠がいつ埋まったかをヒートマップで表示</span></span></h3>
-            <div class="slot-fill-controls" style="margin-bottom: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
-                <select id="slotFillDateSelect" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
-                    <option value="">日付を選択...</option>
-                </select>
-            </div>
-            <div id="slotFillHeatmap" class="slot-fill-heatmap"></div>
         </div>
 
         <!-- 2列グラフ -->
