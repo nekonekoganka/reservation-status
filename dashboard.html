@@ -2029,7 +2029,13 @@
         <div class="charts-grid weekly-progress-chart">
             <div class="chart-card">
                 <h3>📈 直近1週間の空き枠推移（日別）- 10分刻み<span class="help-icon" onclick="openHelpModal('weeklyProgress')">?<span class="tooltip">直近1週間の各日のデータを表示</span></span></h3>
-                <div class="chart-container large">
+                <div class="chart-container large" style="position: relative;">
+                    <div id="chartLoading" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.9); z-index: 10;">
+                        <div style="text-align: center; color: #666;">
+                            <div class="loading-spinner" style="width: 40px; height: 40px; border: 4px solid #e0e0e0; border-top-color: #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>
+                            <div>グラフを読み込み中...</div>
+                        </div>
+                    </div>
                     <canvas id="weeklyProgressChart"></canvas>
                 </div>
             </div>
@@ -2217,30 +2223,20 @@
          */
         async function loadCurrentStatus() {
             try {
-                // 一般予約と視野予約、および履歴データを並列で取得
-                const [generalData, shiyaData, generalHistory, shiyaHistory] = await Promise.all([
+                // === STEP 1: 現在の空き枠を最優先で取得・表示 ===
+                const [generalData, shiyaData] = await Promise.all([
                     fetchCurrentSlots(TIMESLOTS_URLS.general),
-                    fetchCurrentSlots(TIMESLOTS_URLS.shiya),
-                    fetchTodayHistory('general'),
-                    fetchTodayHistory('shiya')
+                    fetchCurrentSlots(TIMESLOTS_URLS.shiya)
                 ]);
 
-                // 履歴データから埋まり時刻を計算
-                if (generalHistory) {
-                    analyzeSlotFillTimes(generalHistory, 'general');
-                }
-                if (shiyaHistory) {
-                    analyzeSlotFillTimes(shiyaHistory, 'shiya');
-                }
-
-                // 一般予約の表示更新
+                // 一般予約の表示更新（まずアニメーションなしで表示）
                 if (generalData) {
                     updateCurrentStatusCard('general', generalData);
                 } else {
                     setStatusError('general');
                 }
 
-                // 視野予約の表示更新
+                // 視野予約の表示更新（まずアニメーションなしで表示）
                 if (shiyaData) {
                     updateCurrentStatusCard('shiya', shiyaData);
                 } else {
@@ -2251,6 +2247,27 @@
                 const now = new Date();
                 const timeStr = now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
                 document.getElementById('currentStatusTime').textContent = `最終更新: ${timeStr}`;
+
+                // === STEP 2: 履歴データを非同期で取得（アニメーション用、待たない） ===
+                Promise.all([
+                    fetchTodayHistory('general'),
+                    fetchTodayHistory('shiya')
+                ]).then(([generalHistory, shiyaHistory]) => {
+                    // 履歴データから埋まり時刻を計算
+                    if (generalHistory) {
+                        analyzeSlotFillTimes(generalHistory, 'general');
+                    }
+                    if (shiyaHistory) {
+                        analyzeSlotFillTimes(shiyaHistory, 'shiya');
+                    }
+                    // タイムラインを再描画してアニメーションを適用
+                    if (generalData) {
+                        renderTimeline('general', generalData.slots || []);
+                    }
+                    if (shiyaData) {
+                        renderTimeline('shiya', shiyaData.slots || []);
+                    }
+                });
 
             } catch (error) {
                 console.error('現在の空き状況の取得に失敗:', error);
@@ -2921,7 +2938,7 @@
         }
 
         // 初期化
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             // プリセットボタンのイベント
             document.querySelectorAll('.preset-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -2930,10 +2947,10 @@
                 });
             });
 
-            // 現在の空き状況を読み込み
-            loadCurrentStatus();
+            // 現在の空き状況を最優先で読み込み（awaitで完了を待つ）
+            await loadCurrentStatus();
 
-            // 初回データ読み込み
+            // 空き状況表示後にグラフデータを読み込み
             loadData();
         });
 
@@ -3442,6 +3459,12 @@
             updateRecentDataTable(data);
             updatePopularSlotsRanking(data);
             updateSlotFillProgressChart(data);
+
+            // ローディング表示を非表示
+            const chartLoading = document.getElementById('chartLoading');
+            if (chartLoading) {
+                chartLoading.style.display = 'none';
+            }
         }
 
         // 1日の空き枠推移グラフ（10分刻み）
