@@ -1147,14 +1147,15 @@
 
             .container > header { order: 1; }
             .container > .current-status-section { order: 2; }
-            .container > .controls { order: 4; }
-            .container > .charts-row { order: 6; }
-            .container > .charts-grid { order: 7; }
-            .container > .chart-card { order: 8; }
+            .container > .controls { order: 5; }
+            .container > .charts-row { order: 7; }
+            .container > .charts-grid { order: 8; }
+            .container > .chart-card { order: 9; }
             .container > footer { order: 99; }
             /* 特定グラフの順序（より後に記述して優先） */
             .container > .weekly-progress-chart { order: 3; }
-            .container > .daily-progress-chart { order: 5; }
+            .container > #slotFillProgressSection { order: 4; }
+            .container > .daily-progress-chart { order: 6; }
 
 
             /* 現在の空き状況セクション */
@@ -2336,10 +2337,12 @@
                     }
                     // タイムラインを再描画してアニメーションを適用
                     if (generalData) {
-                        renderTimeline('general', generalData.slots || []);
+                        renderDotTimeline('general', 'Am', AM_SLOTS, generalData.slots || []);
+                        renderDotTimeline('general', 'Pm', PM_SLOTS, generalData.slots || []);
                     }
                     if (shiyaData) {
-                        renderTimeline('shiya', shiyaData.slots || []);
+                        renderDotTimeline('shiya', 'Am', AM_SLOTS, shiyaData.slots || []);
+                        renderDotTimeline('shiya', 'Pm', PM_SLOTS, shiyaData.slots || []);
                     }
                 });
 
