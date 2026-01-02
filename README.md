@@ -303,7 +303,233 @@ gsutil ls gs://reservation-timeslots-fujiminohikari/history/shiya/
 
 ## 🆕 最近のアップデート（技術的な改善履歴）
 
-### 2025年12月8日 - Cloud Run再デプロイと履歴保存機能の有効化 🆕
+### 2026年1月2日 - ダッシュボード大幅改善とスマホ版最適化 🆕
+
+#### 📊 時間枠別埋まり推移ヒートマップの実装
+
+**概要:**
+各予約枠がいつ埋まったかを視覚的に確認できるヒートマップを実装しました。当初は3Dグラフ（Plotly.js）で実装しましたが、見やすさを優先して2Dヒートマップに変更しました。
+
+**ヒートマップの仕様:**
+```
+       10:00  10:15  10:30  ...  17:45
+19:00  □     □     □           □      ← 前日19時時点
+21:00  □     □     □           □
+...
+09:00  ■     □     ■           □
+11:00  ■     ■     ■           ■      ← 当日11時時点
+  ↓時刻の経過（2時間刻み）
+```
+
+- **横軸**: 予約枠の時間帯（10:00〜18:00）
+- **縦軸**: 時刻の経過（2時間刻み: 19:00, 21:00, 23:00, 01:00, 03:00, 05:00, 07:00, 09:00, 11:00, 13:00, 15:00, 17:00）
+- **白色**: 空き
+- **色付き**: 埋まり（一般=オレンジ #CC6600、視野=緑 #006633）
+
+**実装のポイント:**
+```javascript
+// 2時間刻みのターゲット時刻
+const targetHours = ['19:00', '21:00', '23:00', '01:00', '03:00', '05:00',
+                     '07:00', '09:00', '11:00', '13:00', '15:00', '17:00'];
+
+// 各ターゲット時刻に最も近いエントリを取得
+targetHours.forEach(targetTime => {
+    // 日をまたぐ場合の調整（18:30開始なので19時以降は同日扱い）
+    if (entryMinutes < 18 * 60) entryMinutes += 24 * 60;
+    if (targetMinutes < 18 * 60) targetMinutes += 24 * 60;
+});
+```
+
+**変更履歴:**
+1. 3Dサーフェスチャート（Plotly.js）で実装
+2. 見づらいとのフィードバックで2Dヒートマップに変更
+3. 縦軸を1分刻みから2時間刻みに変更
+4. 横幅いっぱいに表示するようレイアウト変更
+
+---
+
+#### 🎨 タイムラインバーの2時間以内色変わり機能
+
+**概要:**
+タイムラインバーで、2時間以内に状態が変わった枠にアニメーションを適用する機能を実装しました。
+
+**機能:**
+- **2時間以内に埋まった枠**: パルスアニメーション（点滅）
+  - 一般予約: 赤色 (#EE3333) で点滅
+  - 視野予約: 黄緑色 (#88CC00) で点滅
+- **2時間以内にキャンセル発生**: グローアニメーション（発光）
+  - 一般予約: オレンジのグロー
+  - 視野予約: 緑のグロー
+
+**CSSアニメーション:**
+```css
+/* 2時間以内に埋まった枠のパルス */
+@keyframes pulse-general {
+    0%, 100% { background: #EE3333; }
+    50% { background: #FF6666; }
+}
+
+/* キャンセル発生時のグロー */
+@keyframes glow-general {
+    0%, 100% { box-shadow: 0 0 5px 2px rgba(204, 102, 0, 0.6); }
+    50% { box-shadow: 0 0 12px 4px rgba(204, 102, 0, 0.9); }
+}
+```
+
+**バグ修正:**
+スマホ版で2時間以内色変わり機能が動作していなかった問題を修正。
+- **原因**: 存在しない `renderTimeline()` 関数を呼んでいた
+- **修正**: 正しい `renderDotTimeline()` 関数を呼ぶよう変更
+
+```javascript
+// 修正前（バグ）
+renderTimeline('general', generalData.slots || []);
+
+// 修正後
+renderDotTimeline('general', 'Am', AM_SLOTS, generalData.slots || []);
+renderDotTimeline('general', 'Pm', PM_SLOTS, generalData.slots || []);
+```
+
+---
+
+#### 📱 スマホ版レイアウトの最適化
+
+**概要:**
+スマホ版ダッシュボードの表示順序を最適化し、重要な情報を優先表示するようにしました。
+
+**表示順序（CSS flexbox order使用）:**
+```css
+.container > header { order: 1; }
+.container > .current-status-section { order: 2; }  /* 現在の空き状況 */
+.container > .weekly-progress-chart { order: 3; }   /* 直近1週間の推移 */
+.container > #slotFillProgressSection { order: 4; } /* 時間枠別埋まり推移 */
+.container > .controls { order: 5; }                /* コントロール */
+.container > .daily-progress-chart { order: 6; }    /* 曜日別平均 */
+```
+
+**改善点:**
+- 現在の空き状況を最優先で表示
+- 時間枠別埋まり推移ヒートマップをスマホでも表示可能に
+- PC版とスマホ版で異なるレイアウト順序を実現
+
+---
+
+#### ⚡ スマホ版読み込み速度の改善
+
+**問題:**
+スマホでダッシュボードを開いた際、折れ線グラフが表示されなかったり、古いキャッシュデータが表示されることがあった。
+
+**原因:**
+複数のAPIリクエストが同時に発生し、帯域幅を奪い合っていた。
+
+**修正内容:**
+```javascript
+async function loadCurrentStatus() {
+    // === STEP 1: 現在の空き枠を最優先で取得・表示 ===
+    const [generalData, shiyaData] = await Promise.all([...]);
+
+    // まずアニメーションなしで即座に表示
+    updateCurrentStatusCard('general', generalData);
+    updateCurrentStatusCard('shiya', shiyaData);
+
+    // === STEP 2: 履歴データを非同期で取得（待たない） ===
+    Promise.all([fetchTodayHistory('general'), fetchTodayHistory('shiya')])
+        .then(([generalHistory, shiyaHistory]) => {
+            // 履歴取得後にアニメーションを適用
+            analyzeSlotFillTimes(generalHistory, 'general');
+            renderDotTimeline('general', 'Am', AM_SLOTS, generalData.slots);
+        });
+}
+```
+
+**効果:**
+- 現在の空き状況が即座に表示される
+- 履歴データ取得を待たずにUIが描画される
+- ローディングスピナーでチャート読み込み中を明示
+
+---
+
+#### 🏷️ PC版凡例の日本語表記改善
+
+**概要:**
+PC版のタイムライン凡例をより分かりやすい表記に変更しました。
+
+**変更内容:**
+| 変更前 | 変更後 |
+|---|---|
+| 空き | 予約可能 |
+| 2h以内埋 | 最近埋まった（2h以内） |
+| 以前埋 | 以前から満枠 |
+| 2h以内空 | キャンセル発生（2h以内） |
+
+---
+
+#### 🔌 Chrome拡張機能のアニメーション対応
+
+**概要:**
+Chrome拡張機能（一般予約・視野予約）のポップアップにもダッシュボードと同じアニメーション機能を実装しました。
+
+**実装内容:**
+- 履歴データを非同期で取得（UIのブロックを回避）
+- 2時間以内に埋まった枠にパルスアニメーション
+- キャンセル発生枠にグローアニメーション
+
+**ローディング遅延の修正:**
+```javascript
+// 修正前（1秒の遅延が発生）
+await fetchTodayHistory();
+renderTimeline();
+
+// 修正後（即座に表示、アニメーションは後から適用）
+renderTimeline();  // まず表示
+fetchTodayHistory().then(() => {
+    analyzeSlotFillTimes(history);
+    renderTimeline();  // アニメーション付きで再描画
+});
+```
+
+---
+
+#### 📁 変更ファイル
+
+| ファイル | 変更内容 |
+|---|---|
+| `dashboard.html` | ヒートマップ実装、レイアウト順序変更、凡例改善、バグ修正 |
+| `chrome-extension-timeslot-general/popup.html` | アニメーションCSS追加 |
+| `chrome-extension-timeslot-general/popup.js` | 履歴取得・アニメーション適用ロジック |
+| `chrome-extension-timeslot-shiya/popup.html` | アニメーションCSS追加 |
+| `chrome-extension-timeslot-shiya/popup.js` | 履歴取得・アニメーション適用ロジック |
+
+---
+
+#### ⚠️ 実装時の注意点
+
+**1. 日をまたぐ時刻計算**
+```javascript
+// 18:30開始のデータなので、19時以降は同日、18時未満は翌日扱い
+if (entryMinutes < 18 * 60) entryMinutes += 24 * 60;
+```
+
+**2. スロット名のマッピング**
+```javascript
+// 13:00 → 12:55, 18:00 → 17:55 の変換が必要
+if (slot === '13:00') return '12:55';
+if (slot === '18:00') return '17:55';
+```
+
+**3. 履歴データの非同期取得**
+履歴データ取得をawaitすると、UIの表示が遅延する。Promise.then()で非同期処理し、まずUIを表示してからアニメーションを適用する。
+
+**4. CSS flexbox orderの優先順位**
+より具体的なセレクタ（IDセレクタ）を後に記述することで、クラスセレクタよりも優先される。
+```css
+.container > .chart-card { order: 9; }           /* 一般的なカード */
+.container > #slotFillProgressSection { order: 4; }  /* 特定のセクション */
+```
+
+---
+
+### 2025年12月8日 - Cloud Run再デプロイと履歴保存機能の有効化
 
 #### 🔧 Cloud Storage URL修正
 
