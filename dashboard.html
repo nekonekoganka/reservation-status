@@ -603,10 +603,15 @@
         }
 
         /* 埋まった時刻に応じた色（一般予約） */
-        /* 2時間以内: 赤 + 点滅 */
+        /* 2時間以内: 斜線パターン */
         .timeline-cell.general.filled.recent {
-            background: #EE3333;
-            animation: pulse-general 1.5s ease-in-out infinite;
+            background: repeating-linear-gradient(
+                45deg,
+                #CC6600,
+                #CC6600 2px,
+                #FF8800 2px,
+                #FF8800 4px
+            );
         }
         /* 2時間以上前: 基本色（オレンジ） */
         .timeline-cell.general.filled.before {
@@ -614,43 +619,31 @@
         }
 
         /* 埋まった時刻に応じた色（視野予約） */
-        /* 2時間以内: 黄緑 + 点滅 */
+        /* 2時間以内: 斜線パターン */
         .timeline-cell.shiya.filled.recent {
-            background: #88CC00;
-            animation: pulse-shiya 1.5s ease-in-out infinite;
+            background: repeating-linear-gradient(
+                45deg,
+                #006633,
+                #006633 2px,
+                #00994D 2px,
+                #00994D 4px
+            );
         }
         /* 2時間以上前: 基本色（緑） */
         .timeline-cell.shiya.filled.before {
             background: #006633;
         }
 
-        /* 点滅アニメーション */
-        @keyframes pulse-general {
-            0%, 100% { background: #EE3333; }
-            50% { background: #FF6666; }
-        }
-        @keyframes pulse-shiya {
-            0%, 100% { background: #88CC00; }
-            50% { background: #AADD44; }
-        }
-
-        /* 空きになったセル（キャンセル）のグローエフェクト */
+        /* 空きになったセル（キャンセル）の点線枠パターン */
         .timeline-cell.general.available.recently-opened {
             background: white;
-            animation: glow-general 2s ease-in-out infinite;
+            border: 2px dashed #CC6600 !important;
+            box-sizing: border-box;
         }
         .timeline-cell.shiya.available.recently-opened {
             background: white;
-            animation: glow-shiya 2s ease-in-out infinite;
-        }
-
-        @keyframes glow-general {
-            0%, 100% { box-shadow: 0 0 5px 2px rgba(204, 102, 0, 0.6); }
-            50% { box-shadow: 0 0 12px 4px rgba(204, 102, 0, 0.9); }
-        }
-        @keyframes glow-shiya {
-            0%, 100% { box-shadow: 0 0 5px 2px rgba(0, 102, 51, 0.6); }
-            50% { box-shadow: 0 0 12px 4px rgba(0, 102, 51, 0.9); }
+            border: 2px dashed #006633 !important;
+            box-sizing: border-box;
         }
 
         .timeline-time-labels {
@@ -707,52 +700,45 @@
         }
 
         /* 一般予約の凡例（デフォルト） */
-        .legend-cell.recent {
-            background: #EE3333;
-            animation: pulse-legend 1.5s ease-in-out infinite;
+        .legend-cell.recent-general {
+            background: repeating-linear-gradient(
+                45deg,
+                #CC6600,
+                #CC6600 2px,
+                #FF8800 2px,
+                #FF8800 4px
+            );
         }
 
         .legend-cell.before {
             background: #CC6600;
         }
 
-        @keyframes pulse-legend {
-            0%, 100% { background: #EE3333; }
-            50% { background: #FF6666; }
-        }
-
         /* 視野予約用の凡例スタイル */
-        .timeline-legend.shiya .legend-cell.recent {
-            background: #88CC00;
-            animation: pulse-legend-shiya 1.5s ease-in-out infinite;
+        .legend-cell.recent-shiya {
+            background: repeating-linear-gradient(
+                45deg,
+                #006633,
+                #006633 2px,
+                #00994D 2px,
+                #00994D 4px
+            );
         }
 
         .timeline-legend.shiya .legend-cell.before {
             background: #006633;
         }
 
-        @keyframes pulse-legend-shiya {
-            0%, 100% { background: #88CC00; }
-            50% { background: #AADD44; }
-        }
-
-        /* 空きになった凡例（グロー） */
+        /* 空きになった凡例（点線枠） */
         .legend-cell.recently-opened-general {
             background: white;
-            animation: glow-legend-general 2s ease-in-out infinite;
+            border: 2px dashed #CC6600;
+            box-sizing: border-box;
         }
         .legend-cell.recently-opened-shiya {
             background: white;
-            animation: glow-legend-shiya 2s ease-in-out infinite;
-        }
-
-        @keyframes glow-legend-general {
-            0%, 100% { box-shadow: 0 0 3px 1px rgba(204, 102, 0, 0.6); }
-            50% { box-shadow: 0 0 6px 2px rgba(204, 102, 0, 0.9); }
-        }
-        @keyframes glow-legend-shiya {
-            0%, 100% { box-shadow: 0 0 3px 1px rgba(0, 102, 51, 0.6); }
-            50% { box-shadow: 0 0 6px 2px rgba(0, 102, 51, 0.9); }
+            border: 2px dashed #006633;
+            box-sizing: border-box;
         }
 
         /* 空き時間枠リスト */
@@ -2021,7 +2007,7 @@
                         <span style="font-weight: bold; color: #CC6600; margin-right: 4px;">一般:</span>
                     </div>
                     <div class="timeline-legend-item">
-                        <div class="legend-cell recent" style="background: #EE3333; animation: pulse-legend 1.5s ease-in-out infinite;"></div>
+                        <div class="legend-cell recent-general"></div>
                         <span>最近埋まった（2h以内）</span>
                     </div>
                     <div class="timeline-legend-item">
@@ -2037,7 +2023,7 @@
                         <span style="font-weight: bold; color: #006633; margin-right: 4px;">視野:</span>
                     </div>
                     <div class="timeline-legend-item">
-                        <div class="legend-cell recent" style="background: #88CC00; animation: pulse-legend-shiya 1.5s ease-in-out infinite;"></div>
+                        <div class="legend-cell recent-shiya"></div>
                         <span>最近埋まった（2h以内）</span>
                     </div>
                     <div class="timeline-legend-item">

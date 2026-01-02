@@ -214,10 +214,15 @@
       background: #CC6600;
     }
 
-    /* 2時間以内に埋まったセル（点滅） */
+    /* 2時間以内に埋まったセル（斜線パターン） */
     .timeline-cell.filled.recent {
-      background: #EE3333;
-      animation: pulse 1.5s ease-in-out infinite;
+      background: repeating-linear-gradient(
+        45deg,
+        #CC6600,
+        #CC6600 2px,
+        #FF8800 2px,
+        #FF8800 4px
+      );
     }
 
     /* 2時間以上前に埋まったセル */
@@ -225,20 +230,11 @@
       background: #CC6600;
     }
 
-    /* 2時間以内に空きになったセル（グロー） */
+    /* 2時間以内に空きになったセル（点線枠） */
     .timeline-cell.available.recently-opened {
       background: white;
-      animation: glow 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { background: #EE3333; }
-      50% { background: #FF6666; }
-    }
-
-    @keyframes glow {
-      0%, 100% { box-shadow: 0 0 3px 1px rgba(204, 102, 0, 0.6); }
-      50% { box-shadow: 0 0 8px 3px rgba(204, 102, 0, 0.9); }
+      border: 2px dashed #CC6600 !important;
+      box-sizing: border-box;
     }
 
     .timeline-labels {
@@ -288,8 +284,13 @@
     }
 
     .legend-cell.recent {
-      background: #EE3333;
-      animation: pulse-legend 1.5s ease-in-out infinite;
+      background: repeating-linear-gradient(
+        45deg,
+        #CC6600,
+        #CC6600 2px,
+        #FF8800 2px,
+        #FF8800 4px
+      );
     }
 
     .legend-cell.before {
@@ -298,17 +299,8 @@
 
     .legend-cell.recently-opened {
       background: white;
-      animation: glow-legend 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse-legend {
-      0%, 100% { background: #EE3333; }
-      50% { background: #FF6666; }
-    }
-
-    @keyframes glow-legend {
-      0%, 100% { box-shadow: 0 0 2px 1px rgba(204, 102, 0, 0.6); }
-      50% { box-shadow: 0 0 4px 2px rgba(204, 102, 0, 0.9); }
+      border: 2px dashed #CC6600;
+      box-sizing: border-box;
     }
 
     /* フッター */
