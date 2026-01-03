@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>予約枠数表示（一般）</title>
+  <title>予約枠数表示</title>
   <style>
     * {
       margin: 0;
@@ -12,7 +12,7 @@
     }
 
     body {
-      width: 450px;
+      width: 520px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       background: #f8f9fa;
       padding: 12px;
@@ -25,32 +25,41 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    /* ヘッダー: アイコン左、情報右 */
-    .header {
+    /* ヘッダー: ボタン行 */
+    .header-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    /* アイコン行（左右配置） */
+    .status-icons-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      gap: 20px;
+    }
+
+    .status-icon-block {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-      position: relative;
+      gap: 10px;
     }
 
-    .icon-wrapper {
-      flex-shrink: 0;
-    }
-
-    .header-buttons {
-      position: absolute;
-      top: 0;
-      right: 0;
+    .status-icon-block .status-icon-info {
       display: flex;
       flex-direction: column;
-      align-items: flex-end;
-      gap: 4px;
+      gap: 2px;
     }
 
-    .header-buttons-row {
-      display: flex;
-      gap: 6px;
+    .status-icon-block.general .status-icon-info {
+      align-items: flex-start;
+    }
+
+    .status-icon-block.shiya .status-icon-info {
+      align-items: flex-end;
     }
 
     canvas {
@@ -58,23 +67,32 @@
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     }
 
-    .info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .title {
+    .status-card-title {
       font-size: 14px;
       font-weight: 600;
       color: #666;
-      margin-bottom: 4px;
+    }
+
+    .status-card-count {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .status-card-count.general {
+      color: #CC6600;
+    }
+
+    .status-card-count.shiya {
+      color: #006633;
+    }
+
+    .status-card-count.full {
+      color: #dc3545;
     }
 
     .status-text {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 2px;
+      font-size: 13px;
+      font-weight: 600;
     }
 
     .status-text.available {
@@ -90,132 +108,118 @@
     }
 
     .day-text {
-      font-size: 16px;
-      font-weight: 600;
-      color: #333;
-    }
-
-    /* 時間枠リスト */
-    .timeslots-section {
-      margin-bottom: 10px;
-    }
-
-    .timeslots-list {
-      background: #f8f9fa;
-      border-radius: 8px;
-      padding: 6px;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 4px;
-    }
-
-    .timeslot-item {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      padding: 8px 6px;
-      background: white;
-      border-radius: 6px;
-      font-size: 18px;
-      font-weight: 600;
-      color: #333;
-      border: 1px solid #e0e0e0;
-    }
-
-    /* 午前（14時より前）: 青背景 */
-    .timeslot-item.am {
-      background: #e8f4fc;
-      border-color: #3498db;
-    }
-
-    /* 午後（14時以降）: オレンジ背景 */
-    .timeslot-item.pm {
-      background: #fdf2e9;
-      border-color: #e67e22;
-    }
-
-    .timeslot-icon {
       font-size: 12px;
-    }
-
-    .no-slots {
-      grid-column: 1 / -1;
+      color: #666;
       text-align: center;
-      color: #999;
-      font-size: 13px;
-      padding: 10px;
+      margin-bottom: 8px;
     }
 
-    /* タイムラインバー（セルバー形式：午前/午後） */
-    .timeline-section {
-      margin-bottom: 10px;
+    /* 統合タイムラインテーブル */
+    .combined-timeline {
+      margin: 8px 0;
     }
 
-    .timeline-container {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    .combined-timeline table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
     }
 
-    .timeline-block {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 10px;
-      border-radius: 8px;
+    .combined-timeline th,
+    .combined-timeline td {
+      text-align: center;
+      border: 1px solid #e0e0e0;
+      padding: 0;
     }
 
-    .timeline-block.am {
-      background: linear-gradient(135deg, #fff9f0, #fff3e0);
-    }
-
-    .timeline-block.pm {
-      background: linear-gradient(135deg, #f0f7ff, #e3f2fd);
-    }
-
-    .timeline-period {
+    /* 時間ヘッダー行 */
+    .combined-timeline .hour-row th {
       font-size: 12px;
       font-weight: 700;
-      color: #555;
-      min-width: 28px;
-      flex-shrink: 0;
+      padding: 4px 0;
+      border-bottom: none;
     }
 
-    .timeline-content {
-      flex: 1;
-      min-width: 0;
+    .combined-timeline .hour-row th.am-header {
+      background: #fff3e0;
     }
 
-    .timeline-bar {
-      display: flex;
-      width: 100%;
-      border-radius: 4px;
-      overflow: hidden;
-      border: 1px solid #ccc;
+    .combined-timeline .hour-row th.pm-header {
+      background: #e3f2fd;
     }
 
-    .timeline-cell {
-      flex: 1;
-      height: 22px;
-      border-right: 1px solid #ddd;
-      box-sizing: border-box;
+    .combined-timeline .hour-row th.label-header {
+      background: #f5f5f5;
+      width: 32px;
+      font-size: 10px;
     }
 
-    .timeline-cell:last-child {
-      border-right: none;
+    /* 分ヘッダー行 */
+    .combined-timeline .minute-row th {
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 0;
+      border-top: none;
     }
 
-    .timeline-cell.available {
+    .combined-timeline .minute-row th.am-minute {
+      background: #fff3e0;
+    }
+
+    .combined-timeline .minute-row th.am-minute.hour-start {
+      background: #ffe0b2;
+    }
+
+    .combined-timeline .minute-row th.pm-minute {
+      background: #e3f2fd;
+    }
+
+    .combined-timeline .minute-row th.pm-minute.hour-start {
+      background: #bbdefb;
+    }
+
+    .combined-timeline .minute-row th.label-header {
+      background: #f5f5f5;
+    }
+
+    /* セル行 */
+    .combined-timeline .cell-row td {
+      height: 24px;
+    }
+
+    .combined-timeline .cell-row td.hour-start {
+      border-left: 2px solid #999;
+    }
+
+    .combined-timeline .cell-row td.row-label {
+      background: #f5f5f5;
+      font-size: 11px;
+      font-weight: 700;
+      width: 32px;
+    }
+
+    .combined-timeline .cell-row td.row-label.general {
+      color: #CC6600;
+    }
+
+    .combined-timeline .cell-row td.row-label.shiya {
+      color: #006633;
+    }
+
+    /* セルの状態 */
+    .combined-timeline .cell-available {
       background: white;
     }
 
-    .timeline-cell.filled {
+    .combined-timeline .cell-filled.general {
       background: #CC6600;
     }
 
-    /* 2時間以内に埋まったセル（斜線パターン） */
-    .timeline-cell.filled.recent {
+    .combined-timeline .cell-filled.shiya {
+      background: #006633;
+    }
+
+    .combined-timeline .cell-filled.general.recent {
       background: repeating-linear-gradient(
         45deg,
         #CC6600,
@@ -225,40 +229,39 @@
       );
     }
 
-    /* 2時間以上前に埋まったセル */
-    .timeline-cell.filled.before {
-      background: #CC6600;
+    .combined-timeline .cell-filled.shiya.recent {
+      background: repeating-linear-gradient(
+        45deg,
+        #006633,
+        #006633 2px,
+        #00994D 2px,
+        #00994D 4px
+      );
     }
 
-    /* 2時間以内に空きになったセル（点線枠） */
-    .timeline-cell.available.recently-opened {
+    .combined-timeline .cell-available.recently-opened {
       background: white;
-      border: 2px dashed #CC6600 !important;
+      border: 2px dashed currentColor !important;
       box-sizing: border-box;
     }
 
-    .timeline-labels {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 3px;
-      padding: 0;
+    .combined-timeline .cell-available.recently-opened.general {
+      border-color: #CC6600 !important;
     }
 
-    .timeline-label {
-      font-size: 14px;
-      color: #333;
-      font-weight: 700;
-      text-align: center;
+    .combined-timeline .cell-available.recently-opened.shiya {
+      border-color: #006633 !important;
     }
 
-    /* タイムライン下の凡例 */
+    /* 凡例 */
     .timeline-legend {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
       margin-top: 8px;
-      font-size: 11px;
+      font-size: 10px;
       color: #666;
     }
 
@@ -269,8 +272,8 @@
     }
 
     .legend-cell {
-      width: 16px;
-      height: 12px;
+      width: 14px;
+      height: 10px;
       border-radius: 2px;
       border: 1px solid #ccc;
     }
@@ -279,11 +282,7 @@
       background: white;
     }
 
-    .legend-cell.filled {
-      background: #CC6600;
-    }
-
-    .legend-cell.recent {
+    .legend-cell.recent-general {
       background: repeating-linear-gradient(
         45deg,
         #CC6600,
@@ -293,14 +292,103 @@
       );
     }
 
-    .legend-cell.before {
+    .legend-cell.recent-shiya {
+      background: repeating-linear-gradient(
+        45deg,
+        #006633,
+        #006633 2px,
+        #00994D 2px,
+        #00994D 4px
+      );
+    }
+
+    .legend-cell.before-general {
       background: #CC6600;
     }
 
-    .legend-cell.recently-opened {
+    .legend-cell.before-shiya {
+      background: #006633;
+    }
+
+    .legend-cell.recently-opened-general {
       background: white;
       border: 2px dashed #CC6600;
       box-sizing: border-box;
+    }
+
+    .legend-cell.recently-opened-shiya {
+      background: white;
+      border: 2px dashed #006633;
+      box-sizing: border-box;
+    }
+
+    /* 空き枠セクション */
+    .timeslots-sections {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .timeslots-section {
+      flex: 1;
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 8px;
+    }
+
+    .timeslots-section h4 {
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 2px solid;
+    }
+
+    .timeslots-section.general h4 {
+      color: #CC6600;
+      border-color: #CC6600;
+    }
+
+    .timeslots-section.shiya h4 {
+      color: #006633;
+      border-color: #006633;
+    }
+
+    .timeslots-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+    }
+
+    .timeslot-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 4px;
+      background: white;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      border: 1px solid #e0e0e0;
+    }
+
+    .timeslot-item.am {
+      background: #e8f4fc;
+      border-color: #3498db;
+    }
+
+    .timeslot-item.pm {
+      background: #fdf2e9;
+      border-color: #e67e22;
+    }
+
+    .no-slots {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: #999;
+      font-size: 12px;
+      padding: 8px;
     }
 
     /* フッター */
@@ -309,6 +397,9 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #e0e0e0;
     }
 
     .update-info {
@@ -320,7 +411,7 @@
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
-      padding: 6px 10px;
+      padding: 6px 12px;
       border-radius: 6px;
       font-size: 12px;
       font-weight: 600;
@@ -357,8 +448,8 @@
     }
 
     .icon-btn:hover {
-      background: #CC6600;
-      border-color: #CC6600;
+      background: #667eea;
+      border-color: #667eea;
       color: white;
     }
 
@@ -390,83 +481,85 @@
 </head>
 <body>
   <div class="container">
-    <!-- ヘッダー: アイコン + 情報 -->
-    <div class="header">
-      <div class="icon-wrapper">
-        <canvas id="icon-canvas" width="80" height="80"></canvas>
-      </div>
-      <div class="info">
-        <div class="title">一般予約</div>
-        <div id="status-text" class="status-text">読み込み中...</div>
-        <div id="day-text" class="day-text"></div>
-      </div>
-      <div class="header-buttons">
-        <div class="header-buttons-row">
-          <a id="help-link" class="icon-btn help-btn" href="https://nekonekoganka.github.io/reservation-status/chrome-extension-help.html" target="_blank" title="ヘルプ">? ヘルプ</a>
-          <a id="dashboard-link" class="icon-btn dashboard-btn" href="https://nekonekoganka.github.io/reservation-status/dashboard.html" target="_blank" title="予約傾向ダッシュボードへ">📊 ダッシュボード</a>
+    <!-- ヘッダーボタン -->
+    <div class="header-buttons">
+      <a id="help-link" class="icon-btn help-btn" href="https://nekonekoganka.github.io/reservation-status/chrome-extension-help.html" target="_blank" title="ヘルプ">? ヘルプ</a>
+      <a id="dashboard-link" class="icon-btn dashboard-btn" href="https://nekonekoganka.github.io/reservation-status/dashboard.html" target="_blank" title="予約傾向ダッシュボードへ">📊 ダッシュボード</a>
+    </div>
+
+    <!-- アイコン行（左右配置） -->
+    <div class="status-icons-row">
+      <div class="status-icon-block general">
+        <canvas id="icon-canvas-general" width="80" height="80"></canvas>
+        <div class="status-icon-info">
+          <span class="status-card-title">一般予約</span>
+          <span class="status-card-count general" id="count-general">--</span>
+          <span class="status-text" id="status-text-general">読み込み中...</span>
         </div>
+      </div>
+      <div class="status-icon-block shiya">
+        <div class="status-icon-info">
+          <span class="status-card-title">視野予約</span>
+          <span class="status-card-count shiya" id="count-shiya">--</span>
+          <span class="status-text" id="status-text-shiya">読み込み中...</span>
+        </div>
+        <canvas id="icon-canvas-shiya" width="80" height="80"></canvas>
       </div>
     </div>
 
-    <!-- タイムラインバー（セルバー形式：午前/午後） -->
-    <div class="timeline-section" id="timeline-section" style="display: none;">
-      <div class="timeline-container">
-        <!-- 午前ブロック -->
-        <div class="timeline-block am">
-          <span class="timeline-period">午前</span>
-          <div class="timeline-content">
-            <div id="timeline-bar-am" class="timeline-bar">
-              <!-- JSで動的に生成 -->
-            </div>
-            <div class="timeline-labels">
-              <span class="timeline-label">10</span>
-              <span class="timeline-label">11</span>
-              <span class="timeline-label">12</span>
-              <span class="timeline-label">13</span>
-            </div>
-          </div>
-        </div>
-        <!-- 午後ブロック -->
-        <div class="timeline-block pm">
-          <span class="timeline-period">午後</span>
-          <div class="timeline-content">
-            <div id="timeline-bar-pm" class="timeline-bar">
-              <!-- JSで動的に生成 -->
-            </div>
-            <div class="timeline-labels">
-              <span class="timeline-label">15</span>
-              <span class="timeline-label">16</span>
-              <span class="timeline-label">17</span>
-              <span class="timeline-label">18</span>
-            </div>
-          </div>
-        </div>
+    <!-- 日付表示 -->
+    <div class="day-text" id="day-text"></div>
+
+    <!-- 統合タイムラインテーブル -->
+    <div class="combined-timeline" id="combined-timeline">
+      <!-- JSで動的に生成 -->
+    </div>
+
+    <!-- 凡例 -->
+    <div class="timeline-legend">
+      <div class="legend-item">
+        <span class="legend-cell available"></span>
+        <span>予約可能</span>
       </div>
-      <!-- 凡例（タイムライン下） -->
-      <div class="timeline-legend">
-        <div class="legend-item">
-          <span class="legend-cell available"></span>
-          <span>予約可能</span>
-        </div>
-        <div class="legend-item">
-          <span class="legend-cell recent"></span>
-          <span>最近埋まった</span>
-        </div>
-        <div class="legend-item">
-          <span class="legend-cell before"></span>
-          <span>以前から満枠</span>
-        </div>
-        <div class="legend-item">
-          <span class="legend-cell recently-opened"></span>
-          <span>キャンセル発生</span>
-        </div>
+      <div class="legend-item">
+        <span class="legend-cell recent-general"></span>
+        <span>一般:最近埋まった</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-cell before-general"></span>
+        <span>一般:以前から満枠</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-cell recently-opened-general"></span>
+        <span>一般:キャンセル</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-cell recent-shiya"></span>
+        <span>視野:最近埋まった</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-cell before-shiya"></span>
+        <span>視野:以前から満枠</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-cell recently-opened-shiya"></span>
+        <span>視野:キャンセル</span>
       </div>
     </div>
 
-    <!-- 時間枠リスト -->
-    <div class="timeslots-section" id="timeslots-section" style="display: none;">
-      <div class="timeslots-list" id="timeslots-list">
-        <div class="no-slots">データを読み込み中...</div>
+    <!-- 空き枠セクション -->
+    <div class="timeslots-sections">
+      <div class="timeslots-section general">
+        <h4>一般予約 空き枠</h4>
+        <div class="timeslots-list" id="timeslots-list-general">
+          <div class="no-slots">読み込み中...</div>
+        </div>
+      </div>
+      <div class="timeslots-section shiya">
+        <h4>視野予約 空き枠</h4>
+        <div class="timeslots-list" id="timeslots-list-shiya">
+          <div class="no-slots">読み込み中...</div>
+        </div>
       </div>
     </div>
 

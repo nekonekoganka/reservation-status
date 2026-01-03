@@ -1,14 +1,42 @@
-// ポップアップのロジック
+// ポップアップのロジック（統合版）
 
 let countdownInterval = null;
-let currentSlots = [];
+
+// 現在のスロットデータ
+const currentSlotsData = {
+  general: [],
+  shiya: []
+};
 
 // 履歴データURL
-const HISTORY_URL = 'https://storage.googleapis.com/fujimino-reservation-status/history-shiya';
+const HISTORY_URLS = {
+  general: 'https://storage.googleapis.com/fujimino-reservation-status/history-general',
+  shiya: 'https://storage.googleapis.com/fujimino-reservation-status/history-shiya'
+};
+
+// 現在データURL
+const CURRENT_URLS = {
+  general: 'https://storage.googleapis.com/fujimino-reservation-status/current-general.json',
+  shiya: 'https://storage.googleapis.com/fujimino-reservation-status/current-shiya.json'
+};
 
 // 埋まり時刻・空き時刻を追跡
-const slotFillTimes = {};
-const slotOpenTimes = {};
+const slotFillTimes = { general: {}, shiya: {} };
+const slotOpenTimes = { general: {}, shiya: {} };
+
+// 15分間隔の時間枠定義
+const AM_SLOTS = ['10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30', '11:45', '12:00', '12:15', '12:30', '12:45', '13:00'];
+const PM_SLOTS = ['15:00', '15:15', '15:30', '15:45', '16:00', '16:15', '16:30', '16:45', '17:00', '17:15', '17:30', '17:45', '18:00'];
+
+// 時間グループ定義
+const hourGroups = [
+  { hour: 10, slots: ['10:00', '10:15', '10:30', '10:45'], isAm: true },
+  { hour: 11, slots: ['11:00', '11:15', '11:30', '11:45'], isAm: true },
+  { hour: 12, slots: ['12:00', '12:15', '12:30', '12:45', '13:00'], isAm: true },
+  { hour: 15, slots: ['15:00', '15:15', '15:30', '15:45'], isAm: false },
+  { hour: 16, slots: ['16:00', '16:15', '16:30', '16:45'], isAm: false },
+  { hour: 17, slots: ['17:00', '17:15', '17:30', '17:45', '18:00'], isAm: false }
+];
 
 // 日付フォーマット（YYYY-MM-DD）
 function formatDate(date) {
@@ -19,21 +47,34 @@ function formatDate(date) {
 }
 
 // 当日の履歴データを取得
-async function fetchTodayHistory() {
+async function fetchTodayHistory(type) {
   try {
     const today = formatDate(new Date());
-    const url = `${HISTORY_URL}/${today}.json?t=${Date.now()}`;
+    const url = `${HISTORY_URLS[type]}/${today}.json?t=${Date.now()}`;
     const response = await fetch(url);
     if (!response.ok) return null;
     return await response.json();
   } catch (e) {
-    console.log('[視野予約枠数] 履歴データ取得失敗:', e);
+    console.log(`[予約枠数] ${type}履歴データ取得失敗:`, e);
+    return null;
+  }
+}
+
+// 現在のデータを直接取得
+async function fetchCurrentSlots(type) {
+  try {
+    const url = `${CURRENT_URLS[type]}?t=${Date.now()}`;
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    console.log(`[予約枠数] ${type}現在データ取得失敗:`, e);
     return null;
   }
 }
 
 // 履歴データから各スロットの「埋まった時刻」「空いた時刻」を計算
-function analyzeSlotFillTimes(historyData) {
+function analyzeSlotFillTimes(historyData, type) {
   if (!historyData || !Array.isArray(historyData)) return;
 
   // 時間順にソート
@@ -65,27 +106,22 @@ function analyzeSlotFillTimes(historyData) {
         const isNowAvailable = currentSlots.includes(mappedSlot);
 
         if (wasAvailable && !isNowAvailable) {
-          // このスロットが埋まった
-          slotFillTimes[displaySlot] = recordTime;
-          delete slotOpenTimes[displaySlot];
+          slotFillTimes[type][displaySlot] = recordTime;
+          delete slotOpenTimes[type][displaySlot];
         } else if (!wasAvailable && isNowAvailable) {
-          // スロットが復活した（キャンセル等）
-          slotOpenTimes[displaySlot] = recordTime;
-          delete slotFillTimes[displaySlot];
+          slotOpenTimes[type][displaySlot] = recordTime;
+          delete slotFillTimes[type][displaySlot];
         }
       });
     }
 
     prevSlots = currentSlots;
   });
-
-  console.log('[視野予約枠数] 埋まり時刻:', slotFillTimes);
-  console.log('[視野予約枠数] 空き時刻:', slotOpenTimes);
 }
 
 // 埋まった時刻に基づいてクラス名を取得
-function getFilledTimeClass(slot) {
-  const filledAt = slotFillTimes[slot];
+function getFilledTimeClass(slot, type) {
+  const filledAt = slotFillTimes[type][slot];
   if (!filledAt) return 'before';
 
   const now = new Date();
@@ -98,8 +134,8 @@ function getFilledTimeClass(slot) {
 }
 
 // 空きになった時刻に基づいてクラス名を取得
-function getOpenedTimeClass(slot) {
-  const openedAt = slotOpenTimes[slot];
+function getOpenedTimeClass(slot, type) {
+  const openedAt = slotOpenTimes[type][slot];
   if (!openedAt) return null;
 
   const now = new Date();
@@ -109,6 +145,17 @@ function getOpenedTimeClass(slot) {
 
   const diffMinutes = (now - openedTime) / (1000 * 60);
   return diffMinutes <= 120 ? 'recently-opened' : null;
+}
+
+// スロットが空きかどうかをチェック
+function isSlotAvailable(slot, availableSlots) {
+  if (slot === '13:00') {
+    return availableSlots.includes('12:55') || availableSlots.includes('13:00');
+  }
+  if (slot === '18:00') {
+    return availableSlots.includes('17:55') || availableSlots.includes('18:00');
+  }
+  return availableSlots.includes(slot);
 }
 
 // 初期化
@@ -140,7 +187,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
-// 日付から適切な表示テキストを計算（月/日形式）
+// 日付から適切な表示テキストを計算
 function calculateDisplayTextWithDate(targetDate) {
   if (!targetDate) {
     return '本日';
@@ -150,14 +197,11 @@ function calculateDisplayTextWithDate(targetDate) {
   const currentDate = now.getDate();
   const currentMonth = now.getMonth() + 1;
 
-  // 対象日が今月か来月かを判定
   let targetMonth = currentMonth;
   if (targetDate < currentDate) {
-    // 日付が小さい場合は来月と判断
     targetMonth = currentMonth === 12 ? 1 : currentMonth + 1;
   }
 
-  // 本日/明日/次の診療日を判定
   let displayText;
   if (targetDate === currentDate) {
     displayText = '本日';
@@ -173,56 +217,39 @@ function calculateDisplayTextWithDate(targetDate) {
 // ステータスを読み込んで表示
 async function loadStatus() {
   try {
-    const data = await chrome.storage.local.get([
-      'lastUpdate',
-      'slots',
-      'slotsCount',
-      'displayText',
-      'status',
-      'date',
-      'error'
+    // ストレージから一般予約データを取得
+    const generalData = await chrome.storage.local.get([
+      'lastUpdate', 'slots', 'slotsCount', 'status', 'date', 'error'
     ]);
 
-    // エラーチェック
-    const hasError = data.error || !data.lastUpdate;
-    const slotsCount = data.slotsCount || 0;
+    // 視野予約データを直接取得
+    const shiyaData = await fetchCurrentSlots('shiya');
 
-    // ステータステキスト
-    const statusText = document.getElementById('status-text');
-    if (hasError) {
-      statusText.textContent = 'データ取得エラー';
-      statusText.className = 'status-text error';
-    } else if (slotsCount > 0) {
-      statusText.textContent = `残り${slotsCount}枠`;
-      statusText.className = 'status-text available';
-    } else {
-      statusText.textContent = '✕ 満枠';
-      statusText.className = 'status-text full';
-    }
+    // 一般予約を更新
+    const generalSlots = generalData.slots || [];
+    const generalCount = generalData.slotsCount || 0;
+    const hasGeneralError = generalData.error || !generalData.lastUpdate;
 
-    // 日付付きの表示テキストを計算
-    const displayText = calculateDisplayTextWithDate(data.date);
+    currentSlotsData.general = generalSlots;
+    updateStatusDisplay('general', generalCount, hasGeneralError, generalData.status);
+    displayTimeslotsList('general', generalSlots, generalCount);
+
+    // 視野予約を更新
+    const shiyaSlots = shiyaData?.slots || [];
+    const shiyaCount = shiyaSlots.length;
+    const hasShiyaError = !shiyaData;
+
+    currentSlotsData.shiya = shiyaSlots;
+    updateStatusDisplay('shiya', shiyaCount, hasShiyaError, hasShiyaError ? 'error' : (shiyaCount > 0 ? 'ok' : 'full'));
+    displayTimeslotsList('shiya', shiyaSlots, shiyaCount);
+
+    // 日付表示
+    const displayText = calculateDisplayTextWithDate(generalData.date);
     document.getElementById('day-text').textContent = displayText;
 
-    // 時間枠リストを表示（まず即座に表示）
-    currentSlots = data.slots || [];
-    displayTimeslots(currentSlots, slotsCount);
-
-    // アイコンを描画
-    drawIcon(slotsCount, data.status);
-
-    // 履歴データを非同期で取得してアニメーションを適用（待たない）
-    fetchTodayHistory().then(historyData => {
-      if (historyData) {
-        analyzeSlotFillTimes(historyData);
-        // タイムラインを再描画してアニメーションクラスを適用
-        renderTimeline(currentSlots);
-      }
-    });
-
     // 最終更新時刻
-    if (data.lastUpdate) {
-      const lastUpdate = new Date(data.lastUpdate);
+    if (generalData.lastUpdate) {
+      const lastUpdate = new Date(generalData.lastUpdate);
       const timeStr = lastUpdate.toLocaleTimeString('ja-JP', {
         hour: '2-digit',
         minute: '2-digit'
@@ -232,14 +259,56 @@ async function loadStatus() {
       document.getElementById('last-update').textContent = '--:--';
     }
 
+    // 統合タイムラインを描画
+    renderCombinedTimeline();
+
+    // 履歴データを非同期で取得してアニメーションを適用
+    Promise.all([
+      fetchTodayHistory('general'),
+      fetchTodayHistory('shiya')
+    ]).then(([generalHistory, shiyaHistory]) => {
+      if (generalHistory) {
+        analyzeSlotFillTimes(generalHistory, 'general');
+      }
+      if (shiyaHistory) {
+        analyzeSlotFillTimes(shiyaHistory, 'shiya');
+      }
+      renderCombinedTimeline();
+    });
+
   } catch (error) {
-    console.error('[視野予約枠数] ステータス読み込みエラー:', error);
+    console.error('[予約枠数] ステータス読み込みエラー:', error);
   }
 }
 
-// 時間枠が午前か午後かを判定（14時より前が午前、14時以降が午後）
+// ステータス表示を更新
+function updateStatusDisplay(type, count, hasError, status) {
+  const countElement = document.getElementById(`count-${type}`);
+  const statusTextElement = document.getElementById(`status-text-${type}`);
+
+  if (hasError) {
+    countElement.textContent = 'エラー';
+    countElement.className = `status-card-count ${type}`;
+    statusTextElement.textContent = 'データ取得エラー';
+    statusTextElement.className = 'status-text error';
+  } else if (count > 0) {
+    countElement.textContent = `残り${count}枠`;
+    countElement.className = `status-card-count ${type}`;
+    statusTextElement.textContent = '○ 空きあり';
+    statusTextElement.className = 'status-text available';
+  } else {
+    countElement.textContent = '満枠';
+    countElement.className = `status-card-count ${type} full`;
+    statusTextElement.textContent = '✕ 満枠';
+    statusTextElement.className = 'status-text full';
+  }
+
+  // アイコンを描画
+  drawIcon(type, count, status);
+}
+
+// 時間枠が午前か午後かを判定
 function getTimeSlotPeriod(slot) {
-  // "09:00" や "15:30" のような形式から時間を抽出
   const match = slot.match(/^(\d{1,2}):/);
   if (match) {
     const hour = parseInt(match[1], 10);
@@ -248,206 +317,140 @@ function getTimeSlotPeriod(slot) {
   return '';
 }
 
-// スロットを午前/午後に分類
-function splitSlots(slots) {
-  if (!slots || slots.length === 0) {
-    return { amSlots: [], pmSlots: [] };
-  }
-  const amSlots = slots.filter(slot => {
-    const hour = parseInt(slot.split(':')[0], 10);
-    return hour < 15;
-  });
-  const pmSlots = slots.filter(slot => {
-    const hour = parseInt(slot.split(':')[0], 10);
-    return hour >= 15;
-  });
-  return { amSlots, pmSlots };
-}
+// 時間枠リストを表示
+function displayTimeslotsList(type, slots, count) {
+  const listElement = document.getElementById(`timeslots-list-${type}`);
 
-// 午前スロットに13時以降があるか判定
-function hasLateAmSlots(amSlots) {
-  if (!amSlots || amSlots.length === 0) return false;
-  return amSlots.some(slot => {
-    const hour = parseInt(slot.split(':')[0], 10);
-    return hour >= 13;
-  });
-}
-
-// 午後スロットに18:00より後があるか判定
-function hasLatePmSlots(pmSlots) {
-  if (!pmSlots || pmSlots.length === 0) return false;
-  return pmSlots.some(slot => {
-    const match = slot.match(/^(\d{1,2}):(\d{2})/);
-    if (match) {
-      const hour = parseInt(match[1], 10);
-      const minute = parseInt(match[2], 10);
-      return hour > 18 || (hour === 18 && minute > 0);
-    }
-    return false;
-  });
-}
-
-// 午前バーの終了時刻を決定（分）
-function getAmEndMinutes(amSlots) {
-  return hasLateAmSlots(amSlots) ? 14 * 60 : 13 * 60;
-}
-
-// 午後バーの終了時刻を決定（分）
-function getPmEndMinutes(pmSlots) {
-  return hasLatePmSlots(pmSlots) ? 18 * 60 + 30 : 18 * 60;
-}
-
-// 時間文字列を午前バー上の位置（%）に変換
-function timeToPositionAm(timeStr, endMinutes) {
-  const match = timeStr.match(/^(\d{1,2}):(\d{2})/);
-  if (!match) return null;
-  const hour = parseInt(match[1], 10);
-  const minute = parseInt(match[2], 10);
-  const totalMinutes = hour * 60 + minute;
-  const startMinutes = 10 * 60;
-  const totalDuration = endMinutes - startMinutes;
-  const position = ((totalMinutes - startMinutes) / totalDuration) * 100;
-  if (position < 0 || position > 100) return null;
-  return position;
-}
-
-// 時間文字列を午後バー上の位置（%）に変換
-function timeToPositionPm(timeStr, endMinutes) {
-  const match = timeStr.match(/^(\d{1,2}):(\d{2})/);
-  if (!match) return null;
-  const hour = parseInt(match[1], 10);
-  const minute = parseInt(match[2], 10);
-  const totalMinutes = hour * 60 + minute;
-  const startMinutes = 15 * 60;
-  const totalDuration = endMinutes - startMinutes;
-  const position = ((totalMinutes - startMinutes) / totalDuration) * 100;
-  if (position < 0 || position > 100) return null;
-  return position;
-}
-
-// 15分間隔の時間枠定義（午前10:00-13:00、午後15:00-18:00）
-// 当院ルール: 13:00セルは12:55を、18:00セルは17:55を表示
-const AM_SLOTS = ['10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30', '11:45', '12:00', '12:15', '12:30', '12:45', '13:00'];
-const PM_SLOTS = ['15:00', '15:15', '15:30', '15:45', '16:00', '16:15', '16:30', '16:45', '17:00', '17:15', '17:30', '17:45', '18:00'];
-
-// スロットが空きかどうかをチェック（当院ルール: 13:00は12:55を、18:00は17:55をチェック）
-function isSlotAvailable(slot, availableSlots) {
-  if (slot === '13:00') {
-    return availableSlots.includes('12:55') || availableSlots.includes('13:00');
-  }
-  if (slot === '18:00') {
-    return availableSlots.includes('17:55') || availableSlots.includes('18:00');
-  }
-  return availableSlots.includes(slot);
-}
-
-// スロットの表示用ツールチップを取得
-function getSlotTooltip(slot, isAvailable) {
-  let displaySlot = slot;
-  if (slot === '13:00') displaySlot = '12:55';
-  if (slot === '18:00') displaySlot = '17:55';
-  return displaySlot + (isAvailable ? ' (空き)' : ' (埋まり)');
-}
-
-// タイムラインバー（セルバー形式：午前/午後）を描画（15分刻み固定）
-function renderTimeline(slots) {
-  const timelineSection = document.getElementById('timeline-section');
-  const amBarElement = document.getElementById('timeline-bar-am');
-  const pmBarElement = document.getElementById('timeline-bar-pm');
-  if (!amBarElement || !pmBarElement) return;
-
-  // 常に表示（空き枠がなくても全部埋まりとして表示）
-  timelineSection.style.display = 'block';
-
-  // 既存のセルをクリア
-  amBarElement.innerHTML = '';
-  pmBarElement.innerHTML = '';
-
-  const availableSlots = slots || [];
-
-  // 午前バーにセルを追加（15分刻み固定）
-  AM_SLOTS.forEach(slot => {
-    const cell = document.createElement('div');
-    cell.className = 'timeline-cell';
-    const isAvailable = isSlotAvailable(slot, availableSlots);
-    cell.classList.add(isAvailable ? 'available' : 'filled');
-
-    // 埋まり/空きの時刻に応じたクラスを追加
-    if (!isAvailable) {
-      const timeClass = getFilledTimeClass(slot);
-      cell.classList.add(timeClass);
-      const filledAt = slotFillTimes[slot];
-      let displaySlot = slot === '13:00' ? '12:55' : (slot === '18:00' ? '17:55' : slot);
-      cell.title = filledAt ? `${displaySlot} (${filledAt}に埋まり)` : `${displaySlot} (元から埋まり)`;
-    } else {
-      const openedClass = getOpenedTimeClass(slot);
-      if (openedClass) {
-        cell.classList.add(openedClass);
-        const openedAt = slotOpenTimes[slot];
-        let displaySlot = slot === '13:00' ? '12:55' : (slot === '18:00' ? '17:55' : slot);
-        cell.title = `${displaySlot} (${openedAt}に空き)`;
-      } else {
-        cell.title = getSlotTooltip(slot, isAvailable);
-      }
-    }
-    amBarElement.appendChild(cell);
-  });
-
-  // 午後バーにセルを追加（15分刻み固定）
-  PM_SLOTS.forEach(slot => {
-    const cell = document.createElement('div');
-    cell.className = 'timeline-cell';
-    const isAvailable = isSlotAvailable(slot, availableSlots);
-    cell.classList.add(isAvailable ? 'available' : 'filled');
-
-    // 埋まり/空きの時刻に応じたクラスを追加
-    if (!isAvailable) {
-      const timeClass = getFilledTimeClass(slot);
-      cell.classList.add(timeClass);
-      const filledAt = slotFillTimes[slot];
-      let displaySlot = slot === '13:00' ? '12:55' : (slot === '18:00' ? '17:55' : slot);
-      cell.title = filledAt ? `${displaySlot} (${filledAt}に埋まり)` : `${displaySlot} (元から埋まり)`;
-    } else {
-      const openedClass = getOpenedTimeClass(slot);
-      if (openedClass) {
-        cell.classList.add(openedClass);
-        const openedAt = slotOpenTimes[slot];
-        let displaySlot = slot === '13:00' ? '12:55' : (slot === '18:00' ? '17:55' : slot);
-        cell.title = `${displaySlot} (${openedAt}に空き)`;
-      } else {
-        cell.title = getSlotTooltip(slot, isAvailable);
-      }
-    }
-    pmBarElement.appendChild(cell);
-  });
-}
-
-// 時間枠リストを表示（全枠表示、AM/PM色分け）
-function displayTimeslots(slots, slotsCount) {
-  const timeslotsSection = document.getElementById('timeslots-section');
-  const timeslotsList = document.getElementById('timeslots-list');
-
-  // タイムラインバーを描画
-  renderTimeline(slots);
-
-  if (slotsCount > 0 && slots.length > 0) {
-    timeslotsSection.style.display = 'block';
-
-    // 全ての時間枠を表示（AM/PM色分け）
+  if (count > 0 && slots.length > 0) {
     const html = slots.map(slot => {
       const period = getTimeSlotPeriod(slot);
-      return `
-        <div class="timeslot-item ${period}">
-          <span>${slot}</span>
-        </div>
-      `;
+      return `<div class="timeslot-item ${period}"><span>${slot}</span></div>`;
     }).join('');
-
-    timeslotsList.innerHTML = html;
+    listElement.innerHTML = html;
   } else {
-    timeslotsSection.style.display = 'block';
-    timeslotsList.innerHTML = '<div class="no-slots">空き枠はありません</div>';
+    listElement.innerHTML = '<div class="no-slots">空き枠なし</div>';
   }
+}
+
+// 統合タイムラインを描画
+function renderCombinedTimeline() {
+  const container = document.getElementById('combined-timeline');
+  if (!container) return;
+
+  const generalSlots = currentSlotsData.general || [];
+  const shiyaSlots = currentSlotsData.shiya || [];
+
+  let html = '<table>';
+
+  // 時間ヘッダー行
+  html += '<tr class="hour-row">';
+  html += '<th class="label-header"></th>';
+  hourGroups.forEach(group => {
+    const headerClass = group.isAm ? 'am-header' : 'pm-header';
+    html += `<th colspan="${group.slots.length}" class="${headerClass}">${group.hour}</th>`;
+  });
+  html += '</tr>';
+
+  // 分ヘッダー行
+  html += '<tr class="minute-row">';
+  html += '<th class="label-header"></th>';
+  hourGroups.forEach(group => {
+    group.slots.forEach(slot => {
+      const minute = slot.split(':')[1];
+      const baseClass = group.isAm ? 'am-minute' : 'pm-minute';
+      const hourStartClass = minute === '00' ? ' hour-start' : '';
+      const displayMinute = (slot === '13:00' || slot === '18:00') ? '55' : minute;
+      html += `<th class="${baseClass}${hourStartClass}">${displayMinute}</th>`;
+    });
+  });
+  html += '</tr>';
+
+  // 一般予約セル行
+  html += '<tr class="cell-row">';
+  html += '<td class="row-label general">一般</td>';
+  hourGroups.forEach(group => {
+    group.slots.forEach(slot => {
+      const isAvailable = isSlotAvailable(slot, generalSlots);
+      const minute = slot.split(':')[1];
+      const hourStartClass = minute === '00' ? ' hour-start' : '';
+
+      let cellClass = isAvailable ? 'cell-available' : 'cell-filled general';
+      let stateClass = '';
+
+      if (!isAvailable) {
+        const timeClass = getFilledTimeClass(slot, 'general');
+        if (timeClass === 'recent') {
+          stateClass = ' recent';
+        }
+      } else {
+        const openedClass = getOpenedTimeClass(slot, 'general');
+        if (openedClass) {
+          stateClass = ' recently-opened general';
+        }
+      }
+
+      let displaySlot = slot;
+      if (slot === '13:00') displaySlot = '12:55';
+      if (slot === '18:00') displaySlot = '17:55';
+
+      let tooltip = '';
+      if (!isAvailable) {
+        const filledAt = slotFillTimes.general[slot];
+        tooltip = filledAt ? `${displaySlot} (${filledAt}に埋まり)` : `${displaySlot} (元から埋まり)`;
+      } else {
+        const openedAt = slotOpenTimes.general[slot];
+        tooltip = openedAt ? `${displaySlot} (${openedAt}に空き)` : `${displaySlot} 空き`;
+      }
+
+      html += `<td class="${cellClass}${stateClass}${hourStartClass}" title="${tooltip}"></td>`;
+    });
+  });
+  html += '</tr>';
+
+  // 視野予約セル行
+  html += '<tr class="cell-row">';
+  html += '<td class="row-label shiya">視野</td>';
+  hourGroups.forEach(group => {
+    group.slots.forEach(slot => {
+      const isAvailable = isSlotAvailable(slot, shiyaSlots);
+      const minute = slot.split(':')[1];
+      const hourStartClass = minute === '00' ? ' hour-start' : '';
+
+      let cellClass = isAvailable ? 'cell-available' : 'cell-filled shiya';
+      let stateClass = '';
+
+      if (!isAvailable) {
+        const timeClass = getFilledTimeClass(slot, 'shiya');
+        if (timeClass === 'recent') {
+          stateClass = ' recent';
+        }
+      } else {
+        const openedClass = getOpenedTimeClass(slot, 'shiya');
+        if (openedClass) {
+          stateClass = ' recently-opened shiya';
+        }
+      }
+
+      let displaySlot = slot;
+      if (slot === '13:00') displaySlot = '12:55';
+      if (slot === '18:00') displaySlot = '17:55';
+
+      let tooltip = '';
+      if (!isAvailable) {
+        const filledAt = slotFillTimes.shiya[slot];
+        tooltip = filledAt ? `${displaySlot} (${filledAt}に埋まり)` : `${displaySlot} (元から埋まり)`;
+      } else {
+        const openedAt = slotOpenTimes.shiya[slot];
+        tooltip = openedAt ? `${displaySlot} (${openedAt}に空き)` : `${displaySlot} 空き`;
+      }
+
+      html += `<td class="${cellClass}${stateClass}${hourStartClass}" title="${tooltip}"></td>`;
+    });
+  });
+  html += '</tr>';
+
+  html += '</table>';
+  container.innerHTML = html;
 }
 
 // 次回更新までのカウントダウン
@@ -470,7 +473,7 @@ async function updateCountdown() {
     }
 
     const lastUpdate = new Date(data.lastUpdate);
-    const nextUpdate = new Date(lastUpdate.getTime() + 60000); // 1分後
+    const nextUpdate = new Date(lastUpdate.getTime() + 60000);
     const now = new Date();
     const diff = nextUpdate - now;
 
@@ -481,58 +484,48 @@ async function updateCountdown() {
       document.getElementById('next-update').textContent = seconds;
     }
   } catch (error) {
-    console.error('[視野予約枠数] カウントダウンエラー:', error);
+    console.error('[予約枠数] カウントダウンエラー:', error);
   }
 }
 
-// Canvas APIでアイコンを描画（予約状況チェッカーと同じスタイル）
-function drawIcon(slotsCount, status) {
-  const canvas = document.getElementById('icon-canvas');
+// Canvas APIでアイコンを描画
+function drawIcon(type, slotsCount, status) {
+  const canvas = document.getElementById(`icon-canvas-${type}`);
   const ctx = canvas.getContext('2d');
   const size = 80;
-  const themeColor = '#006633'; // 緑（視野予約のテーマカラー）
+  const themeColor = type === 'general' ? '#CC6600' : '#006633';
+  const labelText = type === 'general' ? '一' : '視';
 
-  // 背景をクリア
   ctx.clearRect(0, 0, size, size);
 
-  // 枠数 > 0 の場合は白背景+色枠+テーマカラー数字のデザイン
   if (status !== 'error' && slotsCount > 0) {
-    const borderWidth = Math.max(1, Math.round(size * 0.08)); // 枠線の太さ（8%、最小1px）
+    const borderWidth = Math.max(1, Math.round(size * 0.08));
 
-    // 白背景で塗りつぶし
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, size, size);
 
-    // 外枠を描画
     ctx.strokeStyle = themeColor;
     ctx.lineWidth = borderWidth;
     ctx.strokeRect(borderWidth / 2, borderWidth / 2, size - borderWidth, size - borderWidth);
 
-    // テーマカラーの太い数字を最大サイズで表示
     ctx.fillStyle = themeColor;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // 数字のサイズ（1桁は95%、2桁は80%）
     const fontSize = slotsCount >= 10 ? size * 0.8 : size * 0.95;
     ctx.font = `bold ${fontSize}px sans-serif`;
-
-    // 中央に配置
     ctx.fillText(slotsCount.toString(), size / 2, size / 2);
   } else {
-    // 枠数 = 0 またはエラーの場合は2×2グリッドデザイン
     const cellSize = size / 2;
     const borderRadius = size * 0.15;
 
-    // 背景色を決定
     let bgColor;
     if (status === 'error') {
-      bgColor = '#FFA500'; // オレンジ（エラー時）
+      bgColor = '#FFA500';
     } else {
-      bgColor = '#dc3545'; // 赤（満枠）
+      bgColor = '#dc3545';
     }
 
-    // 左上3マス（予約状況）
     ctx.fillStyle = bgColor;
 
     // 左上
@@ -567,7 +560,7 @@ function drawIcon(slotsCount, status) {
     ctx.closePath();
     ctx.fill();
 
-    // 右下1マス（テーマカラー+文字）
+    // 右下
     ctx.fillStyle = themeColor;
     ctx.beginPath();
     ctx.moveTo(cellSize, cellSize);
@@ -579,24 +572,20 @@ function drawIcon(slotsCount, status) {
     ctx.closePath();
     ctx.fill();
 
-    // 白文字「視」を右下マスに描画
     ctx.fillStyle = 'white';
     ctx.font = `bold ${cellSize * 0.7}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('視', cellSize + cellSize / 2, cellSize + cellSize / 2);
+    ctx.fillText(labelText, cellSize + cellSize / 2, cellSize + cellSize / 2);
 
-    // 中央にマークを描画
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
     if (status === 'error') {
-      // エラー：⚠マーク
       ctx.fillStyle = 'white';
       ctx.font = `bold ${size * 0.6}px sans-serif`;
       ctx.fillText('⚠', size / 2, size / 2);
     } else {
-      // 満枠：太いバツ✕（線で描画）
       ctx.strokeStyle = 'white';
       ctx.lineWidth = size * 0.12;
       ctx.lineCap = 'round';
