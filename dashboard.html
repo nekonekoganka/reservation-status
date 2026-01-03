@@ -925,13 +925,13 @@
             border-color: #006633 !important;
         }
 
-        /* アイコン行（左右配置） */
+        /* アイコン行（PC: 左寄せ、スマホ: 左右配置） */
         .status-icons-row {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: flex-start;
             margin-bottom: 12px;
-            gap: 20px;
+            gap: 40px;
         }
 
         .status-icon-block {
@@ -955,7 +955,7 @@
         }
 
         .status-icon-block.shiya .status-icon-info {
-            align-items: flex-end;
+            align-items: flex-start;
         }
 
         /* 統合タイムライン（1テーブル） */
@@ -2050,13 +2050,18 @@
                 height: 16px;
             }
 
-            /* アイコン行 - スマホ */
+            /* アイコン行 - スマホは左右配置のまま */
             .status-icons-row {
+                justify-content: space-between;
                 gap: 10px;
             }
 
             .status-icon-block {
                 gap: 6px;
+            }
+
+            .status-icon-block.shiya .status-icon-info {
+                align-items: flex-end;
             }
 
             .status-icon-wrapper {
