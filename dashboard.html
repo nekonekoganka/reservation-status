@@ -324,6 +324,42 @@
             background: #006633;
         }
 
+        /* 2時間以内に埋まったセル（斜線パターン） */
+        .slot-fill-heatmap .cell-filled-general.recent {
+            background: repeating-linear-gradient(
+                45deg,
+                #CC6600,
+                #CC6600 2px,
+                #FF8800 2px,
+                #FF8800 4px
+            );
+        }
+
+        .slot-fill-heatmap .cell-filled-shiya.recent {
+            background: repeating-linear-gradient(
+                45deg,
+                #006633,
+                #006633 2px,
+                #00994D 2px,
+                #00994D 4px
+            );
+        }
+
+        /* キャンセル発生（点線枠） */
+        .slot-fill-heatmap .cell-available.recently-opened {
+            background: white;
+            border: 2px dashed currentColor !important;
+            box-sizing: border-box;
+        }
+
+        .slot-fill-heatmap .cell-available.recently-opened.general-border {
+            border-color: #CC6600 !important;
+        }
+
+        .slot-fill-heatmap .cell-available.recently-opened.shiya-border {
+            border-color: #006633 !important;
+        }
+
         /* 時間の区切り（0分のセル）- 左ボーダーを強調 */
         .slot-fill-heatmap .hour-divider {
             border-left: 2px solid #999;
@@ -4930,23 +4966,61 @@
             });
             html += `</tr>`;
 
+            // スロットの空き状態をチェックするヘルパー関数
+            function checkSlotAvailable(slots, slot) {
+                return slots.includes(slot) ||
+                    (slot === '12:55' && slots.includes('13:00')) ||
+                    (slot === '17:55' && slots.includes('18:00'));
+            }
+
+            // 時刻の差分を分で計算（日をまたぐ場合も考慮）
+            function getTimeDiffMinutes(time1, time2) {
+                const [h1, m1] = time1.split(':').map(Number);
+                const [h2, m2] = time2.split(':').map(Number);
+                let min1 = h1 * 60 + m1;
+                let min2 = h2 * 60 + m2;
+                // 18:30を基準に日またぎを調整
+                if (min1 < 18 * 60 + 30) min1 += 24 * 60;
+                if (min2 < 18 * 60 + 30) min2 += 24 * 60;
+                return Math.abs(min2 - min1);
+            }
+
+            const borderClass = currentType === 'shiya' ? 'shiya-border' : 'general-border';
+
             // データ行（2時間刻み）
-            filteredHistory.forEach(entry => {
+            filteredHistory.forEach((entry, index) => {
                 const displayTime = entry.displayTime;
                 const slots = entry.slots || [];
+                const prevEntry = index > 0 ? filteredHistory[index - 1] : null;
+                const prevSlots = prevEntry ? (prevEntry.slots || []) : [];
                 // スマホでは時刻を短縮
                 const rowLabel = isMobile ? displayTime.split(':')[0] : displayTime;
 
                 html += `<tr><td>${rowLabel}</td>`;
                 allSlots.forEach(slot => {
-                    const hasSlot = slots.includes(slot) ||
-                        (slot === '12:55' && slots.includes('13:00')) ||
-                        (slot === '17:55' && slots.includes('18:00'));
-                    const cellClass = hasSlot ? 'cell-available' : filledClass;
+                    const hasSlot = checkSlotAvailable(slots, slot);
+                    const hadSlot = prevEntry ? checkSlotAvailable(prevSlots, slot) : hasSlot;
+
+                    let cellClass = hasSlot ? 'cell-available' : filledClass;
+                    let stateClass = '';
+
+                    if (prevEntry) {
+                        const timeDiff = getTimeDiffMinutes(prevEntry.displayTime, displayTime);
+                        const isWithin2Hours = timeDiff <= 120;
+
+                        if (!hasSlot && hadSlot && isWithin2Hours) {
+                            // 前は空きで今は埋まり → 2時間以内なら recent
+                            stateClass = ' recent';
+                        } else if (hasSlot && !hadSlot && isWithin2Hours) {
+                            // 前は埋まりで今は空き → キャンセル発生
+                            stateClass = ` recently-opened ${borderClass}`;
+                        }
+                    }
+
                     // 0分のセルに区切り用のクラスを追加
                     const minute = slot.split(':')[1];
                     const dividerClass = minute === '00' ? ' hour-divider' : '';
-                    html += `<td class="${cellClass}${dividerClass}" title="${displayTime} - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
+                    html += `<td class="${cellClass}${stateClass}${dividerClass}" title="${displayTime} - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
                 });
                 html += `</tr>`;
             });
@@ -4958,15 +5032,32 @@
                 const latestTime = latestEntry.time;
                 const rowLabel = isMobile ? '今' : `現在 (${latestTime})`;
 
+                // 直前の2時間刻みデータと比較
+                const prevEntry = filteredHistory.length > 0 ? filteredHistory[filteredHistory.length - 1] : null;
+                const prevSlots = prevEntry ? (prevEntry.slots || []) : [];
+
                 html += `<tr class="current-row"><td class="current-label">${rowLabel}</td>`;
                 allSlots.forEach(slot => {
-                    const hasSlot = latestSlots.includes(slot) ||
-                        (slot === '12:55' && latestSlots.includes('13:00')) ||
-                        (slot === '17:55' && latestSlots.includes('18:00'));
-                    const cellClass = hasSlot ? 'cell-available' : filledClass;
+                    const hasSlot = checkSlotAvailable(latestSlots, slot);
+                    const hadSlot = prevEntry ? checkSlotAvailable(prevSlots, slot) : hasSlot;
+
+                    let cellClass = hasSlot ? 'cell-available' : filledClass;
+                    let stateClass = '';
+
+                    if (prevEntry) {
+                        const timeDiff = getTimeDiffMinutes(prevEntry.displayTime, latestTime);
+                        const isWithin2Hours = timeDiff <= 120;
+
+                        if (!hasSlot && hadSlot && isWithin2Hours) {
+                            stateClass = ' recent';
+                        } else if (hasSlot && !hadSlot && isWithin2Hours) {
+                            stateClass = ` recently-opened ${borderClass}`;
+                        }
+                    }
+
                     const minute = slot.split(':')[1];
                     const dividerClass = minute === '00' ? ' hour-divider' : '';
-                    html += `<td class="${cellClass}${dividerClass}" title="現在 (${latestTime}) - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
+                    html += `<td class="${cellClass}${stateClass}${dividerClass}" title="現在 (${latestTime}) - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
                 });
                 html += `</tr>`;
             }
@@ -4974,6 +5065,11 @@
             html += `</table>`;
 
             // 凡例
+            const recentPattern = currentType === 'shiya'
+                ? 'repeating-linear-gradient(45deg, #006633, #006633 2px, #00994D 2px, #00994D 4px)'
+                : 'repeating-linear-gradient(45deg, #CC6600, #CC6600 2px, #FF8800 2px, #FF8800 4px)';
+            const cancelBorder = currentType === 'shiya' ? '#006633' : '#CC6600';
+
             html += `
                 <div class="slot-fill-heatmap-legend">
                     <div class="legend-item">
@@ -4983,6 +5079,14 @@
                     <div class="legend-item">
                         <div class="legend-box" style="background: ${filledColor};"></div>
                         <span>埋まり</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box" style="background: ${recentPattern};"></div>
+                        <span>2h以内に埋まった</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box" style="background: white; border: 2px dashed ${cancelBorder};"></div>
+                        <span>キャンセル発生</span>
                     </div>
                 </div>
             `;
