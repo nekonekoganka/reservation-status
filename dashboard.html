@@ -346,6 +346,17 @@
             vertical-align: middle;
         }
 
+        /* 現在の状態行 */
+        .slot-fill-heatmap .current-row {
+            border-top: 2px solid #333;
+        }
+
+        .slot-fill-heatmap .current-row .current-label {
+            background: #ffeb3b !important;
+            font-weight: 700;
+            color: #333;
+        }
+
         .slot-fill-heatmap-legend {
             display: flex;
             align-items: center;
@@ -4939,6 +4950,26 @@
                 });
                 html += `</tr>`;
             });
+
+            // 現在の状態行（最新のデータ）
+            const latestEntry = history[history.length - 1];
+            if (latestEntry) {
+                const latestSlots = latestEntry.slots || [];
+                const latestTime = latestEntry.time;
+                const rowLabel = isMobile ? '今' : `現在 (${latestTime})`;
+
+                html += `<tr class="current-row"><td class="current-label">${rowLabel}</td>`;
+                allSlots.forEach(slot => {
+                    const hasSlot = latestSlots.includes(slot) ||
+                        (slot === '12:55' && latestSlots.includes('13:00')) ||
+                        (slot === '17:55' && latestSlots.includes('18:00'));
+                    const cellClass = hasSlot ? 'cell-available' : filledClass;
+                    const minute = slot.split(':')[1];
+                    const dividerClass = minute === '00' ? ' hour-divider' : '';
+                    html += `<td class="${cellClass}${dividerClass}" title="現在 (${latestTime}) - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
+                });
+                html += `</tr>`;
+            }
 
             html += `</table>`;
 
