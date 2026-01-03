@@ -3064,10 +3064,10 @@
                     if (summaryResponse.ok) {
                         const summaryData = await summaryResponse.json();
                         // 日次サマリーのdataPointsを履歴データ形式に変換
+                        // slots配列も保持してヒートマップで使用できるようにする
                         if (summaryData.dataPoints && Array.isArray(summaryData.dataPoints)) {
                             return summaryData.dataPoints.map(entry => ({
-                                time: entry.time,
-                                count: entry.count,
+                                ...entry,
                                 status: 'summary',
                                 date: dateStr
                             }));
@@ -4641,10 +4641,10 @@
             });
 
             // 日付選択時のイベント
-            dateSelect.onchange = () => {
+            dateSelect.onchange = async () => {
                 const selectedDate = dateSelect.value;
                 if (selectedDate && data[selectedDate]) {
-                    drawSlotFillHeatmap(data[selectedDate], selectedDate);
+                    await drawSlotFillHeatmap(data[selectedDate], selectedDate);
                 }
             };
 
@@ -4655,15 +4655,83 @@
             }
         }
 
-        function drawSlotFillHeatmap(dayData, date) {
+        // 履歴データを直接取得（slotHistoryが空の場合のフォールバック用）
+        async function fetchHistoryForHeatmap(date) {
+            const baseUrl = currentType === 'general' ? GENERAL_HISTORY : SHIYA_HISTORY;
+            try {
+                // まず対象日の前日のデータを取得（18:30以降のエントリ用）
+                const prevDate = new Date(date);
+                prevDate.setDate(prevDate.getDate() - 1);
+                const prevDateStr = formatDate(prevDate);
+
+                const [prevResponse, currentResponse] = await Promise.all([
+                    fetch(`${baseUrl}/${prevDateStr}.json`).catch(() => null),
+                    fetch(`${baseUrl}/${date}.json`).catch(() => null)
+                ]);
+
+                const entries = [];
+
+                // 前日の18:30以降のデータ
+                if (prevResponse && prevResponse.ok) {
+                    const prevData = await prevResponse.json();
+                    if (Array.isArray(prevData)) {
+                        prevData.forEach(entry => {
+                            if (entry.slots && Array.isArray(entry.slots)) {
+                                const [h, m] = entry.time.split(':').map(Number);
+                                if (h > 18 || (h === 18 && m >= 30)) {
+                                    entries.push(entry);
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // 当日のデータ
+                if (currentResponse && currentResponse.ok) {
+                    const currentData = await currentResponse.json();
+                    if (Array.isArray(currentData)) {
+                        currentData.forEach(entry => {
+                            if (entry.slots && Array.isArray(entry.slots)) {
+                                entries.push(entry);
+                            }
+                        });
+                    }
+                }
+
+                // 時間順にソート
+                return entries.sort((a, b) => {
+                    let aMin = parseInt(a.time.split(':')[0]) * 60 + parseInt(a.time.split(':')[1]);
+                    let bMin = parseInt(b.time.split(':')[0]) * 60 + parseInt(b.time.split(':')[1]);
+                    if (aMin < 18 * 60 + 30) aMin += 24 * 60;
+                    if (bMin < 18 * 60 + 30) bMin += 24 * 60;
+                    return aMin - bMin;
+                }).map(e => ({
+                    time: e.time,
+                    slots: e.slots,
+                    count: e.count
+                }));
+            } catch (e) {
+                console.error('履歴データ取得エラー:', e);
+                return [];
+            }
+        }
+
+        async function drawSlotFillHeatmap(dayData, date) {
             const container = document.getElementById('slotFillHeatmap');
 
-            if (!dayData.slotHistory || dayData.slotHistory.length === 0) {
+            let history = dayData.slotHistory || [];
+
+            // slotHistoryが空の場合、履歴データを直接取得
+            if (history.length === 0) {
+                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #666;">履歴データを読み込み中...</div>';
+                history = await fetchHistoryForHeatmap(date);
+            }
+
+            if (history.length === 0) {
                 container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #666;">スロット履歴データがありません</div>';
                 return;
             }
 
-            const history = dayData.slotHistory;
             const allSlots = [...AM_SLOTS, ...PM_SLOTS].filter(s => s !== '13:00' && s !== '18:00');
             const filledClass = currentType === 'shiya' ? 'cell-filled-shiya' : 'cell-filled-general';
             const filledColor = currentType === 'shiya' ? '#006633' : '#CC6600';
@@ -4675,7 +4743,11 @@
             const filteredHistory = [];
             targetHours.forEach(targetTime => {
                 const [targetH, targetM] = targetTime.split(':').map(Number);
-                let targetMinutes = targetH * 60 + targetM;
+                // 18:30を基準とした時刻計算（18:30以降は同日、それ以前は+24時間）
+                let targetMinutesBase = targetH * 60 + targetM;
+                if (targetMinutesBase < 18 * 60 + 30) {
+                    targetMinutesBase += 24 * 60;
+                }
 
                 let closest = null;
                 let closestDiff = Infinity;
@@ -4684,18 +4756,18 @@
                     const [h, m] = entry.time.split(':').map(Number);
                     let entryMinutes = h * 60 + m;
 
-                    // 日をまたぐ場合の調整（18:30開始なので19時以降は同日、それ以前は翌日扱い）
-                    if (entryMinutes < 18 * 60) entryMinutes += 24 * 60;
-                    if (targetMinutes < 18 * 60) targetMinutes += 24 * 60;
+                    // 日をまたぐ場合の調整（18:30開始なので18:30以降は同日、それ以前は翌日扱い）
+                    if (entryMinutes < 18 * 60 + 30) entryMinutes += 24 * 60;
 
-                    const diff = Math.abs(entryMinutes - targetMinutes);
+                    const diff = Math.abs(entryMinutes - targetMinutesBase);
                     if (diff < closestDiff && diff <= 60) { // 1時間以内の誤差まで許容
                         closestDiff = diff;
                         closest = entry;
                     }
                 });
 
-                if (closest && !filteredHistory.find(e => e.time === closest.time)) {
+                // 各ターゲット時刻ごとに行を追加（同じエントリでも異なるターゲット時刻なら追加）
+                if (closest) {
                     filteredHistory.push({ ...closest, displayTime: targetTime });
                 }
             });
