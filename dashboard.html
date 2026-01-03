@@ -810,6 +810,121 @@
             box-sizing: border-box;
         }
 
+        /* 統合タイムライン（1行表示） */
+        .unified-timeline {
+            cursor: pointer;
+            margin: 8px 0;
+        }
+
+        .unified-timeline table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .unified-timeline th,
+        .unified-timeline td {
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            padding: 0;
+        }
+
+        /* 時間ヘッダー行 */
+        .unified-timeline .hour-row th {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 0;
+            border-bottom: none;
+        }
+
+        .unified-timeline .hour-row th.am-header {
+            background: #fff3e0;
+        }
+
+        .unified-timeline .hour-row th.pm-header {
+            background: #e3f2fd;
+        }
+
+        /* 分ヘッダー行 */
+        .unified-timeline .minute-row th {
+            font-size: 9px;
+            font-weight: 500;
+            padding: 2px 0;
+            border-top: none;
+        }
+
+        .unified-timeline .minute-row th.am-minute {
+            background: #fff3e0;
+        }
+
+        .unified-timeline .minute-row th.am-minute.hour-start {
+            background: #ffe0b2;
+        }
+
+        .unified-timeline .minute-row th.pm-minute {
+            background: #e3f2fd;
+        }
+
+        .unified-timeline .minute-row th.pm-minute.hour-start {
+            background: #bbdefb;
+        }
+
+        /* セル行 */
+        .unified-timeline .cell-row td {
+            height: 22px;
+        }
+
+        .unified-timeline .cell-row td.hour-start {
+            border-left: 2px solid #999;
+        }
+
+        /* セルの状態 */
+        .unified-timeline .cell-available {
+            background: white;
+        }
+
+        .unified-timeline .cell-filled.general {
+            background: #CC6600;
+        }
+
+        .unified-timeline .cell-filled.shiya {
+            background: #006633;
+        }
+
+        .unified-timeline .cell-filled.general.recent {
+            background: repeating-linear-gradient(
+                45deg,
+                #CC6600,
+                #CC6600 2px,
+                #FF8800 2px,
+                #FF8800 4px
+            );
+        }
+
+        .unified-timeline .cell-filled.shiya.recent {
+            background: repeating-linear-gradient(
+                45deg,
+                #006633,
+                #006633 2px,
+                #00994D 2px,
+                #00994D 4px
+            );
+        }
+
+        .unified-timeline .cell-available.recently-opened {
+            background: white;
+            border: 2px dashed currentColor !important;
+            box-sizing: border-box;
+        }
+
+        .unified-timeline .cell-available.recently-opened.general {
+            border-color: #CC6600 !important;
+        }
+
+        .unified-timeline .cell-available.recently-opened.shiya {
+            border-color: #006633 !important;
+        }
+
         /* 空き時間枠リスト */
         .timeslots-container {
             margin-top: 8px;
@@ -1404,6 +1519,21 @@
                 padding: 1px 0;
             }
 
+            /* 統合タイムライン - タブレット */
+            .unified-timeline .hour-row th {
+                font-size: 10px;
+                padding: 2px 0;
+            }
+
+            .unified-timeline .minute-row th {
+                font-size: 7px;
+                padding: 1px 0;
+            }
+
+            .unified-timeline .cell-row td {
+                height: 18px;
+            }
+
             /* 曜日別バー */
             .day-metrics {
                 gap: 8px;
@@ -1784,6 +1914,21 @@
                 padding: 1px 0;
             }
 
+            /* 統合タイムライン - スマホ */
+            .unified-timeline .hour-row th {
+                font-size: 9px;
+                padding: 1px 0;
+            }
+
+            .unified-timeline .minute-row th {
+                font-size: 6px;
+                padding: 1px 0;
+            }
+
+            .unified-timeline .cell-row td {
+                height: 16px;
+            }
+
             /* スピードバー */
             .speed-bar-row {
                 margin-bottom: 6px;
@@ -1968,6 +2113,21 @@
                 width: 10px;
                 height: 8px;
             }
+
+            /* 統合タイムライン - 超小型スマホ */
+            .unified-timeline .hour-row th {
+                font-size: 8px;
+                padding: 2px 0;
+            }
+
+            .unified-timeline .minute-row th {
+                font-size: 6px;
+                padding: 1px 0;
+            }
+
+            .unified-timeline .cell-row td {
+                height: 14px;
+            }
         }
 
         /* 詳細分析カード用グリッド */
@@ -2065,28 +2225,10 @@
                             <span class="status-text" id="statusTextGeneral">読み込み中...</span>
                         </div>
                     </div>
-                    <!-- 午前タイムライン -->
-                    <div class="timeline-block am" onclick="toggleTimeslots('general')">
-                        <span class="timeline-period">午前</span>
-                        <div class="timeline-content">
-                            <div class="timeline-bar" id="timelineAmGeneral">
-                                <!-- JSで動的に生成 -->
-                            </div>
-                            <div class="timeline-time-labels">
-                                <span>10</span><span>11</span><span>12</span><span>13</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- 午後タイムライン -->
-                    <div class="timeline-block pm" onclick="toggleTimeslots('general')">
-                        <span class="timeline-period">午後</span>
-                        <div class="timeline-content">
-                            <div class="timeline-bar" id="timelinePmGeneral">
-                                <!-- JSで動的に生成 -->
-                            </div>
-                            <div class="timeline-time-labels">
-                                <span>15</span><span>16</span><span>17</span><span>18</span>
-                            </div>
+                    <!-- 統合タイムライン（1行表示） -->
+                    <div class="unified-timeline" onclick="toggleTimeslots('general')">
+                        <div class="unified-timeline-table" id="timelineGeneral">
+                            <!-- JSで動的に生成 -->
                         </div>
                     </div>
                     <!-- 空き時間枠リスト -->
@@ -2108,28 +2250,10 @@
                             <span class="status-text" id="statusTextShiya">読み込み中...</span>
                         </div>
                     </div>
-                    <!-- 午前タイムライン -->
-                    <div class="timeline-block am" onclick="toggleTimeslots('shiya')">
-                        <span class="timeline-period">午前</span>
-                        <div class="timeline-content">
-                            <div class="timeline-bar" id="timelineAmShiya">
-                                <!-- JSで動的に生成 -->
-                            </div>
-                            <div class="timeline-time-labels">
-                                <span>10</span><span>11</span><span>12</span><span>13</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- 午後タイムライン -->
-                    <div class="timeline-block pm" onclick="toggleTimeslots('shiya')">
-                        <span class="timeline-period">午後</span>
-                        <div class="timeline-content">
-                            <div class="timeline-bar" id="timelinePmShiya">
-                                <!-- JSで動的に生成 -->
-                            </div>
-                            <div class="timeline-time-labels">
-                                <span>15</span><span>16</span><span>17</span><span>18</span>
-                            </div>
+                    <!-- 統合タイムライン（1行表示） -->
+                    <div class="unified-timeline" onclick="toggleTimeslots('shiya')">
+                        <div class="unified-timeline-table" id="timelineShiya">
+                            <!-- JSで動的に生成 -->
                         </div>
                     </div>
                     <!-- 空き時間枠リスト -->
@@ -2467,12 +2591,10 @@
                     }
                     // タイムラインを再描画してアニメーションを適用
                     if (generalData) {
-                        renderDotTimeline('general', 'Am', AM_SLOTS, generalData.slots || []);
-                        renderDotTimeline('general', 'Pm', PM_SLOTS, generalData.slots || []);
+                        renderUnifiedTimeline('general', generalData.slots || []);
                     }
                     if (shiyaData) {
-                        renderDotTimeline('shiya', 'Am', AM_SLOTS, shiyaData.slots || []);
-                        renderDotTimeline('shiya', 'Pm', PM_SLOTS, shiyaData.slots || []);
+                        renderUnifiedTimeline('shiya', shiyaData.slots || []);
                     }
                 });
 
@@ -2818,8 +2940,7 @@
             }
 
             // タイムラインを描画
-            renderDotTimeline(type, 'Am', AM_SLOTS, slots);
-            renderDotTimeline(type, 'Pm', PM_SLOTS, slots);
+            renderUnifiedTimeline(type, slots);
 
             // 空き時間枠リストを描画
             renderTimeslotsList(type);
@@ -2882,6 +3003,96 @@
         }
 
         /**
+         * 統合タイムラインを描画（1行表示、ヒートマップと同じヘッダー構造）
+         */
+        function renderUnifiedTimeline(type, availableSlots) {
+            const containerId = `timeline${type === 'general' ? 'General' : 'Shiya'}`;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            // 時間グループを定義
+            const hourGroups = [
+                { hour: 10, slots: ['10:00', '10:15', '10:30', '10:45'], isAm: true },
+                { hour: 11, slots: ['11:00', '11:15', '11:30', '11:45'], isAm: true },
+                { hour: 12, slots: ['12:00', '12:15', '12:30', '12:45', '13:00'], isAm: true },
+                { hour: 15, slots: ['15:00', '15:15', '15:30', '15:45'], isAm: false },
+                { hour: 16, slots: ['16:00', '16:15', '16:30', '16:45'], isAm: false },
+                { hour: 17, slots: ['17:00', '17:15', '17:30', '17:45', '18:00'], isAm: false }
+            ];
+
+            let html = '<table>';
+
+            // 時間ヘッダー行
+            html += '<tr class="hour-row">';
+            hourGroups.forEach(group => {
+                const headerClass = group.isAm ? 'am-header' : 'pm-header';
+                html += `<th colspan="${group.slots.length}" class="${headerClass}">${group.hour}</th>`;
+            });
+            html += '</tr>';
+
+            // 分ヘッダー行
+            html += '<tr class="minute-row">';
+            hourGroups.forEach(group => {
+                group.slots.forEach(slot => {
+                    const minute = slot.split(':')[1];
+                    const baseClass = group.isAm ? 'am-minute' : 'pm-minute';
+                    const hourStartClass = minute === '00' ? ' hour-start' : '';
+                    // 表示用の分（13:00→55、18:00→55）
+                    const displayMinute = (slot === '13:00' || slot === '18:00') ? '55' : minute;
+                    html += `<th class="${baseClass}${hourStartClass}">${displayMinute}</th>`;
+                });
+            });
+            html += '</tr>';
+
+            // セル行
+            html += '<tr class="cell-row">';
+            hourGroups.forEach(group => {
+                group.slots.forEach(slot => {
+                    const isAvailable = isSlotAvailable(slot, availableSlots);
+                    const minute = slot.split(':')[1];
+                    const hourStartClass = minute === '00' ? ' hour-start' : '';
+
+                    let cellClass = isAvailable ? 'cell-available' : `cell-filled ${type}`;
+                    let stateClass = '';
+
+                    // 埋まっている場合は、埋まり時刻に応じたクラスを追加
+                    if (!isAvailable) {
+                        const timeClass = getFilledTimeClass(slot, type);
+                        if (timeClass === 'recent') {
+                            stateClass = ' recent';
+                        }
+                    } else {
+                        // 空きセルの場合、最近空きになったかチェック
+                        const openedClass = getOpenedTimeClass(slot, type);
+                        if (openedClass) {
+                            stateClass = ` recently-opened ${type}`;
+                        }
+                    }
+
+                    // ツールチップ
+                    let displaySlot = slot;
+                    if (slot === '13:00') displaySlot = '12:55';
+                    if (slot === '18:00') displaySlot = '17:55';
+
+                    let tooltip = '';
+                    if (!isAvailable) {
+                        const filledAt = slotFillTimes[type][slot];
+                        tooltip = filledAt ? `${displaySlot} (${filledAt}に埋まり)` : `${displaySlot} (元から埋まり)`;
+                    } else {
+                        const openedAt = slotOpenTimes[type][slot];
+                        tooltip = openedAt ? `${displaySlot} (${openedAt}に空き)` : `${displaySlot} 空き`;
+                    }
+
+                    html += `<td class="${cellClass}${stateClass}${hourStartClass}" title="${tooltip}"></td>`;
+                });
+            });
+            html += '</tr>';
+
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        /**
          * エラー時の表示
          */
         function setStatusError(type) {
@@ -2902,11 +3113,8 @@
             statusTextElement.className = 'status-text error';
 
             // タイムラインをクリア
-            ['Am', 'Pm'].forEach(period => {
-                const containerId = `timeline${period}${suffix}`;
-                const container = document.getElementById(containerId);
-                if (container) container.innerHTML = '<span style="font-size: 11px; color: #999;">データ取得エラー</span>';
-            });
+            const container = document.getElementById(`timeline${suffix}`);
+            if (container) container.innerHTML = '<span style="font-size: 11px; color: #999;">データ取得エラー</span>';
         }
 
         // 時間帯の区切り（分単位に変換して比較用）- サマリー用
