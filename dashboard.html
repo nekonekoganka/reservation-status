@@ -324,6 +324,28 @@
             background: #006633;
         }
 
+        /* 時間の区切り（0分のセル）- 左ボーダーを強調 */
+        .slot-fill-heatmap .hour-divider {
+            border-left: 2px solid #999;
+        }
+
+        /* ヘッダー行のスタイル */
+        .slot-fill-heatmap .hour-header th {
+            font-weight: 700;
+            border-bottom: none;
+        }
+
+        .slot-fill-heatmap .minute-header th {
+            font-size: 10px;
+            font-weight: 500;
+            border-top: none;
+        }
+
+        .slot-fill-heatmap .time-label-header {
+            background: #f5f5f5 !important;
+            vertical-align: middle;
+        }
+
         .slot-fill-heatmap-legend {
             display: flex;
             align-items: center;
@@ -1321,8 +1343,18 @@
 
             .slot-fill-heatmap th:first-child,
             .slot-fill-heatmap td:first-child {
-                width: 40px;
+                width: 35px;
                 font-size: 9px;
+            }
+
+            .slot-fill-heatmap .hour-header th {
+                font-size: 9px;
+                padding: 2px 0;
+            }
+
+            .slot-fill-heatmap .minute-header th {
+                font-size: 7px;
+                padding: 1px 0;
             }
 
             /* 曜日別バー */
@@ -1690,9 +1722,19 @@
 
             .slot-fill-heatmap th:first-child,
             .slot-fill-heatmap td:first-child {
-                width: 32px;
-                font-size: 8px;
+                width: 28px;
+                font-size: 7px;
                 padding: 2px 1px;
+            }
+
+            .slot-fill-heatmap .hour-header th {
+                font-size: 8px;
+                padding: 1px 0;
+            }
+
+            .slot-fill-heatmap .minute-header th {
+                font-size: 6px;
+                padding: 1px 0;
             }
 
             /* スピードバー */
@@ -1844,12 +1886,16 @@
             /* 時間枠別埋まり推移ヒートマップ - 超小型スマホ */
             .slot-fill-heatmap th:first-child,
             .slot-fill-heatmap td:first-child {
-                width: 28px;
+                width: 24px;
+                font-size: 6px;
+            }
+
+            .slot-fill-heatmap .hour-header th:not(:first-child) {
                 font-size: 7px;
             }
 
-            .slot-fill-heatmap th:not(:first-child) {
-                font-size: 6px;
+            .slot-fill-heatmap .minute-header th {
+                font-size: 5px;
             }
 
             /* タイムライン - 超小型スマホ最適化 */
@@ -4783,7 +4829,12 @@
                 return;
             }
 
-            const allSlots = [...AM_SLOTS, ...PM_SLOTS].filter(s => s !== '13:00' && s !== '18:00');
+            // allSlotsを作成（13:00→12:55、18:00→17:55に変換）
+            const allSlots = [...AM_SLOTS, ...PM_SLOTS].map(s => {
+                if (s === '13:00') return '12:55';
+                if (s === '18:00') return '17:55';
+                return s;
+            });
             const filledClass = currentType === 'shiya' ? 'cell-filled-shiya' : 'cell-filled-general';
             const filledColor = currentType === 'shiya' ? '#006633' : '#CC6600';
 
@@ -4832,20 +4883,39 @@
             const isMobile = window.innerWidth <= 768;
             let html = `<table>`;
 
-            // ヘッダー行（予約枠の時間）
-            // スマホでは時刻ラベルを短縮（00分は時のみ、それ以外は分のみ）
-            html += `<tr><th>${isMobile ? '' : '時刻↓ / 枠→'}</th>`;
-            allSlots.forEach(slot => {
-                const displaySlot = slot === '12:55' ? '12:55' : (slot === '17:55' ? '17:55' : slot);
-                let shortSlot;
-                if (isMobile) {
-                    // スマホ: 00分は時のみ表示、それ以外は分のみ
-                    const [h, m] = displaySlot.split(':');
-                    shortSlot = m === '00' ? h : m;
-                } else {
-                    shortSlot = displaySlot.substring(0, 5);
-                }
-                html += `<th>${shortSlot}</th>`;
+            // 時間グループを定義（各時間帯のスロット数）
+            const hourGroups = [
+                { hour: 10, slots: ['10:00', '10:15', '10:30', '10:45'], isAm: true },
+                { hour: 11, slots: ['11:00', '11:15', '11:30', '11:45'], isAm: true },
+                { hour: 12, slots: ['12:00', '12:15', '12:30', '12:45', '12:55'], isAm: true },
+                { hour: 15, slots: ['15:00', '15:15', '15:30', '15:45'], isAm: false },
+                { hour: 16, slots: ['16:00', '16:15', '16:30', '16:45'], isAm: false },
+                { hour: 17, slots: ['17:00', '17:15', '17:30', '17:45', '17:55'], isAm: false }
+            ];
+
+            // ヘッダー1行目（時間ラベル）
+            const amHeaderBg = '#fff3e0';  // 午前: オレンジ系薄い色
+            const pmHeaderBg = '#e3f2fd';  // 午後: 青系薄い色
+            html += `<tr class="hour-header"><th rowspan="2" class="time-label-header">${isMobile ? '' : '時刻'}</th>`;
+            hourGroups.forEach(group => {
+                const bgColor = group.isAm ? amHeaderBg : pmHeaderBg;
+                html += `<th colspan="${group.slots.length}" style="background: ${bgColor};">${group.hour}時</th>`;
+            });
+            html += `</tr>`;
+
+            // ヘッダー2行目（分ラベル）
+            html += `<tr class="minute-header">`;
+            hourGroups.forEach(group => {
+                const bgColor = group.isAm ? amHeaderBg : pmHeaderBg;
+                group.slots.forEach(slot => {
+                    const minute = slot.split(':')[1];
+                    const isHourStart = minute === '00';
+                    // 0分のセルは少し濃い色で区切りを表現
+                    const cellBg = isHourStart
+                        ? (group.isAm ? '#ffe0b2' : '#bbdefb')  // 0分: 濃い色
+                        : bgColor;
+                    html += `<th style="background: ${cellBg};">${minute}</th>`;
+                });
             });
             html += `</tr>`;
 
@@ -4862,7 +4932,10 @@
                         (slot === '12:55' && slots.includes('13:00')) ||
                         (slot === '17:55' && slots.includes('18:00'));
                     const cellClass = hasSlot ? 'cell-available' : filledClass;
-                    html += `<td class="${cellClass}" title="${displayTime} - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
+                    // 0分のセルに区切り用のクラスを追加
+                    const minute = slot.split(':')[1];
+                    const dividerClass = minute === '00' ? ' hour-divider' : '';
+                    html += `<td class="${cellClass}${dividerClass}" title="${displayTime} - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
                 });
                 html += `</tr>`;
             });
