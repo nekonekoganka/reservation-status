@@ -925,55 +925,176 @@
             border-color: #006633 !important;
         }
 
-        /* 空き時間枠リスト */
-        .timeslots-container {
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px solid rgba(0,0,0,0.1);
+        /* アイコン行（左右配置） */
+        .status-icons-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            gap: 20px;
         }
 
-        .timeslots-list {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
-        }
-
-        .timeslot-item {
+        .status-icon-block {
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 8px 4px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
+            gap: 10px;
+        }
+
+        .status-icon-block.shiya {
+            flex-direction: row;
+        }
+
+        .status-icon-block .status-icon-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .status-icon-block.general .status-icon-info {
+            align-items: flex-start;
+        }
+
+        .status-icon-block.shiya .status-icon-info {
+            align-items: flex-end;
+        }
+
+        /* 統合タイムライン（1テーブル） */
+        .combined-timeline {
+            margin: 8px 0;
+        }
+
+        .combined-timeline table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .combined-timeline th,
+        .combined-timeline td {
+            text-align: center;
             border: 1px solid #e0e0e0;
+            padding: 0;
         }
 
-        .timeslot-item.am {
-            background: #e8f4fc;
-            border-color: #3498db;
-        }
-
-        .timeslot-item.pm {
-            background: #fdf2e9;
-            border-color: #e67e22;
-        }
-
-        .no-slots-message {
-            text-align: center;
-            color: #999;
-            font-size: 12px;
-            padding: 10px;
-        }
-
-        .tap-hint {
-            display: none;
-            text-align: center;
+        /* 時間ヘッダー行 */
+        .combined-timeline .hour-row th {
             font-size: 11px;
-            color: #888;
-            margin-top: 4px;
+            font-weight: 700;
+            padding: 3px 0;
+            border-bottom: none;
+        }
+
+        .combined-timeline .hour-row th.am-header {
+            background: #fff3e0;
+        }
+
+        .combined-timeline .hour-row th.pm-header {
+            background: #e3f2fd;
+        }
+
+        .combined-timeline .hour-row th.label-header {
+            background: #f5f5f5;
+            width: 28px;
+            font-size: 10px;
+        }
+
+        /* 分ヘッダー行 */
+        .combined-timeline .minute-row th {
+            font-size: 9px;
+            font-weight: 500;
+            padding: 2px 0;
+            border-top: none;
+        }
+
+        .combined-timeline .minute-row th.am-minute {
+            background: #fff3e0;
+        }
+
+        .combined-timeline .minute-row th.am-minute.hour-start {
+            background: #ffe0b2;
+        }
+
+        .combined-timeline .minute-row th.pm-minute {
+            background: #e3f2fd;
+        }
+
+        .combined-timeline .minute-row th.pm-minute.hour-start {
+            background: #bbdefb;
+        }
+
+        .combined-timeline .minute-row th.label-header {
+            background: #f5f5f5;
+        }
+
+        /* セル行 */
+        .combined-timeline .cell-row td {
+            height: 22px;
+        }
+
+        .combined-timeline .cell-row td.hour-start {
+            border-left: 2px solid #999;
+        }
+
+        .combined-timeline .cell-row td.row-label {
+            background: #f5f5f5;
+            font-size: 10px;
+            font-weight: 700;
+            width: 28px;
+        }
+
+        .combined-timeline .cell-row td.row-label.general {
+            color: #CC6600;
+        }
+
+        .combined-timeline .cell-row td.row-label.shiya {
+            color: #006633;
+        }
+
+        /* セルの状態 */
+        .combined-timeline .cell-available {
+            background: white;
+        }
+
+        .combined-timeline .cell-filled.general {
+            background: #CC6600;
+        }
+
+        .combined-timeline .cell-filled.shiya {
+            background: #006633;
+        }
+
+        .combined-timeline .cell-filled.general.recent {
+            background: repeating-linear-gradient(
+                45deg,
+                #CC6600,
+                #CC6600 2px,
+                #FF8800 2px,
+                #FF8800 4px
+            );
+        }
+
+        .combined-timeline .cell-filled.shiya.recent {
+            background: repeating-linear-gradient(
+                45deg,
+                #006633,
+                #006633 2px,
+                #00994D 2px,
+                #00994D 4px
+            );
+        }
+
+        .combined-timeline .cell-available.recently-opened {
+            background: white;
+            border: 2px dashed currentColor !important;
+            box-sizing: border-box;
+        }
+
+        .combined-timeline .cell-available.recently-opened.general {
+            border-color: #CC6600 !important;
+        }
+
+        .combined-timeline .cell-available.recently-opened.shiya {
+            border-color: #006633 !important;
         }
 
         /* 予約傾向指標 */
@@ -1534,6 +1655,28 @@
                 height: 18px;
             }
 
+            /* 統合タイムライン（1テーブル） - タブレット */
+            .combined-timeline .hour-row th {
+                font-size: 10px;
+                padding: 2px 0;
+            }
+
+            .combined-timeline .minute-row th {
+                font-size: 7px;
+                padding: 1px 0;
+            }
+
+            .combined-timeline .cell-row td {
+                height: 18px;
+            }
+
+            .combined-timeline .hour-row th.label-header,
+            .combined-timeline .minute-row th.label-header,
+            .combined-timeline .cell-row td.row-label {
+                width: 24px;
+                font-size: 8px;
+            }
+
             /* 曜日別バー */
             .day-metrics {
                 gap: 8px;
@@ -1683,28 +1826,6 @@
             .legend-cell {
                 width: 12px;
                 height: 10px;
-            }
-
-            /* 空き時間枠リスト - モバイル */
-            .timeslots-container {
-                display: none;  /* モバイルではデフォルト非表示 */
-            }
-
-            .timeslots-container.show {
-                display: block;
-            }
-
-            .timeslots-list {
-                grid-template-columns: repeat(3, 1fr);
-            }
-
-            .timeslot-item {
-                font-size: 13px;
-                padding: 6px 4px;
-            }
-
-            .tap-hint {
-                display: block;
             }
 
             .timeline-block {
@@ -1929,6 +2050,47 @@
                 height: 16px;
             }
 
+            /* アイコン行 - スマホ */
+            .status-icons-row {
+                gap: 10px;
+            }
+
+            .status-icon-block {
+                gap: 6px;
+            }
+
+            .status-icon-wrapper {
+                width: 48px;
+                height: 48px;
+            }
+
+            .status-icon-wrapper canvas {
+                width: 48px;
+                height: 48px;
+            }
+
+            /* 統合タイムライン（1テーブル） - スマホ */
+            .combined-timeline .hour-row th {
+                font-size: 9px;
+                padding: 1px 0;
+            }
+
+            .combined-timeline .minute-row th {
+                font-size: 6px;
+                padding: 1px 0;
+            }
+
+            .combined-timeline .cell-row td {
+                height: 16px;
+            }
+
+            .combined-timeline .hour-row th.label-header,
+            .combined-timeline .minute-row th.label-header,
+            .combined-timeline .cell-row td.row-label {
+                width: 20px;
+                font-size: 7px;
+            }
+
             /* スピードバー */
             .speed-bar-row {
                 margin-bottom: 6px;
@@ -2128,6 +2290,59 @@
             .unified-timeline .cell-row td {
                 height: 14px;
             }
+
+            /* アイコン行 - 超小型スマホ */
+            .status-icons-row {
+                gap: 8px;
+            }
+
+            .status-icon-block {
+                gap: 4px;
+            }
+
+            .status-icon-wrapper {
+                width: 40px;
+                height: 40px;
+            }
+
+            .status-icon-wrapper canvas {
+                width: 40px;
+                height: 40px;
+            }
+
+            .status-card-title {
+                font-size: 11px;
+            }
+
+            .status-card-count {
+                font-size: 16px;
+            }
+
+            .status-text {
+                font-size: 10px;
+            }
+
+            /* 統合タイムライン（1テーブル） - 超小型スマホ */
+            .combined-timeline .hour-row th {
+                font-size: 8px;
+                padding: 2px 0;
+            }
+
+            .combined-timeline .minute-row th {
+                font-size: 6px;
+                padding: 1px 0;
+            }
+
+            .combined-timeline .cell-row td {
+                height: 14px;
+            }
+
+            .combined-timeline .hour-row th.label-header,
+            .combined-timeline .minute-row th.label-header,
+            .combined-timeline .cell-row td.row-label {
+                width: 18px;
+                font-size: 6px;
+            }
         }
 
         /* 詳細分析カード用グリッド */
@@ -2212,56 +2427,32 @@
         <!-- 現在の空き状況セクション -->
         <div class="current-status-section" id="currentStatusSection">
             <h3>🔴 現在の空き状況</h3>
-            <div class="status-cards">
-                <!-- 一般予約 -->
-                <div class="status-card general">
-                    <div class="status-card-header">
-                        <div class="status-icon-wrapper">
-                            <canvas id="iconCanvasGeneral" width="64" height="64"></canvas>
-                        </div>
-                        <div class="status-card-info">
-                            <span class="status-card-title">一般予約</span>
-                            <span class="status-card-count general" id="currentCountGeneral">--</span>
-                            <span class="status-text" id="statusTextGeneral">読み込み中...</span>
-                        </div>
+            <!-- アイコンを上部に左右配置 -->
+            <div class="status-icons-row">
+                <div class="status-icon-block general">
+                    <div class="status-icon-wrapper">
+                        <canvas id="iconCanvasGeneral" width="64" height="64"></canvas>
                     </div>
-                    <!-- 統合タイムライン（1行表示） -->
-                    <div class="unified-timeline" onclick="toggleTimeslots('general')">
-                        <div class="unified-timeline-table" id="timelineGeneral">
-                            <!-- JSで動的に生成 -->
-                        </div>
-                    </div>
-                    <!-- 空き時間枠リスト -->
-                    <div class="tap-hint">▼ タップで空き枠を表示</div>
-                    <div class="timeslots-container" id="timeslotsGeneral">
-                        <div class="timeslots-list" id="timeslotsListGeneral"></div>
+                    <div class="status-icon-info">
+                        <span class="status-card-title">一般予約</span>
+                        <span class="status-card-count general" id="currentCountGeneral">--</span>
+                        <span class="status-text" id="statusTextGeneral">読み込み中...</span>
                     </div>
                 </div>
-
-                <!-- 視野予約 -->
-                <div class="status-card shiya">
-                    <div class="status-card-header">
-                        <div class="status-icon-wrapper">
-                            <canvas id="iconCanvasShiya" width="64" height="64"></canvas>
-                        </div>
-                        <div class="status-card-info">
-                            <span class="status-card-title">視野予約</span>
-                            <span class="status-card-count shiya" id="currentCountShiya">--</span>
-                            <span class="status-text" id="statusTextShiya">読み込み中...</span>
-                        </div>
+                <div class="status-icon-block shiya">
+                    <div class="status-icon-info">
+                        <span class="status-card-title">視野予約</span>
+                        <span class="status-card-count shiya" id="currentCountShiya">--</span>
+                        <span class="status-text" id="statusTextShiya">読み込み中...</span>
                     </div>
-                    <!-- 統合タイムライン（1行表示） -->
-                    <div class="unified-timeline" onclick="toggleTimeslots('shiya')">
-                        <div class="unified-timeline-table" id="timelineShiya">
-                            <!-- JSで動的に生成 -->
-                        </div>
-                    </div>
-                    <!-- 空き時間枠リスト -->
-                    <div class="tap-hint">▼ タップで空き枠を表示</div>
-                    <div class="timeslots-container" id="timeslotsShiya">
-                        <div class="timeslots-list" id="timeslotsListShiya"></div>
+                    <div class="status-icon-wrapper">
+                        <canvas id="iconCanvasShiya" width="64" height="64"></canvas>
                     </div>
                 </div>
+            </div>
+            <!-- 統合タイムラインテーブル -->
+            <div class="combined-timeline" id="combinedTimeline">
+                <!-- JSで動的に生成 -->
             </div>
             <div class="current-status-footer">
                 <div class="timeline-legend" id="timelineLegend">
@@ -2589,13 +2780,8 @@
                     if (shiyaHistory) {
                         analyzeSlotFillTimes(shiyaHistory, 'shiya');
                     }
-                    // タイムラインを再描画してアニメーションを適用
-                    if (generalData) {
-                        renderUnifiedTimeline('general', generalData.slots || []);
-                    }
-                    if (shiyaData) {
-                        renderUnifiedTimeline('shiya', shiyaData.slots || []);
-                    }
+                    // 統合タイムラインを再描画
+                    renderCombinedTimeline();
                 });
 
             } catch (error) {
@@ -2871,42 +3057,6 @@
         }
 
         /**
-         * 空き時間枠リストを描画
-         */
-        function renderTimeslotsList(type) {
-            const suffix = type === 'general' ? 'General' : 'Shiya';
-            const listElement = document.getElementById(`timeslotsList${suffix}`);
-            const containerElement = document.getElementById(`timeslots${suffix}`);
-            const slots = currentSlotsData[type] || [];
-
-            if (!listElement) return;
-
-            if (slots.length > 0) {
-                const html = slots.map(slot => {
-                    const period = getTimeSlotPeriod(slot);
-                    return `<div class="timeslot-item ${period}"><span>${slot}</span></div>`;
-                }).join('');
-                listElement.innerHTML = html;
-            } else {
-                listElement.innerHTML = '<div class="no-slots-message">空き枠なし</div>';
-            }
-        }
-
-        /**
-         * モバイルでタイムラインをタップした時のトグル
-         */
-        function toggleTimeslots(type) {
-            // PCでは何もしない（常に表示）
-            if (window.innerWidth > 480) return;
-
-            const suffix = type === 'general' ? 'General' : 'Shiya';
-            const container = document.getElementById(`timeslots${suffix}`);
-            if (container) {
-                container.classList.toggle('show');
-            }
-        }
-
-        /**
          * 現在の空き状況カードを更新
          */
         function updateCurrentStatusCard(type, data) {
@@ -2939,11 +3089,8 @@
                 statusTextElement.className = 'status-text full';
             }
 
-            // タイムラインを描画
-            renderUnifiedTimeline(type, slots);
-
-            // 空き時間枠リストを描画
-            renderTimeslotsList(type);
+            // 統合タイムラインを再描画
+            renderCombinedTimeline();
         }
 
         /**
@@ -3093,6 +3240,139 @@
         }
 
         /**
+         * 統合タイムラインを描画（1テーブルに一般と視野を並べる）
+         */
+        function renderCombinedTimeline() {
+            const container = document.getElementById('combinedTimeline');
+            if (!container) return;
+
+            const generalSlots = currentSlotsData.general || [];
+            const shiyaSlots = currentSlotsData.shiya || [];
+
+            // 時間グループを定義
+            const hourGroups = [
+                { hour: 10, slots: ['10:00', '10:15', '10:30', '10:45'], isAm: true },
+                { hour: 11, slots: ['11:00', '11:15', '11:30', '11:45'], isAm: true },
+                { hour: 12, slots: ['12:00', '12:15', '12:30', '12:45', '13:00'], isAm: true },
+                { hour: 15, slots: ['15:00', '15:15', '15:30', '15:45'], isAm: false },
+                { hour: 16, slots: ['16:00', '16:15', '16:30', '16:45'], isAm: false },
+                { hour: 17, slots: ['17:00', '17:15', '17:30', '17:45', '18:00'], isAm: false }
+            ];
+
+            let html = '<table>';
+
+            // 時間ヘッダー行（ラベル列付き）
+            html += '<tr class="hour-row">';
+            html += '<th class="label-header"></th>';
+            hourGroups.forEach(group => {
+                const headerClass = group.isAm ? 'am-header' : 'pm-header';
+                html += `<th colspan="${group.slots.length}" class="${headerClass}">${group.hour}</th>`;
+            });
+            html += '</tr>';
+
+            // 分ヘッダー行（ラベル列付き）
+            html += '<tr class="minute-row">';
+            html += '<th class="label-header"></th>';
+            hourGroups.forEach(group => {
+                group.slots.forEach(slot => {
+                    const minute = slot.split(':')[1];
+                    const baseClass = group.isAm ? 'am-minute' : 'pm-minute';
+                    const hourStartClass = minute === '00' ? ' hour-start' : '';
+                    const displayMinute = (slot === '13:00' || slot === '18:00') ? '55' : minute;
+                    html += `<th class="${baseClass}${hourStartClass}">${displayMinute}</th>`;
+                });
+            });
+            html += '</tr>';
+
+            // 一般予約セル行
+            html += '<tr class="cell-row">';
+            html += '<td class="row-label general">一般</td>';
+            hourGroups.forEach(group => {
+                group.slots.forEach(slot => {
+                    const isAvailable = isSlotAvailable(slot, generalSlots);
+                    const minute = slot.split(':')[1];
+                    const hourStartClass = minute === '00' ? ' hour-start' : '';
+
+                    let cellClass = isAvailable ? 'cell-available' : 'cell-filled general';
+                    let stateClass = '';
+
+                    if (!isAvailable) {
+                        const timeClass = getFilledTimeClass(slot, 'general');
+                        if (timeClass === 'recent') {
+                            stateClass = ' recent';
+                        }
+                    } else {
+                        const openedClass = getOpenedTimeClass(slot, 'general');
+                        if (openedClass) {
+                            stateClass = ' recently-opened general';
+                        }
+                    }
+
+                    let displaySlot = slot;
+                    if (slot === '13:00') displaySlot = '12:55';
+                    if (slot === '18:00') displaySlot = '17:55';
+
+                    let tooltip = '';
+                    if (!isAvailable) {
+                        const filledAt = slotFillTimes.general[slot];
+                        tooltip = filledAt ? `${displaySlot} (${filledAt}に埋まり)` : `${displaySlot} (元から埋まり)`;
+                    } else {
+                        const openedAt = slotOpenTimes.general[slot];
+                        tooltip = openedAt ? `${displaySlot} (${openedAt}に空き)` : `${displaySlot} 空き`;
+                    }
+
+                    html += `<td class="${cellClass}${stateClass}${hourStartClass}" title="${tooltip}"></td>`;
+                });
+            });
+            html += '</tr>';
+
+            // 視野予約セル行
+            html += '<tr class="cell-row">';
+            html += '<td class="row-label shiya">視野</td>';
+            hourGroups.forEach(group => {
+                group.slots.forEach(slot => {
+                    const isAvailable = isSlotAvailable(slot, shiyaSlots);
+                    const minute = slot.split(':')[1];
+                    const hourStartClass = minute === '00' ? ' hour-start' : '';
+
+                    let cellClass = isAvailable ? 'cell-available' : 'cell-filled shiya';
+                    let stateClass = '';
+
+                    if (!isAvailable) {
+                        const timeClass = getFilledTimeClass(slot, 'shiya');
+                        if (timeClass === 'recent') {
+                            stateClass = ' recent';
+                        }
+                    } else {
+                        const openedClass = getOpenedTimeClass(slot, 'shiya');
+                        if (openedClass) {
+                            stateClass = ' recently-opened shiya';
+                        }
+                    }
+
+                    let displaySlot = slot;
+                    if (slot === '13:00') displaySlot = '12:55';
+                    if (slot === '18:00') displaySlot = '17:55';
+
+                    let tooltip = '';
+                    if (!isAvailable) {
+                        const filledAt = slotFillTimes.shiya[slot];
+                        tooltip = filledAt ? `${displaySlot} (${filledAt}に埋まり)` : `${displaySlot} (元から埋まり)`;
+                    } else {
+                        const openedAt = slotOpenTimes.shiya[slot];
+                        tooltip = openedAt ? `${displaySlot} (${openedAt}に空き)` : `${displaySlot} 空き`;
+                    }
+
+                    html += `<td class="${cellClass}${stateClass}${hourStartClass}" title="${tooltip}"></td>`;
+                });
+            });
+            html += '</tr>';
+
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        /**
          * エラー時の表示
          */
         function setStatusError(type) {
@@ -3112,9 +3392,9 @@
             statusTextElement.textContent = '⚠ エラー';
             statusTextElement.className = 'status-text error';
 
-            // タイムラインをクリア
-            const container = document.getElementById(`timeline${suffix}`);
-            if (container) container.innerHTML = '<span style="font-size: 11px; color: #999;">データ取得エラー</span>';
+            // 空き枠データをクリアして統合タイムラインを再描画
+            currentSlotsData[type] = [];
+            renderCombinedTimeline();
         }
 
         // 時間帯の区切り（分単位に変換して比較用）- サマリー用
