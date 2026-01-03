@@ -925,13 +925,13 @@
             border-color: #006633 !important;
         }
 
-        /* アイコン行（左右配置） */
+        /* アイコン行（PC: 左寄せ、スマホ: 左右配置） */
         .status-icons-row {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: flex-start;
             margin-bottom: 12px;
-            gap: 20px;
+            gap: 40px;
         }
 
         .status-icon-block {
@@ -955,7 +955,7 @@
         }
 
         .status-icon-block.shiya .status-icon-info {
-            align-items: flex-end;
+            align-items: flex-start;
         }
 
         /* 統合タイムライン（1テーブル） */
@@ -2050,13 +2050,18 @@
                 height: 16px;
             }
 
-            /* アイコン行 - スマホ */
+            /* アイコン行 - スマホは左右配置のまま */
             .status-icons-row {
+                justify-content: space-between;
                 gap: 10px;
             }
 
             .status-icon-block {
                 gap: 6px;
+            }
+
+            .status-icon-block.shiya .status-icon-info {
+                align-items: flex-end;
             }
 
             .status-icon-wrapper {
@@ -3183,7 +3188,7 @@
                 group.slots.forEach(slot => {
                     const minute = slot.split(':')[1];
                     const baseClass = group.isAm ? 'am-minute' : 'pm-minute';
-                    const hourStartClass = minute === '00' ? ' hour-start' : '';
+                    const hourStartClass = (minute === '00' && slot !== '13:00' && slot !== '18:00') ? ' hour-start' : '';
                     // 表示用の分（13:00→55、18:00→55）
                     const displayMinute = (slot === '13:00' || slot === '18:00') ? '55' : minute;
                     html += `<th class="${baseClass}${hourStartClass}">${displayMinute}</th>`;
@@ -3197,7 +3202,7 @@
                 group.slots.forEach(slot => {
                     const isAvailable = isSlotAvailable(slot, availableSlots);
                     const minute = slot.split(':')[1];
-                    const hourStartClass = minute === '00' ? ' hour-start' : '';
+                    const hourStartClass = (minute === '00' && slot !== '13:00' && slot !== '18:00') ? ' hour-start' : '';
 
                     let cellClass = isAvailable ? 'cell-available' : `cell-filled ${type}`;
                     let stateClass = '';
@@ -3277,7 +3282,7 @@
                 group.slots.forEach(slot => {
                     const minute = slot.split(':')[1];
                     const baseClass = group.isAm ? 'am-minute' : 'pm-minute';
-                    const hourStartClass = minute === '00' ? ' hour-start' : '';
+                    const hourStartClass = (minute === '00' && slot !== '13:00' && slot !== '18:00') ? ' hour-start' : '';
                     const displayMinute = (slot === '13:00' || slot === '18:00') ? '55' : minute;
                     html += `<th class="${baseClass}${hourStartClass}">${displayMinute}</th>`;
                 });
@@ -3291,7 +3296,7 @@
                 group.slots.forEach(slot => {
                     const isAvailable = isSlotAvailable(slot, generalSlots);
                     const minute = slot.split(':')[1];
-                    const hourStartClass = minute === '00' ? ' hour-start' : '';
+                    const hourStartClass = (minute === '00' && slot !== '13:00' && slot !== '18:00') ? ' hour-start' : '';
 
                     let cellClass = isAvailable ? 'cell-available' : 'cell-filled general';
                     let stateClass = '';
@@ -3333,7 +3338,7 @@
                 group.slots.forEach(slot => {
                     const isAvailable = isSlotAvailable(slot, shiyaSlots);
                     const minute = slot.split(':')[1];
-                    const hourStartClass = minute === '00' ? ' hour-start' : '';
+                    const hourStartClass = (minute === '00' && slot !== '13:00' && slot !== '18:00') ? ' hour-start' : '';
 
                     let cellClass = isAvailable ? 'cell-available' : 'cell-filled shiya';
                     let stateClass = '';

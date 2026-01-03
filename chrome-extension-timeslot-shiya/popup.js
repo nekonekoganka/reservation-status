@@ -358,7 +358,7 @@ function renderCombinedTimeline() {
     group.slots.forEach(slot => {
       const minute = slot.split(':')[1];
       const baseClass = group.isAm ? 'am-minute' : 'pm-minute';
-      const hourStartClass = minute === '00' ? ' hour-start' : '';
+      const hourStartClass = (minute === '00' && slot !== '13:00' && slot !== '18:00') ? ' hour-start' : '';
       const displayMinute = (slot === '13:00' || slot === '18:00') ? '55' : minute;
       html += `<th class="${baseClass}${hourStartClass}">${displayMinute}</th>`;
     });
@@ -372,7 +372,7 @@ function renderCombinedTimeline() {
     group.slots.forEach(slot => {
       const isAvailable = isSlotAvailable(slot, generalSlots);
       const minute = slot.split(':')[1];
-      const hourStartClass = minute === '00' ? ' hour-start' : '';
+      const hourStartClass = (minute === '00' && slot !== '13:00' && slot !== '18:00') ? ' hour-start' : '';
 
       let cellClass = isAvailable ? 'cell-available' : 'cell-filled general';
       let stateClass = '';
@@ -414,7 +414,7 @@ function renderCombinedTimeline() {
     group.slots.forEach(slot => {
       const isAvailable = isSlotAvailable(slot, shiyaSlots);
       const minute = slot.split(':')[1];
-      const hourStartClass = minute === '00' ? ' hour-start' : '';
+      const hourStartClass = (minute === '00' && slot !== '13:00' && slot !== '18:00') ? ' hour-start' : '';
 
       let cellClass = isAvailable ? 'cell-available' : 'cell-filled shiya';
       let stateClass = '';
