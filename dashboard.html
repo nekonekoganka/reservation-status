@@ -1302,6 +1302,29 @@
                 height: 20px;
             }
 
+            /* 時間枠別埋まり推移ヒートマップ - タブレット */
+            .slot-fill-heatmap {
+                overflow-x: visible;
+            }
+
+            .slot-fill-heatmap table {
+                table-layout: fixed;
+                width: 100%;
+                font-size: 10px;
+            }
+
+            .slot-fill-heatmap th,
+            .slot-fill-heatmap td {
+                padding: 3px 1px;
+                min-width: 0;
+            }
+
+            .slot-fill-heatmap th:first-child,
+            .slot-fill-heatmap td:first-child {
+                width: 40px;
+                font-size: 9px;
+            }
+
             /* 曜日別バー */
             .day-metrics {
                 gap: 8px;
@@ -1655,6 +1678,23 @@
                 height: 16px;
             }
 
+            /* 時間枠別埋まり推移ヒートマップ - スマホ */
+            .slot-fill-heatmap table {
+                font-size: 8px;
+            }
+
+            .slot-fill-heatmap th,
+            .slot-fill-heatmap td {
+                padding: 2px 0;
+            }
+
+            .slot-fill-heatmap th:first-child,
+            .slot-fill-heatmap td:first-child {
+                width: 32px;
+                font-size: 8px;
+                padding: 2px 1px;
+            }
+
             /* スピードバー */
             .speed-bar-row {
                 margin-bottom: 6px;
@@ -1799,6 +1839,17 @@
             .heat-legend {
                 flex-direction: column;
                 align-items: flex-start;
+            }
+
+            /* 時間枠別埋まり推移ヒートマップ - 超小型スマホ */
+            .slot-fill-heatmap th:first-child,
+            .slot-fill-heatmap td:first-child {
+                width: 28px;
+                font-size: 7px;
+            }
+
+            .slot-fill-heatmap th:not(:first-child) {
+                font-size: 6px;
             }
 
             /* タイムライン - 超小型スマホ最適化 */
@@ -4778,13 +4829,22 @@
             }
 
             // テーブル構築
+            const isMobile = window.innerWidth <= 768;
             let html = `<table>`;
 
             // ヘッダー行（予約枠の時間）
-            html += `<tr><th>時刻↓ / 枠→</th>`;
+            // スマホでは時刻ラベルを短縮（00分は時のみ、それ以外は分のみ）
+            html += `<tr><th>${isMobile ? '' : '時刻↓ / 枠→'}</th>`;
             allSlots.forEach(slot => {
                 const displaySlot = slot === '12:55' ? '12:55' : (slot === '17:55' ? '17:55' : slot);
-                const shortSlot = displaySlot.substring(0, 5);
+                let shortSlot;
+                if (isMobile) {
+                    // スマホ: 00分は時のみ表示、それ以外は分のみ
+                    const [h, m] = displaySlot.split(':');
+                    shortSlot = m === '00' ? h : m;
+                } else {
+                    shortSlot = displaySlot.substring(0, 5);
+                }
                 html += `<th>${shortSlot}</th>`;
             });
             html += `</tr>`;
@@ -4793,8 +4853,10 @@
             filteredHistory.forEach(entry => {
                 const displayTime = entry.displayTime;
                 const slots = entry.slots || [];
+                // スマホでは時刻を短縮
+                const rowLabel = isMobile ? displayTime.split(':')[0] : displayTime;
 
-                html += `<tr><td>${displayTime}</td>`;
+                html += `<tr><td>${rowLabel}</td>`;
                 allSlots.forEach(slot => {
                     const hasSlot = slots.includes(slot) ||
                         (slot === '12:55' && slots.includes('13:00')) ||
