@@ -5441,8 +5441,9 @@
         }
 
         // 履歴データを直接取得（slotHistoryが空の場合のフォールバック用）
-        async function fetchHistoryForHeatmap(date) {
-            const baseUrl = currentType === 'general' ? GENERAL_HISTORY : SHIYA_HISTORY;
+        async function fetchHistoryForHeatmap(date, type = null) {
+            const targetType = type || currentType;
+            const baseUrl = targetType === 'general' ? GENERAL_HISTORY : SHIYA_HISTORY;
             try {
                 // まず対象日の前日のデータを取得（18:30以降のエントリ用）
                 const prevDate = new Date(date);
@@ -5653,27 +5654,30 @@
         }
 
         // 現在表示中の履歴データと日付を保持（モード切り替え用）
-        let currentHeatmapHistory = [];
+        let currentHeatmapHistoryGeneral = [];
+        let currentHeatmapHistoryShiya = [];
         let currentHeatmapDate = '';
 
         async function drawSlotFillHeatmap(dayData, date) {
             const container = document.getElementById('slotFillHeatmap');
 
-            let history = dayData.slotHistory || [];
+            // 一般予約と視野予約の両方のデータを取得
+            container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #666;">履歴データを読み込み中...</div>';
 
-            // slotHistoryが空の場合、履歴データを直接取得
-            if (history.length === 0) {
-                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #666;">履歴データを読み込み中...</div>';
-                history = await fetchHistoryForHeatmap(date);
-            }
+            // 並行して両方のデータを取得
+            const [generalHistory, shiyaHistory] = await Promise.all([
+                fetchHistoryForHeatmap(date, 'general'),
+                fetchHistoryForHeatmap(date, 'shiya')
+            ]);
 
-            if (history.length === 0) {
+            if (generalHistory.length === 0 && shiyaHistory.length === 0) {
                 container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #666;">スロット履歴データがありません</div>';
                 return;
             }
 
             // 履歴データと日付を保持（モード切り替え用）
-            currentHeatmapHistory = history;
+            currentHeatmapHistoryGeneral = generalHistory;
+            currentHeatmapHistoryShiya = shiyaHistory;
             currentHeatmapDate = date;
 
             // 今日の場合は slotFillTimes が空なら履歴データから計算
@@ -5681,10 +5685,10 @@
             const isToday = (date === today);
             if (isToday) {
                 if (Object.keys(slotFillTimes['general']).length === 0) {
-                    analyzeSlotFillTimes(history, 'general');
+                    analyzeSlotFillTimes(generalHistory, 'general');
                 }
                 if (Object.keys(slotFillTimes['shiya']).length === 0) {
-                    analyzeSlotFillTimes(history, 'shiya');
+                    analyzeSlotFillTimes(shiyaHistory, 'shiya');
                 }
             }
 
@@ -5695,15 +5699,17 @@
                 return s;
             });
 
-            // 表示モードに応じてフィルター
-            let filteredHistory;
+            // 表示モードに応じてフィルター（各タイプごと）
+            let filteredGeneralHistory, filteredShiyaHistory;
             if (heatmapDisplayMode === 'changes') {
-                filteredHistory = filterHistoryByChanges(history);
+                filteredGeneralHistory = filterHistoryByChanges(generalHistory);
+                filteredShiyaHistory = filterHistoryByChanges(shiyaHistory);
             } else {
-                filteredHistory = filterHistoryByHourly(history);
+                filteredGeneralHistory = filterHistoryByHourly(generalHistory);
+                filteredShiyaHistory = filterHistoryByHourly(shiyaHistory);
             }
 
-            if (filteredHistory.length === 0) {
+            if (filteredGeneralHistory.length === 0 && filteredShiyaHistory.length === 0) {
                 const modeText = heatmapDisplayMode === 'changes' ? '変化' : '2時間刻み';
                 container.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #666;">${modeText}のデータがありません</div>`;
                 return;
@@ -5746,7 +5752,7 @@
             }
 
             // 各タイプのテーブルを生成する関数
-            function generateTableForType(type) {
+            function generateTableForType(type, filteredHistory, rawHistory) {
                 const config = type === 'general'
                     ? { label: '一般予約', filledClass: 'cell-filled-general', borderClass: 'general-border', markerClass: 'time-marker-general', filledColor: '#CC6600', headerBg: '#fff3e0', recentPattern: 'repeating-linear-gradient(45deg, #CC6600, #CC6600 2px, #FF8800 2px, #FF8800 4px)' }
                     : { label: '視野予約', filledClass: 'cell-filled-shiya', borderClass: 'shiya-border', markerClass: 'time-marker-shiya', filledColor: '#006633', headerBg: '#e8f5e9', recentPattern: 'repeating-linear-gradient(45deg, #006633, #006633 2px, #00994D 2px, #00994D 4px)' };
@@ -5817,7 +5823,7 @@
                 });
 
                 // 現在の状態行
-                const latestEntry = history[history.length - 1];
+                const latestEntry = rawHistory[rawHistory.length - 1];
                 const useCurrentData = isToday && currentSlotsData[type].length > 0;
                 const latestSlots = useCurrentData ? currentSlotsData[type] : (latestEntry ? latestEntry.slots || [] : []);
                 const latestTime = new Date().toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'});
@@ -5874,9 +5880,9 @@
             }
 
             // 一般予約と視野予約の2つのテーブルを縦に並べて生成
-            let html = generateTableForType('general');
+            let html = generateTableForType('general', filteredGeneralHistory, generalHistory);
             html += `<div style="height: 12px;"></div>`; // テーブル間のスペース
-            html += generateTableForType('shiya');
+            html += generateTableForType('shiya', filteredShiyaHistory, shiyaHistory);
 
             // 凡例
             const generalRecentPattern = 'repeating-linear-gradient(45deg, #CC6600, #CC6600 2px, #FF8800 2px, #FF8800 4px)';
@@ -5918,8 +5924,8 @@
 
             const toggleMode = () => {
                 heatmapDisplayMode = heatmapDisplayMode === 'changes' ? 'hourly' : 'changes';
-                if (currentHeatmapHistory.length > 0) {
-                    drawSlotFillHeatmap({ slotHistory: currentHeatmapHistory }, currentHeatmapDate);
+                if (currentHeatmapHistoryGeneral.length > 0 || currentHeatmapHistoryShiya.length > 0) {
+                    drawSlotFillHeatmap({}, currentHeatmapDate);
                 }
             };
 
