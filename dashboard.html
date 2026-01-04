@@ -4493,11 +4493,35 @@
             // データセットを作成
             const datasets = [];
 
-            // 一般予約（オレンジ）
+            // 一般予約のデータを取得
+            let generalLineData = null;
             if (generalToday && generalToday.detailed) {
-                const generalLineData = DETAILED_TIME_SLOTS.map(slot => {
+                generalLineData = DETAILED_TIME_SLOTS.map(slot => {
                     return generalToday.detailed[slot.label] !== undefined ? generalToday.detailed[slot.label] : null;
                 });
+            }
+
+            // 視野予約のデータを取得
+            let shiyaLineData = null;
+            if (shiyaToday && shiyaToday.detailed) {
+                shiyaLineData = DETAILED_TIME_SLOTS.map(slot => {
+                    return shiyaToday.detailed[slot.label] !== undefined ? shiyaToday.detailed[slot.label] : null;
+                });
+            }
+
+            // 重なり対策：同じ値の場合は視野予約を少し下にずらす
+            if (generalLineData && shiyaLineData) {
+                shiyaLineData = shiyaLineData.map((val, i) => {
+                    if (val !== null && generalLineData[i] !== null && val === generalLineData[i]) {
+                        // 同じ値の場合、視野予約を0.15下にオフセット
+                        return val - 0.15;
+                    }
+                    return val;
+                });
+            }
+
+            // 一般予約（オレンジ）
+            if (generalLineData) {
                 datasets.push({
                     label: '一般予約',
                     data: generalLineData,
@@ -4513,10 +4537,7 @@
             }
 
             // 視野予約（緑）
-            if (shiyaToday && shiyaToday.detailed) {
-                const shiyaLineData = DETAILED_TIME_SLOTS.map(slot => {
-                    return shiyaToday.detailed[slot.label] !== undefined ? shiyaToday.detailed[slot.label] : null;
-                });
+            if (shiyaLineData) {
                 datasets.push({
                     label: '視野予約',
                     data: shiyaLineData,
@@ -4535,9 +4556,6 @@
             const labels = DETAILED_TIME_SLOTS.map(slot => {
                 if (slot.minute === 0) {
                     return String(slot.hour);
-                }
-                if (slot.label === '18:30') {
-                    return '18半';
                 }
                 return '';
             });
@@ -4572,7 +4590,9 @@
                                     return `${month}/${day}（${dayOfWeek}） ${DETAILED_TIME_SLOTS[index].label}`;
                                 },
                                 label: function(context) {
-                                    return context.dataset.label + ': ' + (context.parsed.y !== null ? context.parsed.y + '枠' : 'データなし');
+                                    // 表示用の値を整数に丸める（重なり対策のオフセットを補正）
+                                    const displayValue = context.parsed.y !== null ? Math.round(context.parsed.y) : null;
+                                    return context.dataset.label + ': ' + (displayValue !== null ? displayValue + '枠' : 'データなし');
                                 }
                             }
                         }
