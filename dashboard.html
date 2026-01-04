@@ -2859,11 +2859,11 @@
         };
 
         /**
-         * 営業日の履歴データを取得（18:30以降は翌日のデータ）
+         * 当日の履歴データを取得（カレンダー日付ベース - 埋まり時刻追跡用）
          */
         async function fetchTodayHistory(type) {
             try {
-                const today = getBusinessDate();
+                const today = formatDate(new Date());
                 const baseUrl = type === 'general' ? GENERAL_HISTORY : SHIYA_HISTORY;
                 const url = `${baseUrl}/${today}.json?t=${Date.now()}`;
                 const response = await fetch(url);
