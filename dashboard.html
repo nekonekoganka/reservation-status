@@ -365,13 +365,22 @@
             border-left: 2px solid #999;
         }
 
-        /* 現在時刻マーカー（赤い点線） */
-        .slot-fill-heatmap .current-time-marker {
-            border-left: 2px dotted #ff0000 !important;
+        /* 現在時刻マーカー（一般予約: シアン） */
+        .slot-fill-heatmap .time-marker-general {
+            border-left: 3px solid #00CCCC !important;
         }
 
-        .slot-fill-heatmap .minute-header th.current-time-marker {
-            border-left: 2px dotted #ff0000 !important;
+        .slot-fill-heatmap .minute-header th.time-marker-general {
+            border-left: 3px solid #00CCCC !important;
+        }
+
+        /* 現在時刻マーカー（視野予約: マゼンタ） */
+        .slot-fill-heatmap .time-marker-shiya {
+            border-left: 3px solid #DD44AA !important;
+        }
+
+        .slot-fill-heatmap .minute-header th.time-marker-shiya {
+            border-left: 3px solid #DD44AA !important;
         }
 
         /* ヘッダー行のスタイル */
@@ -1044,13 +1053,19 @@
             border-left: 2px solid #999;
         }
 
-        /* 現在時刻マーカー（赤い点線） */
-        .combined-timeline .cell-row td.current-time-marker {
-            border-left: 2px dotted #ff0000 !important;
+        /* 現在時刻マーカー（ヘッダー行: ダークグレー） */
+        .combined-timeline .minute-row th.time-marker-header {
+            border-left: 3px solid #666666 !important;
         }
 
-        .combined-timeline .minute-row th.current-time-marker {
-            border-left: 2px dotted #ff0000 !important;
+        /* 現在時刻マーカー（一般予約: シアン） */
+        .combined-timeline .cell-row td.time-marker-general {
+            border-left: 3px solid #00CCCC !important;
+        }
+
+        /* 現在時刻マーカー（視野予約: マゼンタ） */
+        .combined-timeline .cell-row td.time-marker-shiya {
+            border-left: 3px solid #DD44AA !important;
         }
 
         .combined-timeline .cell-row td.row-label {
@@ -3402,7 +3417,7 @@
                     const minute = slot.split(':')[1];
                     const baseClass = group.isAm ? 'am-minute' : 'pm-minute';
                     const hourStartClass = (minute === '00' && slot !== '13:00' && slot !== '18:00') ? ' hour-start' : '';
-                    const currentTimeClass = (slot === currentTimeSlot) ? ' current-time-marker' : '';
+                    const currentTimeClass = (slot === currentTimeSlot) ? ' time-marker-header' : '';
                     const displayMinute = (slot === '13:00' || slot === '18:00') ? '55' : minute;
                     html += `<th class="${baseClass}${hourStartClass}${currentTimeClass}">${displayMinute}</th>`;
                 });
@@ -3417,7 +3432,7 @@
                     const isAvailable = isSlotAvailable(slot, generalSlots);
                     const minute = slot.split(':')[1];
                     const hourStartClass = (minute === '00' && slot !== '13:00' && slot !== '18:00') ? ' hour-start' : '';
-                    const currentTimeClass = (slot === currentTimeSlot) ? ' current-time-marker' : '';
+                    const currentTimeClass = (slot === currentTimeSlot) ? ' time-marker-general' : '';
 
                     let cellClass = isAvailable ? 'cell-available' : 'cell-filled general';
                     let stateClass = '';
@@ -3460,7 +3475,7 @@
                     const isAvailable = isSlotAvailable(slot, shiyaSlots);
                     const minute = slot.split(':')[1];
                     const hourStartClass = (minute === '00' && slot !== '13:00' && slot !== '18:00') ? ' hour-start' : '';
-                    const currentTimeClass = (slot === currentTimeSlot) ? ' current-time-marker' : '';
+                    const currentTimeClass = (slot === currentTimeSlot) ? ' time-marker-shiya' : '';
 
                     let cellClass = isAvailable ? 'cell-available' : 'cell-filled shiya';
                     let stateClass = '';
@@ -5728,7 +5743,8 @@
                     const cellBg = isHourStart
                         ? (group.isAm ? '#ffe0b2' : '#bbdefb')  // 0分: 濃い色
                         : bgColor;
-                    const currentTimeClass = (slot === currentTimeSlotForHeatmap) ? ' current-time-marker' : '';
+                    const timeMarkerClass = currentType === 'shiya' ? 'time-marker-shiya' : 'time-marker-general';
+                    const currentTimeClass = (slot === currentTimeSlotForHeatmap) ? ` ${timeMarkerClass}` : '';
                     html += `<th style="background: ${cellBg};" class="${currentTimeClass}">${minute}</th>`;
                 });
             });
@@ -5792,7 +5808,8 @@
                     const minute = slot.split(':')[1];
                     const dividerClass = minute === '00' ? ' hour-divider' : '';
                     // 行の時刻に対応するスロットには時刻マーカーを追加
-                    const timeMarkerClass = (slot === rowTimeSlot) ? ' current-time-marker' : '';
+                    const markerClass = currentType === 'shiya' ? 'time-marker-shiya' : 'time-marker-general';
+                    const timeMarkerClass = (slot === rowTimeSlot) ? ` ${markerClass}` : '';
                     html += `<td class="${cellClass}${stateClass}${dividerClass}${timeMarkerClass}" title="${displayTime} - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
                 });
                 html += `</tr>`;
@@ -5855,7 +5872,8 @@
 
                     const minute = slot.split(':')[1];
                     const dividerClass = minute === '00' ? ' hour-divider' : '';
-                    const currentTimeClass = (slot === currentTimeSlotForHeatmap) ? ' current-time-marker' : '';
+                    const markerClass = currentType === 'shiya' ? 'time-marker-shiya' : 'time-marker-general';
+                    const currentTimeClass = (slot === currentTimeSlotForHeatmap) ? ` ${markerClass}` : '';
                     html += `<td class="${cellClass}${stateClass}${dividerClass}${currentTimeClass}" title="現在 (${latestTime}) - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
                 });
                 html += `</tr>`;
