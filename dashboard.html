@@ -3547,6 +3547,7 @@
             return {
                 y: {
                     beginAtZero: true,
+                    suggestedMax: 4,  // 最大値を最低4に設定
                     title: {
                         display: !isMobile(),
                         text: '空き枠数',
@@ -3554,7 +3555,8 @@
                     },
                     ticks: {
                         font: { size: tickFontSize, weight: 'bold' },
-                        color: '#333'
+                        color: '#333',
+                        stepSize: 1  // 1刻みで表示
                     }
                 },
                 x: {
