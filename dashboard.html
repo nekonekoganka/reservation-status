@@ -367,11 +367,11 @@
 
         /* 現在時刻マーカー（赤い点線） */
         .slot-fill-heatmap .current-time-marker {
-            border-left: 3px dashed #ff0000 !important;
+            border-left: 2px dotted #ff0000 !important;
         }
 
         .slot-fill-heatmap .minute-header th.current-time-marker {
-            border-left: 3px dashed #ff0000 !important;
+            border-left: 2px dotted #ff0000 !important;
         }
 
         /* ヘッダー行のスタイル */
@@ -1046,11 +1046,11 @@
 
         /* 現在時刻マーカー（赤い点線） */
         .combined-timeline .cell-row td.current-time-marker {
-            border-left: 3px dashed #ff0000 !important;
+            border-left: 2px dotted #ff0000 !important;
         }
 
         .combined-timeline .minute-row th.current-time-marker {
-            border-left: 3px dashed #ff0000 !important;
+            border-left: 2px dotted #ff0000 !important;
         }
 
         .combined-timeline .cell-row td.row-label {
@@ -3312,6 +3312,52 @@
             }
 
             return null;
+        }
+
+        /**
+         * 指定時刻に対応するスロットを取得（ヒートマップ行用）
+         * @param {string} timeStr - 時刻文字列（例: "12:07"）
+         * @returns {string|null} - 対応するスロット（例: "12:15"）、表示外ならnull
+         */
+        function getTimeSlotForTime(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            const totalMinutes = h * 60 + m;
+
+            // 全スロットリスト
+            const allSlots = [
+                '10:00', '10:15', '10:30', '10:45',
+                '11:00', '11:15', '11:30', '11:45',
+                '12:00', '12:15', '12:30', '12:45', '12:55',
+                '15:00', '15:15', '15:30', '15:45',
+                '16:00', '16:15', '16:30', '16:45',
+                '17:00', '17:15', '17:30', '17:45', '17:55'
+            ];
+
+            // 18:00以降（18:30より前の夕方）は17:55を返す
+            if (totalMinutes >= 18 * 60 && totalMinutes < 18 * 60 + 30) {
+                return '17:55';
+            }
+
+            // 18:30以降〜10:00より前は10:00を返す
+            if (totalMinutes >= 18 * 60 + 30 || totalMinutes < 10 * 60) {
+                return '10:00';
+            }
+
+            // 昼休み（13:00〜14:59）は15:00を返す
+            if (totalMinutes >= 13 * 60 && totalMinutes < 15 * 60) {
+                return '15:00';
+            }
+
+            // 該当時刻より後のスロットを探す
+            for (const slot of allSlots) {
+                const [sh, sm] = slot.split(':').map(Number);
+                const slotMinutes = sh * 60 + sm;
+                if (slotMinutes > totalMinutes) {
+                    return slot;
+                }
+            }
+
+            return '17:55';
         }
 
         /**
@@ -5718,6 +5764,9 @@
                 // 時刻をそのまま表示（スマホでも分を含む）
                 const rowLabel = displayTime;
 
+                // この行の時刻に対応するスロットを計算
+                const rowTimeSlot = getTimeSlotForTime(displayTime);
+
                 html += `<tr><td>${rowLabel}</td>`;
                 allSlots.forEach(slot => {
                     const hasSlot = checkSlotAvailable(slots, slot);
@@ -5742,7 +5791,9 @@
                     // 0分のセルに区切り用のクラスを追加
                     const minute = slot.split(':')[1];
                     const dividerClass = minute === '00' ? ' hour-divider' : '';
-                    html += `<td class="${cellClass}${stateClass}${dividerClass}" title="${displayTime} - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
+                    // 行の時刻に対応するスロットには時刻マーカーを追加
+                    const timeMarkerClass = (slot === rowTimeSlot) ? ' current-time-marker' : '';
+                    html += `<td class="${cellClass}${stateClass}${dividerClass}${timeMarkerClass}" title="${displayTime} - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
                 });
                 html += `</tr>`;
             });
