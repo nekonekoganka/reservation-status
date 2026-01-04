@@ -5381,6 +5381,17 @@
             // 2時間刻みのターゲット時刻
             const targetHours = ['19:00', '21:00', '23:00', '01:00', '03:00', '05:00', '07:00', '09:00', '11:00', '13:00', '15:00', '17:00'];
 
+            // 履歴データの最初のエントリ時刻を計算（18:30基準）
+            let firstEntryMinutes = Infinity;
+            history.forEach(entry => {
+                const [h, m] = entry.time.split(':').map(Number);
+                let entryMinutes = h * 60 + m;
+                if (entryMinutes < 18 * 60 + 30) entryMinutes += 24 * 60;
+                if (entryMinutes < firstEntryMinutes) {
+                    firstEntryMinutes = entryMinutes;
+                }
+            });
+
             // 各ターゲット時刻に最も近いエントリを取得
             const filteredHistory = [];
             targetHours.forEach(targetTime => {
@@ -5389,6 +5400,12 @@
                 let targetMinutesBase = targetH * 60 + targetM;
                 if (targetMinutesBase < 18 * 60 + 30) {
                     targetMinutesBase += 24 * 60;
+                }
+
+                // ターゲット時刻が最初のエントリより前の場合は、満枠（空きスロットなし）として表示
+                if (targetMinutesBase < firstEntryMinutes - 60) {
+                    filteredHistory.push({ time: targetTime, slots: [], displayTime: targetTime, isAssumedFull: true });
+                    return;
                 }
 
                 let closest = null;
