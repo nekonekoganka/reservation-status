@@ -5369,6 +5369,19 @@
             let prevSlots = null;
             let added19Entry = false;
 
+            // 履歴データの最初のエントリ時刻を計算（18:30基準）
+            let firstEntryMinutes = Infinity;
+            let firstEntry = null;
+            history.forEach(entry => {
+                const [h, m] = entry.time.split(':').map(Number);
+                let entryMinutes = h * 60 + m;
+                if (entryMinutes < 18 * 60 + 30) entryMinutes += 24 * 60;
+                if (entryMinutes < firstEntryMinutes) {
+                    firstEntryMinutes = entryMinutes;
+                    firstEntry = entry;
+                }
+            });
+
             // 19:00に最も近いエントリを探す
             const target19Minutes = 19 * 60; // 19:00 = 1140分
             let closest19Entry = null;
@@ -5387,9 +5400,17 @@
                 }
             });
 
-            // 19:00のエントリを最初に追加
+            // 19:00のエントリを追加（見つからない場合は満枠または最初のエントリを使用）
             if (closest19Entry) {
                 result.push({ ...closest19Entry, displayTime: '19:00' });
+                added19Entry = true;
+            } else if (target19Minutes < firstEntryMinutes - 60) {
+                // 19:00時点でまだデータがない場合は満枠として表示
+                result.push({ time: '19:00', slots: [], displayTime: '19:00', isAssumedFull: true });
+                added19Entry = true;
+            } else if (firstEntry) {
+                // 最初のエントリを19:00として使用
+                result.push({ ...firstEntry, displayTime: '19:00' });
                 added19Entry = true;
             }
 
