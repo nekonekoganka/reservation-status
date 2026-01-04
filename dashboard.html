@@ -365,6 +365,15 @@
             border-left: 2px solid #999;
         }
 
+        /* 現在時刻マーカー（赤い線） */
+        .slot-fill-heatmap .current-time-marker {
+            border-left: 3px solid #ff0000 !important;
+        }
+
+        .slot-fill-heatmap .minute-header th.current-time-marker {
+            border-left: 3px solid #ff0000 !important;
+        }
+
         /* ヘッダー行のスタイル */
         .slot-fill-heatmap .hour-header th {
             font-weight: 700;
@@ -1033,6 +1042,15 @@
 
         .combined-timeline .cell-row td.hour-start {
             border-left: 2px solid #999;
+        }
+
+        /* 現在時刻マーカー（赤い線） */
+        .combined-timeline .cell-row td.current-time-marker {
+            border-left: 3px solid #ff0000 !important;
+        }
+
+        .combined-timeline .minute-row th.current-time-marker {
+            border-left: 3px solid #ff0000 !important;
         }
 
         .combined-timeline .cell-row td.row-label {
@@ -3245,6 +3263,46 @@
         }
 
         /**
+         * 現在時刻に最も近いスロットを取得
+         * 予約可能時間帯（10:00-13:00, 15:00-18:00）の場合のみ返す
+         */
+        function getCurrentTimeSlot() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            const currentTotalMinutes = currentHour * 60 + currentMinute;
+
+            // 予約可能時間帯かチェック（10:00-13:00, 15:00-18:00）
+            const isInAmSlot = currentTotalMinutes >= 10 * 60 && currentTotalMinutes < 13 * 60;
+            const isInPmSlot = currentTotalMinutes >= 15 * 60 && currentTotalMinutes < 18 * 60;
+
+            if (!isInAmSlot && !isInPmSlot) {
+                return null; // 予約可能時間帯外
+            }
+
+            // 全スロットリスト
+            const allSlots = [
+                '10:00', '10:15', '10:30', '10:45',
+                '11:00', '11:15', '11:30', '11:45',
+                '12:00', '12:15', '12:30', '12:45', '13:00',
+                '15:00', '15:15', '15:30', '15:45',
+                '16:00', '16:15', '16:30', '16:45',
+                '17:00', '17:15', '17:30', '17:45', '18:00'
+            ];
+
+            // 現在時刻以降で最も近いスロットを探す
+            for (const slot of allSlots) {
+                const [h, m] = slot.split(':').map(Number);
+                const slotMinutes = h * 60 + m;
+                if (slotMinutes >= currentTotalMinutes) {
+                    return slot;
+                }
+            }
+
+            return null;
+        }
+
+        /**
          * 統合タイムラインを描画（1テーブルに一般と視野を並べる）
          */
         function renderCombinedTimeline() {
@@ -3253,6 +3311,9 @@
 
             const generalSlots = currentSlotsData.general || [];
             const shiyaSlots = currentSlotsData.shiya || [];
+
+            // 現在時刻に最も近いスロットを取得
+            const currentTimeSlot = getCurrentTimeSlot();
 
             // 時間グループを定義
             const hourGroups = [
@@ -3283,8 +3344,9 @@
                     const minute = slot.split(':')[1];
                     const baseClass = group.isAm ? 'am-minute' : 'pm-minute';
                     const hourStartClass = (minute === '00' && slot !== '13:00' && slot !== '18:00') ? ' hour-start' : '';
+                    const currentTimeClass = (slot === currentTimeSlot) ? ' current-time-marker' : '';
                     const displayMinute = (slot === '13:00' || slot === '18:00') ? '55' : minute;
-                    html += `<th class="${baseClass}${hourStartClass}">${displayMinute}</th>`;
+                    html += `<th class="${baseClass}${hourStartClass}${currentTimeClass}">${displayMinute}</th>`;
                 });
             });
             html += '</tr>';
@@ -3297,6 +3359,7 @@
                     const isAvailable = isSlotAvailable(slot, generalSlots);
                     const minute = slot.split(':')[1];
                     const hourStartClass = (minute === '00' && slot !== '13:00' && slot !== '18:00') ? ' hour-start' : '';
+                    const currentTimeClass = (slot === currentTimeSlot) ? ' current-time-marker' : '';
 
                     let cellClass = isAvailable ? 'cell-available' : 'cell-filled general';
                     let stateClass = '';
@@ -3326,7 +3389,7 @@
                         tooltip = openedAt ? `${displaySlot} (${openedAt}に空き)` : `${displaySlot} 空き`;
                     }
 
-                    html += `<td class="${cellClass}${stateClass}${hourStartClass}" title="${tooltip}"></td>`;
+                    html += `<td class="${cellClass}${stateClass}${hourStartClass}${currentTimeClass}" title="${tooltip}"></td>`;
                 });
             });
             html += '</tr>';
@@ -3339,6 +3402,7 @@
                     const isAvailable = isSlotAvailable(slot, shiyaSlots);
                     const minute = slot.split(':')[1];
                     const hourStartClass = (minute === '00' && slot !== '13:00' && slot !== '18:00') ? ' hour-start' : '';
+                    const currentTimeClass = (slot === currentTimeSlot) ? ' current-time-marker' : '';
 
                     let cellClass = isAvailable ? 'cell-available' : 'cell-filled shiya';
                     let stateClass = '';
@@ -3368,7 +3432,7 @@
                         tooltip = openedAt ? `${displaySlot} (${openedAt}に空き)` : `${displaySlot} 空き`;
                     }
 
-                    html += `<td class="${cellClass}${stateClass}${hourStartClass}" title="${tooltip}"></td>`;
+                    html += `<td class="${cellClass}${stateClass}${hourStartClass}${currentTimeClass}" title="${tooltip}"></td>`;
                 });
             });
             html += '</tr>';
@@ -5568,6 +5632,13 @@
             const isMobile = window.innerWidth <= 768;
             let html = `<table>`;
 
+            // 今日の場合のみ現在時刻マーカーを表示
+            // スロット名は12:55, 17:55形式に変換して比較
+            const currentTimeSlotRaw = isToday ? getCurrentTimeSlot() : null;
+            let currentTimeSlotForHeatmap = currentTimeSlotRaw;
+            if (currentTimeSlotRaw === '13:00') currentTimeSlotForHeatmap = '12:55';
+            if (currentTimeSlotRaw === '18:00') currentTimeSlotForHeatmap = '17:55';
+
             // 時間グループを定義（各時間帯のスロット数）
             const hourGroups = [
                 { hour: 10, slots: ['10:00', '10:15', '10:30', '10:45'], isAm: true },
@@ -5599,7 +5670,8 @@
                     const cellBg = isHourStart
                         ? (group.isAm ? '#ffe0b2' : '#bbdefb')  // 0分: 濃い色
                         : bgColor;
-                    html += `<th style="background: ${cellBg};">${minute}</th>`;
+                    const currentTimeClass = (slot === currentTimeSlotForHeatmap) ? ' current-time-marker' : '';
+                    html += `<th style="background: ${cellBg};" class="${currentTimeClass}">${minute}</th>`;
                 });
             });
             html += `</tr>`;
@@ -5720,7 +5792,8 @@
 
                     const minute = slot.split(':')[1];
                     const dividerClass = minute === '00' ? ' hour-divider' : '';
-                    html += `<td class="${cellClass}${stateClass}${dividerClass}" title="現在 (${latestTime}) - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
+                    const currentTimeClass = (slot === currentTimeSlotForHeatmap) ? ' current-time-marker' : '';
+                    html += `<td class="${cellClass}${stateClass}${dividerClass}${currentTimeClass}" title="現在 (${latestTime}) - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
                 });
                 html += `</tr>`;
             }
