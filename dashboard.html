@@ -5538,10 +5538,18 @@
             });
 
             // 現在の状態行（最新のデータ）
+            // 今日の日付かどうかをチェック
+            const today = formatDate(new Date());
+            const isToday = (date === today);
+
+            // 今日の場合は currentSlotsData を使用（タイムラインバーと同じデータ）
+            // それ以外は履歴の最新データを使用
             const latestEntry = history[history.length - 1];
-            if (latestEntry) {
-                const latestSlots = latestEntry.slots || [];
-                const latestTime = latestEntry.time;
+            const useCurrentData = isToday && currentSlotsData[currentType].length > 0;
+
+            if (latestEntry || useCurrentData) {
+                const latestSlots = useCurrentData ? currentSlotsData[currentType] : (latestEntry.slots || []);
+                const latestTime = useCurrentData ? new Date().toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'}) : latestEntry.time;
                 const rowLabel = isMobile ? '今' : `現在 (${latestTime})`;
 
                 // 直前の2時間刻みデータと比較
@@ -5551,19 +5559,40 @@
                 html += `<tr class="current-row"><td class="current-label">${rowLabel}</td>`;
                 allSlots.forEach(slot => {
                     const hasSlot = checkSlotAvailable(latestSlots, slot);
-                    const hadSlot = prevEntry ? checkSlotAvailable(prevSlots, slot) : hasSlot;
 
                     let cellClass = hasSlot ? 'cell-available' : filledClass;
                     let stateClass = '';
 
-                    if (prevEntry) {
-                        const timeDiff = getTimeDiffMinutes(prevEntry.displayTime, latestTime);
-                        const isWithin2Hours = timeDiff <= 120;
+                    if (useCurrentData) {
+                        // 今日の場合はタイムラインバーと同じロジックを使用
+                        // スロット名を内部形式に変換（12:55→13:00, 17:55→18:00）
+                        let internalSlot = slot;
+                        if (slot === '12:55') internalSlot = '13:00';
+                        if (slot === '17:55') internalSlot = '18:00';
 
-                        if (!hasSlot && hadSlot && isWithin2Hours) {
-                            stateClass = ' recent';
-                        } else if (hasSlot && !hadSlot && isWithin2Hours) {
-                            stateClass = ` recently-opened ${borderClass}`;
+                        if (!hasSlot) {
+                            const timeClass = getFilledTimeClass(internalSlot, currentType);
+                            if (timeClass === 'recent') {
+                                stateClass = ' recent';
+                            }
+                        } else {
+                            const openedClass = getOpenedTimeClass(internalSlot, currentType);
+                            if (openedClass) {
+                                stateClass = ` recently-opened ${borderClass}`;
+                            }
+                        }
+                    } else {
+                        // 過去の日付は従来のロジック
+                        const hadSlot = prevEntry ? checkSlotAvailable(prevSlots, slot) : hasSlot;
+                        if (prevEntry) {
+                            const timeDiff = getTimeDiffMinutes(prevEntry.displayTime, latestTime);
+                            const isWithin2Hours = timeDiff <= 120;
+
+                            if (!hasSlot && hadSlot && isWithin2Hours) {
+                                stateClass = ' recent';
+                            } else if (hasSlot && !hadSlot && isWithin2Hours) {
+                                stateClass = ` recently-opened ${borderClass}`;
+                            }
                         }
                     }
 
