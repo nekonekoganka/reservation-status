@@ -5514,13 +5514,17 @@
                     }
                 }
 
-                // 当日のデータ
+                // 当日のデータ（18:30より前のエントリのみ）
                 if (currentResponse && currentResponse.ok) {
                     const currentData = await currentResponse.json();
                     if (Array.isArray(currentData)) {
                         currentData.forEach(entry => {
                             if (entry.slots && Array.isArray(entry.slots)) {
-                                entries.push(entry);
+                                const [h, m] = entry.time.split(':').map(Number);
+                                // 18:30より前のデータのみ追加（18:30以降は翌営業日分）
+                                if (h < 18 || (h === 18 && m < 30)) {
+                                    entries.push(entry);
+                                }
                             }
                         });
                     }
