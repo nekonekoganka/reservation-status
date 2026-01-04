@@ -2859,11 +2859,11 @@
         };
 
         /**
-         * 当日の履歴データを取得
+         * 営業日の履歴データを取得（18:30以降は翌日のデータ）
          */
         async function fetchTodayHistory(type) {
             try {
-                const today = formatDate(new Date());
+                const today = getBusinessDate();
                 const baseUrl = type === 'general' ? GENERAL_HISTORY : SHIYA_HISTORY;
                 const url = `${baseUrl}/${today}.json?t=${Date.now()}`;
                 const response = await fetch(url);
@@ -3810,6 +3810,24 @@
             return `${year}-${month}-${day}`;
         }
 
+        /**
+         * 営業日を取得（18:30で切り替わり）
+         * 18:30以降は翌日の予約データを参照するため、翌日の日付を返す
+         */
+        function getBusinessDate() {
+            const now = new Date();
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+
+            // 18:30以降は翌日の営業日
+            if (hour > 18 || (hour === 18 && minute >= 30)) {
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                return formatDate(tomorrow);
+            }
+            return formatDate(now);
+        }
+
         // 日付文字列をローカル時刻としてパース
         function parseDate(dateStr) {
             const [year, month, day] = dateStr.split('-').map(Number);
@@ -4435,15 +4453,15 @@
                 weeklyProgressChart.destroy();
             }
 
-            // 本日の日付を取得
-            const today = new Date();
-            const todayStr = today.toISOString().split('T')[0];
+            // 営業日の日付を取得（18:30以降は翌日）
+            const todayStr = getBusinessDate();
+            const todayDate = parseDate(todayStr);
 
             // 一般予約と視野予約の両方のデータを取得
             const generalData = processedData['general'] || {};
             const shiyaData = processedData['shiya'] || {};
 
-            // 本日のデータを探す
+            // 営業日のデータを探す
             const generalToday = generalData[todayStr];
             const shiyaToday = shiyaData[todayStr];
 
@@ -4468,9 +4486,9 @@
             }
 
             // 日付のフォーマット
-            const month = today.getMonth() + 1;
-            const day = today.getDate();
-            const dayOfWeek = DAY_NAMES[today.getDay()];
+            const month = todayDate.getMonth() + 1;
+            const day = todayDate.getDate();
+            const dayOfWeek = DAY_NAMES[todayDate.getDay()];
 
             // データセットを作成
             const datasets = [];
