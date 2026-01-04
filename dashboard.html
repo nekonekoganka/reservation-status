@@ -5568,8 +5568,8 @@
                 const slots = entry.slots || [];
                 const prevEntry = index > 0 ? filteredHistory[index - 1] : null;
                 const prevSlots = prevEntry ? (prevEntry.slots || []) : [];
-                // スマホでは時刻を短縮
-                const rowLabel = isMobile ? displayTime.split(':')[0] : displayTime;
+                // 時刻をそのまま表示（スマホでも分を含む）
+                const rowLabel = displayTime;
 
                 html += `<tr><td>${rowLabel}</td>`;
                 allSlots.forEach(slot => {
