@@ -2594,10 +2594,10 @@
             </button>
         </div>
 
-        <!-- 直近1週間の空き枠推移（日別） -->
+        <!-- 本日の空き枠推移 -->
         <div class="charts-grid weekly-progress-chart">
             <div class="chart-card">
-                <h3>📈 直近1週間の空き枠推移（日別）- 10分刻み<span class="help-icon" onclick="openHelpModal('weeklyProgress')">?<span class="tooltip">直近1週間の各日のデータを表示</span></span></h3>
+                <h3>📈 本日の空き枠推移 - 10分刻み<span class="help-icon" onclick="openHelpModal('todayProgress')">?<span class="tooltip">本日の空き枠推移を表示</span></span></h3>
                 <div class="chart-container large" style="position: relative;">
                     <div id="chartLoading" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.9); z-index: 10;">
                         <div style="text-align: center; color: #666;">
@@ -4427,7 +4427,7 @@
             });
         }
 
-        // 直近1週間の空き枠推移グラフ（日別）
+        // 本日の空き枠推移グラフ（一般予約・視野予約）
         function updateWeeklyProgressChart(data) {
             const ctx = document.getElementById('weeklyProgressChart').getContext('2d');
 
@@ -4435,14 +4435,19 @@
                 weeklyProgressChart.destroy();
             }
 
-            // 直近1週間の日付を取得
-            const sortedDates = Object.keys(data)
-                .sort()
-                .reverse()
-                .slice(0, 7) // 直近7日
-                .reverse(); // 古い順に並べ替え
+            // 本日の日付を取得
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
 
-            if (sortedDates.length === 0) {
+            // 一般予約と視野予約の両方のデータを取得
+            const generalData = processedData['general'] || {};
+            const shiyaData = processedData['shiya'] || {};
+
+            // 本日のデータを探す
+            const generalToday = generalData[todayStr];
+            const shiyaToday = shiyaData[todayStr];
+
+            if (!generalToday && !shiyaToday) {
                 // データがない場合は空のチャートを表示
                 weeklyProgressChart = new Chart(ctx, {
                     type: 'line',
@@ -4454,7 +4459,7 @@
                             legend: { display: false },
                             title: {
                                 display: true,
-                                text: 'データがありません'
+                                text: '本日のデータがありません'
                             }
                         }
                     }
@@ -4462,52 +4467,51 @@
                 return;
             }
 
-            // 各日のデータセットを作成
+            // 日付のフォーマット
+            const month = today.getMonth() + 1;
+            const day = today.getDate();
+            const dayOfWeek = DAY_NAMES[today.getDay()];
+
+            // データセットを作成
             const datasets = [];
-            // 濃くて見やすい色のパレット（古い→新しい順）
-            const colors = [
-                'rgba(156, 39, 176, 1)',     // 紫
-                'rgba(0, 150, 136, 1)',      // ティール
-                'rgba(255, 152, 0, 1)',      // オレンジ
-                'rgba(76, 175, 80, 1)',      // 緑
-                'rgba(33, 150, 243, 1)',     // 青
-                'rgba(63, 81, 181, 1)',      // インディゴ（最新の1つ前）
-                'rgba(244, 67, 54, 1)'       // 赤（最新・最も目立つ）
-            ];
 
-            sortedDates.forEach((date, index) => {
-                const dayData = data[date];
-                if (!dayData.detailed) return;
-
-                // 日付のフォーマット: 12/9（月）
-                const d = new Date(date + 'T00:00:00');
-                const month = d.getMonth() + 1;
-                const day = d.getDate();
-                const dayOfWeek = DAY_NAMES[dayData.dayOfWeek];
-                const label = `${month}/${day}（${dayOfWeek}）`;
-
-                // データを取得
-                const lineData = DETAILED_TIME_SLOTS.map(slot => {
-                    return dayData.detailed[slot.label] !== undefined ? dayData.detailed[slot.label] : null;
+            // 一般予約（オレンジ）
+            if (generalToday && generalToday.detailed) {
+                const generalLineData = DETAILED_TIME_SLOTS.map(slot => {
+                    return generalToday.detailed[slot.label] !== undefined ? generalToday.detailed[slot.label] : null;
                 });
-
-                // 最新のデータは太線で目立たせる、それ以外は非表示をデフォルトに
-                const isLatest = index === sortedDates.length - 1;
-                const colorIndex = Math.min(index, colors.length - 1);
-
                 datasets.push({
-                    label: label,
-                    data: lineData,
-                    borderColor: colors[colorIndex],
-                    backgroundColor: colors[colorIndex].replace('1)', '0.1)'),
+                    label: '一般予約',
+                    data: generalLineData,
+                    borderColor: 'rgba(255, 152, 0, 1)',  // オレンジ
+                    backgroundColor: 'rgba(255, 152, 0, 0.1)',
                     tension: 0.3,
                     fill: false,
                     pointRadius: 0,
                     pointHoverRadius: 4,
-                    borderWidth: isLatest ? 3 : 2,
-                    hidden: !isLatest  // 当日以外は非表示をデフォルトに
+                    borderWidth: 3,
+                    hidden: false
                 });
-            });
+            }
+
+            // 視野予約（緑）
+            if (shiyaToday && shiyaToday.detailed) {
+                const shiyaLineData = DETAILED_TIME_SLOTS.map(slot => {
+                    return shiyaToday.detailed[slot.label] !== undefined ? shiyaToday.detailed[slot.label] : null;
+                });
+                datasets.push({
+                    label: '視野予約',
+                    data: shiyaLineData,
+                    borderColor: 'rgba(76, 175, 80, 1)',  // 緑
+                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                    tension: 0.3,
+                    fill: false,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    borderWidth: 3,
+                    hidden: false
+                });
+            }
 
             // X軸ラベル（1時間ごとに表示、時間のみ）
             const labels = DETAILED_TIME_SLOTS.map(slot => {
@@ -4547,7 +4551,7 @@
                             callbacks: {
                                 title: function(context) {
                                     const index = context[0].dataIndex;
-                                    return DETAILED_TIME_SLOTS[index].label;
+                                    return `${month}/${day}（${dayOfWeek}） ${DETAILED_TIME_SLOTS[index].label}`;
                                 },
                                 label: function(context) {
                                     return context.dataset.label + ': ' + (context.parsed.y !== null ? context.parsed.y + '枠' : 'データなし');
@@ -5504,14 +5508,14 @@
 
         /**
          * 履歴データから変化があった時刻のみを抽出
-         * 19:00時点の開始行も必ず含める
+         * 18:30時点の開始行も必ず含める
          */
         function filterHistoryByChanges(history) {
             if (!history || history.length === 0) return [];
 
             const result = [];
             let prevSlots = null;
-            let added19Entry = false;
+            let added1830Entry = false;
 
             // 履歴データの最初のエントリ時刻を計算（18:30基準）
             let firstEntryMinutes = Infinity;
@@ -5526,10 +5530,10 @@
                 }
             });
 
-            // 19:00に最も近いエントリを探す
-            const target19Minutes = 19 * 60; // 19:00 = 1140分
-            let closest19Entry = null;
-            let closest19Diff = Infinity;
+            // 18:30に最も近いエントリを探す
+            const target1830Minutes = 18 * 60 + 30; // 18:30 = 1110分
+            let closest1830Entry = null;
+            let closest1830Diff = Infinity;
 
             history.forEach(entry => {
                 const [h, m] = entry.time.split(':').map(Number);
@@ -5537,33 +5541,33 @@
                 // 18:30基準で日またぎ調整
                 if (entryMinutes < 18 * 60 + 30) entryMinutes += 24 * 60;
 
-                const diff = Math.abs(entryMinutes - target19Minutes);
-                if (diff < closest19Diff && diff <= 60) {
-                    closest19Diff = diff;
-                    closest19Entry = entry;
+                const diff = Math.abs(entryMinutes - target1830Minutes);
+                if (diff < closest1830Diff && diff <= 60) {
+                    closest1830Diff = diff;
+                    closest1830Entry = entry;
                 }
             });
 
-            // 19:00のエントリを追加（見つからない場合は満枠または最初のエントリを使用）
-            if (closest19Entry) {
-                result.push({ ...closest19Entry, displayTime: '19:00' });
-                added19Entry = true;
-            } else if (target19Minutes < firstEntryMinutes - 60) {
-                // 19:00時点でまだデータがない場合は満枠として表示
-                result.push({ time: '19:00', slots: [], displayTime: '19:00', isAssumedFull: true });
-                added19Entry = true;
+            // 18:30のエントリを追加（見つからない場合は満枠または最初のエントリを使用）
+            if (closest1830Entry) {
+                result.push({ ...closest1830Entry, displayTime: '18:30' });
+                added1830Entry = true;
+            } else if (target1830Minutes < firstEntryMinutes - 60) {
+                // 18:30時点でまだデータがない場合は満枠として表示
+                result.push({ time: '18:30', slots: [], displayTime: '18:30', isAssumedFull: true });
+                added1830Entry = true;
             } else if (firstEntry) {
-                // 最初のエントリを19:00として使用
-                result.push({ ...firstEntry, displayTime: '19:00' });
-                added19Entry = true;
+                // 最初のエントリを18:30として使用
+                result.push({ ...firstEntry, displayTime: '18:30' });
+                added1830Entry = true;
             }
 
             history.forEach(entry => {
                 const currentSlots = entry.slots || [];
 
                 if (prevSlots === null) {
-                    // 最初のエントリ（19:00と同じでなければ追加）
-                    if (!added19Entry || entry !== closest19Entry) {
+                    // 最初のエントリ（18:30と同じでなければ追加）
+                    if (!added1830Entry || entry !== closest1830Entry) {
                         result.push({ ...entry, displayTime: entry.time });
                     }
                 } else {
@@ -5573,8 +5577,8 @@
                         prevSlots.some(s => !currentSlots.includes(s));
 
                     if (hasChange) {
-                        // 19:00エントリと重複しないか確認
-                        if (entry !== closest19Entry) {
+                        // 18:30エントリと重複しないか確認
+                        if (entry !== closest1830Entry) {
                             result.push({ ...entry, displayTime: entry.time });
                         }
                     }
@@ -5969,31 +5973,28 @@
                     </div>
                 `
             },
-            weeklyProgress: {
-                title: '📈 直近1週間の空き枠推移（日別）',
+            todayProgress: {
+                title: '📈 本日の空き枠推移',
                 content: `
                     <h3>表示内容</h3>
-                    <p>直近1週間の<strong>各日のデータ</strong>を個別の折れ線グラフで表示します。</p>
-                    <p>上の「曜日別平均」グラフとは異なり、実際の各日のデータをそのまま表示します。</p>
-
-                    <h3>表示される日</h3>
-                    <ul>
-                        <li>直近1週間の日付</li>
-                        <li>最大7日分のデータを表示</li>
-                        <li>ラベルは「12/9（月）」のような日付+曜日形式</li>
-                    </ul>
+                    <p><strong>本日</strong>の空き枠推移を一般予約・視野予約の2本線で表示します。</p>
 
                     <h3>色の見方</h3>
                     <ul>
-                        <li><span style="color:rgba(255, 99, 132, 1);font-weight:bold;">赤い太線</span> = 最新の日（最も目立つ）</li>
-                        <li><span style="color:rgba(54, 162, 235, 1);font-weight:bold;">青い線</span> = 最新の1つ前の日</li>
-                        <li><span style="color:rgba(150, 150, 150, 1);">グレーの線</span> = それ以前の日（古いほど薄い）</li>
+                        <li><span style="color:rgba(255, 152, 0, 1);font-weight:bold;">オレンジの線</span> = 一般予約</li>
+                        <li><span style="color:rgba(76, 175, 80, 1);font-weight:bold;">緑の線</span> = 視野予約</li>
+                    </ul>
+
+                    <h3>時間軸</h3>
+                    <ul>
+                        <li>前日18:30から当日18:00までを表示</li>
+                        <li>10分刻みで推移を確認可能</li>
                     </ul>
 
                     <h3>活用方法</h3>
                     <div class="tip">
-                        <strong>日によるばらつきを確認</strong><br>
-                        曜日別平均では見えない、特定の日の異常な動き（イベント日、天候の影響など）を確認できます。
+                        <strong>一般予約と視野予約の埋まり方を比較</strong><br>
+                        両方のグラフを見ることで、どちらの予約が先に埋まるかを確認できます。
                     </div>
                 `
             },
