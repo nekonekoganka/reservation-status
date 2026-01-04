@@ -3452,6 +3452,9 @@
         // 現在選択中の種別
         let currentType = 'general';
 
+        // ヒートマップ表示モード: 'changes'（変化時刻）または 'hourly'（2時間刻み）
+        let heatmapDisplayMode = 'changes';
+
         // 満枠判定の閾値（この枠数以下を「満枠」とみなす）
         let fullThreshold = parseInt(localStorage.getItem('fullThreshold') || '2');
 
@@ -5355,32 +5358,43 @@
             }
         }
 
-        async function drawSlotFillHeatmap(dayData, date) {
-            const container = document.getElementById('slotFillHeatmap');
+        /**
+         * 履歴データから変化があった時刻のみを抽出
+         */
+        function filterHistoryByChanges(history) {
+            if (!history || history.length === 0) return [];
 
-            let history = dayData.slotHistory || [];
+            const result = [];
+            let prevSlots = null;
 
-            // slotHistoryが空の場合、履歴データを直接取得
-            if (history.length === 0) {
-                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #666;">履歴データを読み込み中...</div>';
-                history = await fetchHistoryForHeatmap(date);
-            }
+            history.forEach(entry => {
+                const currentSlots = entry.slots || [];
 
-            if (history.length === 0) {
-                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #666;">スロット履歴データがありません</div>';
-                return;
-            }
+                if (prevSlots === null) {
+                    // 最初のエントリは必ず追加
+                    result.push({ ...entry, displayTime: entry.time });
+                } else {
+                    // スロット状態が変化したかチェック
+                    const hasChange = currentSlots.length !== prevSlots.length ||
+                        currentSlots.some(s => !prevSlots.includes(s)) ||
+                        prevSlots.some(s => !currentSlots.includes(s));
 
-            // allSlotsを作成（13:00→12:55、18:00→17:55に変換）
-            const allSlots = [...AM_SLOTS, ...PM_SLOTS].map(s => {
-                if (s === '13:00') return '12:55';
-                if (s === '18:00') return '17:55';
-                return s;
+                    if (hasChange) {
+                        result.push({ ...entry, displayTime: entry.time });
+                    }
+                }
+                prevSlots = [...currentSlots];
             });
-            const filledClass = currentType === 'shiya' ? 'cell-filled-shiya' : 'cell-filled-general';
-            const filledColor = currentType === 'shiya' ? '#006633' : '#CC6600';
 
-            // 2時間刻みのターゲット時刻
+            return result;
+        }
+
+        /**
+         * 履歴データから2時間刻みのエントリを抽出
+         */
+        function filterHistoryByHourly(history) {
+            if (!history || history.length === 0) return [];
+
             const targetHours = ['19:00', '21:00', '23:00', '01:00', '03:00', '05:00', '07:00', '09:00', '11:00', '13:00', '15:00', '17:00'];
 
             // 履歴データの最初のエントリ時刻を計算（18:30基準）
@@ -5398,13 +5412,12 @@
             const filteredHistory = [];
             targetHours.forEach(targetTime => {
                 const [targetH, targetM] = targetTime.split(':').map(Number);
-                // 18:30を基準とした時刻計算（18:30以降は同日、それ以前は+24時間）
                 let targetMinutesBase = targetH * 60 + targetM;
                 if (targetMinutesBase < 18 * 60 + 30) {
                     targetMinutesBase += 24 * 60;
                 }
 
-                // ターゲット時刻が最初のエントリより前の場合は、満枠（空きスロットなし）として表示
+                // ターゲット時刻が最初のエントリより前の場合は、満枠として表示
                 if (targetMinutesBase < firstEntryMinutes - 60) {
                     filteredHistory.push({ time: targetTime, slots: [], displayTime: targetTime, isAssumedFull: true });
                     return;
@@ -5416,25 +5429,75 @@
                 history.forEach(entry => {
                     const [h, m] = entry.time.split(':').map(Number);
                     let entryMinutes = h * 60 + m;
-
-                    // 日をまたぐ場合の調整（18:30開始なので18:30以降は同日、それ以前は翌日扱い）
                     if (entryMinutes < 18 * 60 + 30) entryMinutes += 24 * 60;
 
                     const diff = Math.abs(entryMinutes - targetMinutesBase);
-                    if (diff < closestDiff && diff <= 60) { // 1時間以内の誤差まで許容
+                    if (diff < closestDiff && diff <= 60) {
                         closestDiff = diff;
                         closest = entry;
                     }
                 });
 
-                // 各ターゲット時刻ごとに行を追加（同じエントリでも異なるターゲット時刻なら追加）
                 if (closest) {
                     filteredHistory.push({ ...closest, displayTime: targetTime });
                 }
             });
 
+            return filteredHistory;
+        }
+
+        // 現在表示中の履歴データと日付を保持（モード切り替え用）
+        let currentHeatmapHistory = [];
+        let currentHeatmapDate = '';
+
+        async function drawSlotFillHeatmap(dayData, date) {
+            const container = document.getElementById('slotFillHeatmap');
+
+            let history = dayData.slotHistory || [];
+
+            // slotHistoryが空の場合、履歴データを直接取得
+            if (history.length === 0) {
+                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #666;">履歴データを読み込み中...</div>';
+                history = await fetchHistoryForHeatmap(date);
+            }
+
+            if (history.length === 0) {
+                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #666;">スロット履歴データがありません</div>';
+                return;
+            }
+
+            // 履歴データと日付を保持（モード切り替え用）
+            currentHeatmapHistory = history;
+            currentHeatmapDate = date;
+
+            // 今日の場合は slotFillTimes が空なら履歴データから計算
+            const today = formatDate(new Date());
+            const isToday = (date === today);
+            if (isToday && Object.keys(slotFillTimes[currentType]).length === 0) {
+                // 履歴データから埋まり時刻を計算
+                analyzeSlotFillTimes(history, currentType);
+            }
+
+            // allSlotsを作成（13:00→12:55、18:00→17:55に変換）
+            const allSlots = [...AM_SLOTS, ...PM_SLOTS].map(s => {
+                if (s === '13:00') return '12:55';
+                if (s === '18:00') return '17:55';
+                return s;
+            });
+            const filledClass = currentType === 'shiya' ? 'cell-filled-shiya' : 'cell-filled-general';
+            const filledColor = currentType === 'shiya' ? '#006633' : '#CC6600';
+
+            // 表示モードに応じてフィルター
+            let filteredHistory;
+            if (heatmapDisplayMode === 'changes') {
+                filteredHistory = filterHistoryByChanges(history);
+            } else {
+                filteredHistory = filterHistoryByHourly(history);
+            }
+
             if (filteredHistory.length === 0) {
-                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #666;">2時間刻みのデータがありません</div>';
+                const modeText = heatmapDisplayMode === 'changes' ? '変化' : '2時間刻み';
+                container.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #666;">${modeText}のデータがありません</div>`;
                 return;
             }
 
@@ -5538,10 +5601,6 @@
             });
 
             // 現在の状態行（最新のデータ）
-            // 今日の日付かどうかをチェック
-            const today = formatDate(new Date());
-            const isToday = (date === today);
-
             // 今日の場合は currentSlotsData を使用（タイムラインバーと同じデータ）
             // それ以外は履歴の最新データを使用
             const latestEntry = history[history.length - 1];
@@ -5611,6 +5670,11 @@
                 : 'repeating-linear-gradient(45deg, #CC6600, #CC6600 2px, #FF8800 2px, #FF8800 4px)';
             const cancelBorder = currentType === 'shiya' ? '#006633' : '#CC6600';
 
+            // モード切り替えの説明テキスト
+            const modeText = heatmapDisplayMode === 'changes'
+                ? '変化時刻表示中（タップで2時間刻みに切替）'
+                : '2時間刻み表示中（タップで変化時刻に切替）';
+
             html += `
                 <div class="slot-fill-heatmap-legend">
                     <div class="legend-item">
@@ -5630,9 +5694,32 @@
                         <span>キャンセル発生</span>
                     </div>
                 </div>
+                <div class="heatmap-mode-toggle" style="text-align: center; margin-top: 8px; font-size: 12px; color: #666; cursor: pointer;">
+                    📊 ${modeText}
+                </div>
             `;
 
             container.innerHTML = html;
+
+            // テーブルとモード切り替えエリアにクリックイベントを追加
+            const table = container.querySelector('table');
+            const modeToggle = container.querySelector('.heatmap-mode-toggle');
+
+            const toggleMode = () => {
+                heatmapDisplayMode = heatmapDisplayMode === 'changes' ? 'hourly' : 'changes';
+                // 保持しているデータで再描画
+                if (currentHeatmapHistory.length > 0) {
+                    drawSlotFillHeatmap({ slotHistory: currentHeatmapHistory }, currentHeatmapDate);
+                }
+            };
+
+            if (table) {
+                table.style.cursor = 'pointer';
+                table.addEventListener('click', toggleMode);
+            }
+            if (modeToggle) {
+                modeToggle.addEventListener('click', toggleMode);
+            }
         }
 
         // ========================================
