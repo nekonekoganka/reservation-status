@@ -5360,19 +5360,47 @@
 
         /**
          * 履歴データから変化があった時刻のみを抽出
+         * 19:00時点の開始行も必ず含める
          */
         function filterHistoryByChanges(history) {
             if (!history || history.length === 0) return [];
 
             const result = [];
             let prevSlots = null;
+            let added19Entry = false;
+
+            // 19:00に最も近いエントリを探す
+            const target19Minutes = 19 * 60; // 19:00 = 1140分
+            let closest19Entry = null;
+            let closest19Diff = Infinity;
+
+            history.forEach(entry => {
+                const [h, m] = entry.time.split(':').map(Number);
+                let entryMinutes = h * 60 + m;
+                // 18:30基準で日またぎ調整
+                if (entryMinutes < 18 * 60 + 30) entryMinutes += 24 * 60;
+
+                const diff = Math.abs(entryMinutes - target19Minutes);
+                if (diff < closest19Diff && diff <= 60) {
+                    closest19Diff = diff;
+                    closest19Entry = entry;
+                }
+            });
+
+            // 19:00のエントリを最初に追加
+            if (closest19Entry) {
+                result.push({ ...closest19Entry, displayTime: '19:00' });
+                added19Entry = true;
+            }
 
             history.forEach(entry => {
                 const currentSlots = entry.slots || [];
 
                 if (prevSlots === null) {
-                    // 最初のエントリは必ず追加
-                    result.push({ ...entry, displayTime: entry.time });
+                    // 最初のエントリ（19:00と同じでなければ追加）
+                    if (!added19Entry || entry !== closest19Entry) {
+                        result.push({ ...entry, displayTime: entry.time });
+                    }
                 } else {
                     // スロット状態が変化したかチェック
                     const hasChange = currentSlots.length !== prevSlots.length ||
@@ -5380,10 +5408,24 @@
                         prevSlots.some(s => !currentSlots.includes(s));
 
                     if (hasChange) {
-                        result.push({ ...entry, displayTime: entry.time });
+                        // 19:00エントリと重複しないか確認
+                        if (entry !== closest19Entry) {
+                            result.push({ ...entry, displayTime: entry.time });
+                        }
                     }
                 }
                 prevSlots = [...currentSlots];
+            });
+
+            // 時間順にソート（18:30基準）
+            result.sort((a, b) => {
+                const [ah, am] = a.displayTime.split(':').map(Number);
+                const [bh, bm] = b.displayTime.split(':').map(Number);
+                let aMin = ah * 60 + am;
+                let bMin = bh * 60 + bm;
+                if (aMin < 18 * 60 + 30) aMin += 24 * 60;
+                if (bMin < 18 * 60 + 30) bMin += 24 * 60;
+                return aMin - bMin;
             });
 
             return result;
