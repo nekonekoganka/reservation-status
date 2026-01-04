@@ -405,40 +405,8 @@
             vertical-align: middle;
         }
 
-        .slot-fill-heatmap .type-label-header {
-            background: #f5f5f5 !important;
-            vertical-align: middle;
-            font-size: 10px;
-            min-width: 30px;
-        }
-
-        /* 種別セル */
-        .slot-fill-heatmap .type-cell {
-            font-size: 10px;
-            font-weight: 600;
-            text-align: center;
-            min-width: 28px;
-            padding: 2px 4px !important;
-        }
-
-        .slot-fill-heatmap .type-cell.general {
-            background: #fff3e0 !important;
-            color: #CC6600;
-        }
-
-        .slot-fill-heatmap .type-cell.shiya {
-            background: #e8f5e9 !important;
-            color: #006633;
-        }
-
-        /* 時刻セル */
-        .slot-fill-heatmap .time-cell {
-            vertical-align: middle;
-            text-align: center;
-        }
-
         /* 現在の状態行 */
-        .slot-fill-heatmap .current-row.general-row {
+        .slot-fill-heatmap .current-row {
             border-top: 2px solid #333;
         }
 
@@ -5741,18 +5709,15 @@
                 return;
             }
 
-            // テーブル構築
             const isMobile = window.innerWidth <= 768;
-            let html = `<table>`;
 
             // 今日の場合のみ現在時刻マーカーを表示
-            // スロット名は12:55, 17:55形式に変換して比較
             const currentTimeSlotRaw = isToday ? getCurrentTimeSlot() : null;
             let currentTimeSlotForHeatmap = currentTimeSlotRaw;
             if (currentTimeSlotRaw === '13:00') currentTimeSlotForHeatmap = '12:55';
             if (currentTimeSlotRaw === '18:00') currentTimeSlotForHeatmap = '17:55';
 
-            // 時間グループを定義（各時間帯のスロット数）
+            // 時間グループを定義
             const hourGroups = [
                 { hour: 10, slots: ['10:00', '10:15', '10:30', '10:45'], isAm: true },
                 { hour: 11, slots: ['11:00', '11:15', '11:30', '11:45'], isAm: true },
@@ -5762,34 +5727,6 @@
                 { hour: 17, slots: ['17:00', '17:15', '17:30', '17:45', '17:55'], isAm: false }
             ];
 
-            // ヘッダー1行目（時間ラベル）
-            const amHeaderBg = '#fff3e0';  // 午前: オレンジ系薄い色
-            const pmHeaderBg = '#e3f2fd';  // 午後: 青系薄い色
-            html += `<tr class="hour-header"><th rowspan="2" class="time-label-header">${isMobile ? '' : '時刻'}</th><th rowspan="2" class="type-label-header">種別</th>`;
-            hourGroups.forEach(group => {
-                const bgColor = group.isAm ? amHeaderBg : pmHeaderBg;
-                html += `<th colspan="${group.slots.length}" style="background: ${bgColor};">${group.hour}時</th>`;
-            });
-            html += `</tr>`;
-
-            // ヘッダー2行目（分ラベル）
-            html += `<tr class="minute-header">`;
-            hourGroups.forEach(group => {
-                const bgColor = group.isAm ? amHeaderBg : pmHeaderBg;
-                group.slots.forEach(slot => {
-                    const minute = slot.split(':')[1];
-                    const isHourStart = minute === '00';
-                    // 0分のセルは少し濃い色で区切りを表現
-                    const cellBg = isHourStart
-                        ? (group.isAm ? '#ffe0b2' : '#bbdefb')  // 0分: 濃い色
-                        : bgColor;
-                    // ヘッダーはグレーのマーカー
-                    const currentTimeClass = (slot === currentTimeSlotForHeatmap) ? ' time-marker-header' : '';
-                    html += `<th style="background: ${cellBg};" class="${currentTimeClass}">${minute}</th>`;
-                });
-            });
-            html += `</tr>`;
-
             // スロットの空き状態をチェックするヘルパー関数
             function checkSlotAvailable(slots, slot) {
                 return slots.includes(slot) ||
@@ -5797,43 +5734,62 @@
                     (slot === '17:55' && slots.includes('18:00'));
             }
 
-            // 時刻の差分を分で計算（日をまたぐ場合も考慮）
+            // 時刻の差分を分で計算
             function getTimeDiffMinutes(time1, time2) {
                 const [h1, m1] = time1.split(':').map(Number);
                 const [h2, m2] = time2.split(':').map(Number);
                 let min1 = h1 * 60 + m1;
                 let min2 = h2 * 60 + m2;
-                // 18:30を基準に日またぎを調整
                 if (min1 < 18 * 60 + 30) min1 += 24 * 60;
                 if (min2 < 18 * 60 + 30) min2 += 24 * 60;
                 return Math.abs(min2 - min1);
             }
 
-            // 各タイプの設定
-            const typeConfigs = [
-                { type: 'general', label: '一般', filledClass: 'cell-filled-general', borderClass: 'general-border', markerClass: 'time-marker-general' },
-                { type: 'shiya', label: '視野', filledClass: 'cell-filled-shiya', borderClass: 'shiya-border', markerClass: 'time-marker-shiya' }
-            ];
+            // 各タイプのテーブルを生成する関数
+            function generateTableForType(type) {
+                const config = type === 'general'
+                    ? { label: '一般予約', filledClass: 'cell-filled-general', borderClass: 'general-border', markerClass: 'time-marker-general', filledColor: '#CC6600', headerBg: '#fff3e0', recentPattern: 'repeating-linear-gradient(45deg, #CC6600, #CC6600 2px, #FF8800 2px, #FF8800 4px)' }
+                    : { label: '視野予約', filledClass: 'cell-filled-shiya', borderClass: 'shiya-border', markerClass: 'time-marker-shiya', filledColor: '#006633', headerBg: '#e8f5e9', recentPattern: 'repeating-linear-gradient(45deg, #006633, #006633 2px, #00994D 2px, #00994D 4px)' };
 
-            // データ行（各時刻で一般・視野の2行を表示）
-            filteredHistory.forEach((entry, index) => {
-                const displayTime = entry.displayTime;
-                const prevEntry = index > 0 ? filteredHistory[index - 1] : null;
+                let tableHtml = `<div class="heatmap-type-section ${type}">`;
+                tableHtml += `<div class="heatmap-type-label" style="background: ${config.headerBg}; padding: 4px 8px; font-weight: 600; font-size: 12px; color: ${config.filledColor}; border-radius: 4px 4px 0 0;">${config.label}</div>`;
+                tableHtml += `<table>`;
 
-                // この行の時刻に対応するスロットを計算
-                const rowTimeSlot = getTimeSlotForTime(displayTime);
+                // ヘッダー1行目（時間ラベル）
+                const amHeaderBg = '#fff3e0';
+                const pmHeaderBg = '#e3f2fd';
+                tableHtml += `<tr class="hour-header"><th rowspan="2" class="time-label-header">${isMobile ? '' : '時刻'}</th>`;
+                hourGroups.forEach(group => {
+                    const bgColor = group.isAm ? amHeaderBg : pmHeaderBg;
+                    tableHtml += `<th colspan="${group.slots.length}" style="background: ${bgColor};">${group.hour}時</th>`;
+                });
+                tableHtml += `</tr>`;
 
-                typeConfigs.forEach((config, typeIndex) => {
-                    // 一般/視野それぞれのスロットを取得
-                    const slots = entry[`slots_${config.type}`] || entry.slots || [];
-                    const prevSlots = prevEntry ? (prevEntry[`slots_${config.type}`] || prevEntry.slots || []) : [];
+                // ヘッダー2行目（分ラベル）
+                tableHtml += `<tr class="minute-header">`;
+                hourGroups.forEach(group => {
+                    const bgColor = group.isAm ? amHeaderBg : pmHeaderBg;
+                    group.slots.forEach(slot => {
+                        const minute = slot.split(':')[1];
+                        const isHourStart = minute === '00';
+                        const cellBg = isHourStart
+                            ? (group.isAm ? '#ffe0b2' : '#bbdefb')
+                            : bgColor;
+                        const currentTimeClass = (slot === currentTimeSlotForHeatmap) ? ` ${config.markerClass}` : '';
+                        tableHtml += `<th style="background: ${cellBg};" class="${currentTimeClass}">${minute}</th>`;
+                    });
+                });
+                tableHtml += `</tr>`;
 
-                    // 最初の行（一般）にのみ時刻ラベルを表示
-                    const rowSpan = typeIndex === 0 ? ` rowspan="2"` : '';
-                    const timeCell = typeIndex === 0 ? `<td${rowSpan} class="time-cell">${displayTime}</td>` : '';
+                // データ行
+                filteredHistory.forEach((entry, index) => {
+                    const displayTime = entry.displayTime;
+                    const slots = entry.slots || [];
+                    const prevEntry = index > 0 ? filteredHistory[index - 1] : null;
+                    const prevSlots = prevEntry ? (prevEntry.slots || []) : [];
+                    const rowTimeSlot = getTimeSlotForTime(displayTime);
 
-                    html += `<tr class="${config.type}-row">${timeCell}<td class="type-cell ${config.type}">${config.label}</td>`;
-
+                    tableHtml += `<tr><td>${displayTime}</td>`;
                     allSlots.forEach(slot => {
                         const hasSlot = checkSlotAvailable(slots, slot);
                         const hadSlot = prevEntry ? checkSlotAvailable(prevSlots, slot) : hasSlot;
@@ -5852,37 +5808,24 @@
                             }
                         }
 
-                        // 0分のセルに区切り用のクラスを追加
                         const minute = slot.split(':')[1];
                         const dividerClass = minute === '00' ? ' hour-divider' : '';
-                        // 行の時刻に対応するスロットには時刻マーカーを追加
                         const timeMarkerClass = (slot === rowTimeSlot) ? ` ${config.markerClass}` : '';
-                        html += `<td class="${cellClass}${stateClass}${dividerClass}${timeMarkerClass}" title="${displayTime} ${config.label} - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
+                        tableHtml += `<td class="${cellClass}${stateClass}${dividerClass}${timeMarkerClass}" title="${displayTime} - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
                     });
-                    html += `</tr>`;
+                    tableHtml += `</tr>`;
                 });
-            });
 
-            // 現在の状態行（最新のデータ）
-            const latestEntry = history[history.length - 1];
-            const latestTime = new Date().toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'});
-            const rowLabel = isMobile ? '今' : `現在 (${latestTime})`;
+                // 現在の状態行
+                const latestEntry = history[history.length - 1];
+                const useCurrentData = isToday && currentSlotsData[type].length > 0;
+                const latestSlots = useCurrentData ? currentSlotsData[type] : (latestEntry ? latestEntry.slots || [] : []);
+                const latestTime = new Date().toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'});
+                const rowLabel = isMobile ? '今' : `現在 (${latestTime})`;
+                const prevEntry = filteredHistory.length > 0 ? filteredHistory[filteredHistory.length - 1] : null;
+                const prevSlots = prevEntry ? (prevEntry.slots || []) : [];
 
-            // 直前の2時間刻みデータと比較
-            const prevEntry = filteredHistory.length > 0 ? filteredHistory[filteredHistory.length - 1] : null;
-
-            typeConfigs.forEach((config, typeIndex) => {
-                // 今日の場合は currentSlotsData を使用
-                const useCurrentData = isToday && currentSlotsData[config.type].length > 0;
-                const latestSlots = useCurrentData ? currentSlotsData[config.type] : (latestEntry ? latestEntry.slots || [] : []);
-                const prevSlots = prevEntry ? (prevEntry[`slots_${config.type}`] || prevEntry.slots || []) : [];
-
-                // 最初の行（一般）にのみ時刻ラベルを表示
-                const rowSpan = typeIndex === 0 ? ` rowspan="2"` : '';
-                const timeCell = typeIndex === 0 ? `<td${rowSpan} class="current-label">${rowLabel}</td>` : '';
-
-                html += `<tr class="current-row ${config.type}-row">${timeCell}<td class="type-cell ${config.type}">${config.label}</td>`;
-
+                tableHtml += `<tr class="current-row"><td class="current-label">${rowLabel}</td>`;
                 allSlots.forEach(slot => {
                     const hasSlot = checkSlotAvailable(latestSlots, slot);
 
@@ -5890,24 +5833,22 @@
                     let stateClass = '';
 
                     if (useCurrentData) {
-                        // 今日の場合はタイムラインバーと同じロジックを使用
                         let internalSlot = slot;
                         if (slot === '12:55') internalSlot = '13:00';
                         if (slot === '17:55') internalSlot = '18:00';
 
                         if (!hasSlot) {
-                            const timeClass = getFilledTimeClass(internalSlot, config.type);
+                            const timeClass = getFilledTimeClass(internalSlot, type);
                             if (timeClass === 'recent') {
                                 stateClass = ' recent';
                             }
                         } else {
-                            const openedClass = getOpenedTimeClass(internalSlot, config.type);
+                            const openedClass = getOpenedTimeClass(internalSlot, type);
                             if (openedClass) {
                                 stateClass = ` recently-opened ${config.borderClass}`;
                             }
                         }
                     } else {
-                        // 過去の日付は従来のロジック
                         const hadSlot = prevEntry ? checkSlotAvailable(prevSlots, slot) : hasSlot;
                         if (prevEntry) {
                             const timeDiff = getTimeDiffMinutes(prevEntry.displayTime, latestTime);
@@ -5924,16 +5865,21 @@
                     const minute = slot.split(':')[1];
                     const dividerClass = minute === '00' ? ' hour-divider' : '';
                     const currentTimeClass = (slot === currentTimeSlotForHeatmap) ? ` ${config.markerClass}` : '';
-                    html += `<td class="${cellClass}${stateClass}${dividerClass}${currentTimeClass}" title="現在 ${config.label} - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
+                    tableHtml += `<td class="${cellClass}${stateClass}${dividerClass}${currentTimeClass}" title="現在 - ${slot}: ${hasSlot ? '空き' : '埋まり'}"></td>`;
                 });
-                html += `</tr>`;
-            });
+                tableHtml += `</tr>`;
 
-            html += `</table>`;
+                tableHtml += `</table></div>`;
+                return tableHtml;
+            }
 
-            // 凡例（両方の色を表示）
+            // 一般予約と視野予約の2つのテーブルを縦に並べて生成
+            let html = generateTableForType('general');
+            html += `<div style="height: 12px;"></div>`; // テーブル間のスペース
+            html += generateTableForType('shiya');
+
+            // 凡例
             const generalRecentPattern = 'repeating-linear-gradient(45deg, #CC6600, #CC6600 2px, #FF8800 2px, #FF8800 4px)';
-            const shiyaRecentPattern = 'repeating-linear-gradient(45deg, #006633, #006633 2px, #00994D 2px, #00994D 4px)';
 
             // モード切り替えの説明テキスト
             const modeText = heatmapDisplayMode === 'changes'
@@ -5967,21 +5913,20 @@
             container.innerHTML = html;
 
             // テーブルとモード切り替えエリアにクリックイベントを追加
-            const table = container.querySelector('table');
+            const tables = container.querySelectorAll('table');
             const modeToggle = container.querySelector('.heatmap-mode-toggle');
 
             const toggleMode = () => {
                 heatmapDisplayMode = heatmapDisplayMode === 'changes' ? 'hourly' : 'changes';
-                // 保持しているデータで再描画
                 if (currentHeatmapHistory.length > 0) {
                     drawSlotFillHeatmap({ slotHistory: currentHeatmapHistory }, currentHeatmapDate);
                 }
             };
 
-            if (table) {
+            tables.forEach(table => {
                 table.style.cursor = 'pointer';
                 table.addEventListener('click', toggleMode);
-            }
+            });
             if (modeToggle) {
                 modeToggle.addEventListener('click', toggleMode);
             }
