@@ -365,13 +365,13 @@
             border-left: 2px solid #999;
         }
 
-        /* 現在時刻マーカー（赤い線） */
+        /* 現在時刻マーカー（赤い点線） */
         .slot-fill-heatmap .current-time-marker {
-            border-left: 3px solid #ff0000 !important;
+            border-left: 3px dashed #ff0000 !important;
         }
 
         .slot-fill-heatmap .minute-header th.current-time-marker {
-            border-left: 3px solid #ff0000 !important;
+            border-left: 3px dashed #ff0000 !important;
         }
 
         /* ヘッダー行のスタイル */
@@ -1044,13 +1044,13 @@
             border-left: 2px solid #999;
         }
 
-        /* 現在時刻マーカー（赤い線） */
+        /* 現在時刻マーカー（赤い点線） */
         .combined-timeline .cell-row td.current-time-marker {
-            border-left: 3px solid #ff0000 !important;
+            border-left: 3px dashed #ff0000 !important;
         }
 
         .combined-timeline .minute-row th.current-time-marker {
-            border-left: 3px solid #ff0000 !important;
+            border-left: 3px dashed #ff0000 !important;
         }
 
         .combined-timeline .cell-row td.row-label {
@@ -3263,8 +3263,13 @@
         }
 
         /**
-         * 現在時刻に最も近いスロットを取得
-         * 予約可能時間帯（10:00-13:00, 15:00-18:00）の場合のみ返す
+         * 現在時刻に対応するスロットを取得
+         * 予約可能時間帯外でも対応するスロットを返す
+         * - 10:00より前 → 10:00
+         * - 10:00〜12:59 → 次のスロット（例: 10:16〜10:29 → 10:30）
+         * - 13:00〜14:59（昼休み） → 15:00
+         * - 15:00〜17:59 → 次のスロット
+         * - 18:00以降 → null
          */
         function getCurrentTimeSlot() {
             const now = new Date();
@@ -3272,12 +3277,19 @@
             const currentMinute = now.getMinutes();
             const currentTotalMinutes = currentHour * 60 + currentMinute;
 
-            // 予約可能時間帯かチェック（10:00-13:00, 15:00-18:00）
-            const isInAmSlot = currentTotalMinutes >= 10 * 60 && currentTotalMinutes < 13 * 60;
-            const isInPmSlot = currentTotalMinutes >= 15 * 60 && currentTotalMinutes < 18 * 60;
+            // 18:00以降は表示しない
+            if (currentTotalMinutes >= 18 * 60) {
+                return null;
+            }
 
-            if (!isInAmSlot && !isInPmSlot) {
-                return null; // 予約可能時間帯外
+            // 10:00より前は10:00を返す
+            if (currentTotalMinutes < 10 * 60) {
+                return '10:00';
+            }
+
+            // 昼休み（13:00〜14:59）は15:00を返す
+            if (currentTotalMinutes >= 13 * 60 && currentTotalMinutes < 15 * 60) {
+                return '15:00';
             }
 
             // 全スロットリスト
@@ -3290,11 +3302,11 @@
                 '17:00', '17:15', '17:30', '17:45', '18:00'
             ];
 
-            // 現在時刻以降で最も近いスロットを探す
+            // 現在時刻より後のスロットを探す（現在時刻と同じ場合はそのスロット）
             for (const slot of allSlots) {
                 const [h, m] = slot.split(':').map(Number);
                 const slotMinutes = h * 60 + m;
-                if (slotMinutes >= currentTotalMinutes) {
+                if (slotMinutes > currentTotalMinutes) {
                     return slot;
                 }
             }
