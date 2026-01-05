@@ -38,6 +38,35 @@ const hourGroups = [
   { hour: 17, slots: ['17:00', '17:15', '17:30', '17:45', '18:00'], isAm: false }
 ];
 
+// 現在時刻のスロットインデックスと割合を取得
+function getCurrentTimePosition() {
+  const now = new Date();
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+  const totalMinutes = hour * 60 + minute;
+
+  // 全スロットをフラット化
+  const allSlots = hourGroups.flatMap(g => g.slots);
+  const totalSlots = allSlots.length;
+
+  // 各スロットの開始時刻（分）を計算
+  for (let i = 0; i < allSlots.length; i++) {
+    const slot = allSlots[i];
+    const [slotHour, slotMin] = slot.split(':').map(Number);
+    const slotStart = slotHour * 60 + slotMin;
+    const slotEnd = slotStart + 15; // 15分枠
+
+    if (totalMinutes >= slotStart && totalMinutes < slotEnd) {
+      // このスロット内での位置を計算
+      const progress = (totalMinutes - slotStart) / 15;
+      return { index: i, progress: progress, visible: true };
+    }
+  }
+
+  // 営業時間外
+  return { index: -1, progress: 0, visible: false };
+}
+
 // 日付フォーマット（YYYY-MM-DD）
 function formatDate(date) {
   const y = date.getFullYear();
@@ -451,6 +480,52 @@ function renderCombinedTimeline() {
 
   html += '</table>';
   container.innerHTML = html;
+
+  // 現在時刻マーカーを追加
+  updateCurrentTimeMarker();
+}
+
+// 現在時刻マーカーを更新
+function updateCurrentTimeMarker() {
+  const container = document.getElementById('combined-timeline');
+  if (!container) return;
+
+  // 既存のマーカーを削除
+  const existingMarker = container.querySelector('.current-time-marker');
+  if (existingMarker) {
+    existingMarker.remove();
+  }
+
+  const timePos = getCurrentTimePosition();
+  if (!timePos.visible) return;
+
+  const table = container.querySelector('table');
+  if (!table) return;
+
+  // テーブルの最初の行からセルの位置を取得
+  const firstRow = table.querySelector('tr');
+  if (!firstRow) return;
+
+  const cells = firstRow.querySelectorAll('th');
+  if (cells.length < 2) return;
+
+  // ラベル列の幅 (40px固定) + スロットインデックスに基づく位置を計算
+  const labelWidth = 40;
+  const tableWidth = table.offsetWidth;
+  const slotsAreaWidth = tableWidth - labelWidth;
+  const totalSlots = hourGroups.flatMap(g => g.slots).length;
+  const slotWidth = slotsAreaWidth / totalSlots;
+
+  // マーカーの位置を計算
+  const markerLeft = labelWidth + (timePos.index + timePos.progress) * slotWidth;
+
+  // マーカー要素を作成
+  const marker = document.createElement('div');
+  marker.className = 'current-time-marker';
+  marker.style.left = markerLeft + 'px';
+  marker.title = `現在時刻: ${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}`;
+
+  container.appendChild(marker);
 }
 
 // 次回更新までのカウントダウン
