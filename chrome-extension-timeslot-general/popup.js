@@ -14,10 +14,10 @@ const HISTORY_URLS = {
   shiya: 'https://storage.googleapis.com/fujimino-reservation-status/history-shiya'
 };
 
-// 現在データURL
+// 現在データURL（Background.jsと同じURLを使用）
 const CURRENT_URLS = {
-  general: 'https://storage.googleapis.com/fujimino-reservation-status/current-general.json',
-  shiya: 'https://storage.googleapis.com/fujimino-reservation-status/current-shiya.json'
+  general: 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/timeslots.json',
+  shiya: 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/timeslots-shiya.json'
 };
 
 // 埋まり時刻・空き時刻を追跡
