@@ -117,6 +117,29 @@
     /* 統合タイムラインテーブル */
     .combined-timeline {
       margin: 8px 0;
+      position: relative;
+    }
+
+    /* 現在時刻マーカー */
+    .current-time-marker {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #e74c3c;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .current-time-marker::before {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: -4px;
+      width: 10px;
+      height: 10px;
+      background: #e74c3c;
+      border-radius: 50%;
     }
 
     .combined-timeline table {
@@ -364,10 +387,10 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 6px 4px;
+      padding: 8px 6px;
       background: white;
       border-radius: 4px;
-      font-size: 13px;
+      font-size: 17px;
       font-weight: 600;
       color: #333;
       border: 1px solid #e0e0e0;
