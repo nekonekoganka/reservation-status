@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "予約枠数表示 シンプル版（一般）",
+  "version": "1.0.0",
+  "description": "一般予約の空き枠数をシンプルに表示します（受付スタッフ向け）",
+  "permissions": [
+    "alarms",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://storage.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "予約枠数表示 シンプル版（一般）",
+    "default_popup": "popup.html"
+  }
+}
