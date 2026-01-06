@@ -373,8 +373,7 @@ function displayTimeslotsList(type, slots, count) {
 
   if (count > 0 && slots.length > 0) {
     const html = slots.map(slot => {
-      const period = getTimeSlotPeriod(slot);
-      return `<div class="timeslot-item ${period}"><span>${slot}</span></div>`;
+      return `<div class="timeslot-item ${type}"><span>${slot}</span></div>`;
     }).join('');
     listElement.innerHTML = html;
   } else {
