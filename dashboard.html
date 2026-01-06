@@ -3693,6 +3693,7 @@
             return {
                 y: {
                     beginAtZero: true,
+                    min: 0,  // Y軸の最小値を0に固定（マイナス値を表示しない）
                     suggestedMax: 4,  // 最大値を最低4に設定
                     title: {
                         display: !isMobile(),
