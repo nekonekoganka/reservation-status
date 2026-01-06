@@ -10,8 +10,8 @@ const currentSlotsData = {
 
 // 履歴データURL
 const HISTORY_URLS = {
-  general: 'https://storage.googleapis.com/fujimino-reservation-status/history-general',
-  shiya: 'https://storage.googleapis.com/fujimino-reservation-status/history-shiya'
+  general: 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/history/general',
+  shiya: 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/history/shiya'
 };
 
 // 現在データURL（Background.jsと同じURLを使用）
