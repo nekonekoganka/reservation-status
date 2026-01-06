@@ -267,39 +267,39 @@ function calculateDisplayTextWithDate(targetDate) {
 // ステータスを読み込んで表示
 async function loadStatus() {
   try {
-    // ストレージから一般予約データを取得
-    const generalData = await chrome.storage.local.get([
+    // ストレージから視野予約データを取得（shiya background.jsが保存）
+    const shiyaStorageData = await chrome.storage.local.get([
       'lastUpdate', 'slots', 'slotsCount', 'status', 'date', 'error'
     ]);
 
-    // 視野予約データを直接取得
-    const shiyaData = await fetchCurrentSlots('shiya');
+    // 一般予約データを直接取得
+    const generalData = await fetchCurrentSlots('general');
 
     // 一般予約を更新
-    const generalSlots = generalData.slots || [];
-    const generalCount = generalData.slotsCount || 0;
-    const hasGeneralError = generalData.error || !generalData.lastUpdate;
+    const generalSlots = generalData?.slots || [];
+    const generalCount = generalSlots.length;
+    const hasGeneralError = !generalData;
 
     currentSlotsData.general = generalSlots;
-    updateStatusDisplay('general', generalCount, hasGeneralError, generalData.status);
+    updateStatusDisplay('general', generalCount, hasGeneralError, hasGeneralError ? 'error' : (generalCount > 0 ? 'ok' : 'full'));
     displayTimeslotsList('general', generalSlots, generalCount);
 
     // 視野予約を更新
-    const shiyaSlots = shiyaData?.slots || [];
-    const shiyaCount = shiyaSlots.length;
-    const hasShiyaError = !shiyaData;
+    const shiyaSlots = shiyaStorageData.slots || [];
+    const shiyaCount = shiyaStorageData.slotsCount || 0;
+    const hasShiyaError = shiyaStorageData.error || !shiyaStorageData.lastUpdate;
 
     currentSlotsData.shiya = shiyaSlots;
-    updateStatusDisplay('shiya', shiyaCount, hasShiyaError, hasShiyaError ? 'error' : (shiyaCount > 0 ? 'ok' : 'full'));
+    updateStatusDisplay('shiya', shiyaCount, hasShiyaError, shiyaStorageData.status);
     displayTimeslotsList('shiya', shiyaSlots, shiyaCount);
 
     // 日付表示
-    const displayText = calculateDisplayTextWithDate(generalData.date);
+    const displayText = calculateDisplayTextWithDate(shiyaStorageData.date);
     document.getElementById('day-text').textContent = displayText;
 
     // 最終更新時刻
-    if (generalData.lastUpdate) {
-      const lastUpdate = new Date(generalData.lastUpdate);
+    if (shiyaStorageData.lastUpdate) {
+      const lastUpdate = new Date(shiyaStorageData.lastUpdate);
       const timeStr = lastUpdate.toLocaleTimeString('ja-JP', {
         hour: '2-digit',
         minute: '2-digit'
