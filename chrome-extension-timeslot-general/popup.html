@@ -486,6 +486,30 @@
       border-color: #9b59b6;
     }
 
+    .close-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 18px;
+      font-weight: 400;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.2s;
+      line-height: 1;
+    }
+
+    .close-btn:hover {
+      background: #dc3545;
+      border-color: #dc3545;
+      color: white;
+    }
+
     .loading {
       display: inline-block;
       width: 10px;
@@ -508,6 +532,7 @@
     <div class="header-buttons">
       <a id="help-link" class="icon-btn help-btn" href="https://nekonekoganka.github.io/reservation-status/chrome-extension-help.html" target="_blank" title="ヘルプ">? ヘルプ</a>
       <a id="dashboard-link" class="icon-btn dashboard-btn" href="https://nekonekoganka.github.io/reservation-status/dashboard.html" target="_blank" title="予約傾向ダッシュボードへ">📊 ダッシュボード</a>
+      <button id="close-btn" class="close-btn" title="閉じる">×</button>
     </div>
 
     <!-- アイコン行（左右配置） -->

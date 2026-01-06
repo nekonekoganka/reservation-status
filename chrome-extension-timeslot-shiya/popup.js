@@ -208,6 +208,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadStatus();
   startCountdown();
 
+  // 閉じるボタン
+  document.getElementById('close-btn').addEventListener('click', () => {
+    window.close();
+  });
+
   // 更新ボタン
   document.getElementById('refresh-btn').addEventListener('click', async () => {
     const btn = document.getElementById('refresh-btn');
