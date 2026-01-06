@@ -47,7 +47,23 @@ function getCurrentTimePosition() {
 
   // 全スロットをフラット化
   const allSlots = hourGroups.flatMap(g => g.slots);
-  const totalSlots = allSlots.length;
+
+  // 営業時間前（10:00より前）→ 10:00の左端
+  if (totalMinutes < 10 * 60) {
+    return { index: 0, progress: 0, visible: true };
+  }
+
+  // 昼休み中（13:00〜15:00）→ 15:00の左端（PMスロットの最初）
+  if (totalMinutes >= 13 * 60 && totalMinutes < 15 * 60) {
+    // PMスロットの開始インデックス（13番目、0-indexed）
+    const pmStartIndex = 13;
+    return { index: pmStartIndex, progress: 0, visible: true };
+  }
+
+  // 営業時間後（18:00以降）→ 18:00の右端
+  if (totalMinutes >= 18 * 60) {
+    return { index: allSlots.length - 1, progress: 1, visible: true };
+  }
 
   // 各スロットの開始時刻（分）を計算
   for (let i = 0; i < allSlots.length; i++) {
@@ -63,7 +79,7 @@ function getCurrentTimePosition() {
     }
   }
 
-  // 営業時間外
+  // フォールバック（通常はここに来ない）
   return { index: -1, progress: 0, visible: false };
 }
 
