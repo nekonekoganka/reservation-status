@@ -10,8 +10,8 @@ const currentSlotsData = {
 
 // 履歴データURL
 const HISTORY_URLS = {
-  general: 'https://storage.googleapis.com/fujimino-reservation-status/history-general',
-  shiya: 'https://storage.googleapis.com/fujimino-reservation-status/history-shiya'
+  general: 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/history/general',
+  shiya: 'https://storage.googleapis.com/reservation-timeslots-fujiminohikari/history/shiya'
 };
 
 // 現在データURL（Background.jsと同じURLを使用）
@@ -373,8 +373,7 @@ function displayTimeslotsList(type, slots, count) {
 
   if (count > 0 && slots.length > 0) {
     const html = slots.map(slot => {
-      const period = getTimeSlotPeriod(slot);
-      return `<div class="timeslot-item ${period}"><span>${slot}</span></div>`;
+      return `<div class="timeslot-item ${type}"><span>${slot}</span></div>`;
     }).join('');
     listElement.innerHTML = html;
   } else {
