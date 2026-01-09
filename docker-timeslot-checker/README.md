@@ -400,10 +400,17 @@ gsutil iam ch serviceAccount:SERVICE_ACCOUNT_EMAIL:objectAdmin gs://reservation-
 
 ## 💰 料金目安
 
-- **Cloud Run**: 月額 約20〜80円（1分毎実行）
+### 標準設定（24時間1分毎実行）
+- **Cloud Run**: 月額 約4,500〜5,400円
 - **Cloud Scheduler**: 無料枠内（月3ジョブまで無料）
 - **Cloud Storage**: 無料枠内（1GB未満）
-- **合計**: 月額 約20〜80円
+
+### 最適化設定（診療時間1分、それ以外5分）
+- **Cloud Run**: 月額 約2,500〜3,000円
+- **Cloud Scheduler**: 無料枠内
+- **Cloud Storage**: 無料枠内
+
+**コスト最適化の詳細**: [COST_OPTIMIZATION_GUIDE.md](../COST_OPTIMIZATION_GUIDE.md) を参照
 
 ---
 
