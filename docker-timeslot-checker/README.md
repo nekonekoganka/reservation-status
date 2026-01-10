@@ -405,10 +405,12 @@ gsutil iam ch serviceAccount:SERVICE_ACCOUNT_EMAIL:objectAdmin gs://reservation-
 - **Cloud Scheduler**: 無料枠内（月3ジョブまで無料）
 - **Cloud Storage**: 無料枠内（1GB未満）
 
-### 最適化設定（診療時間1分、それ以外5分）
-- **Cloud Run**: 月額 約2,500〜3,000円
-- **Cloud Scheduler**: 無料枠内
-- **Cloud Storage**: 無料枠内
+### 最適化設定
+| サービス | 診療時間帯 | 時間外 | 月額 |
+|---------|----------|-------|-----|
+| 一般予約 | 1分間隔 | 5分間隔 | 約1,200〜1,400円 |
+| 視野予約 | 3分間隔 | 10分間隔 | 約500〜700円 |
+| **合計** | | | **約1,700〜2,100円** |
 
 **コスト最適化の詳細**: [COST_OPTIMIZATION_GUIDE.md](../COST_OPTIMIZATION_GUIDE.md) を参照
 

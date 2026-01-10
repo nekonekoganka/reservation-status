@@ -2,19 +2,27 @@
 
 ## 概要
 
-Cloud Runの実行頻度を時間帯別に最適化し、月額費用を削減します。
+Cloud Runの実行頻度を時間帯・サービス別に最適化し、月額費用を削減します。
 
 ### 変更内容
 
-| 時間帯 | 変更前 | 変更後 |
-|-------|-------|-------|
-| 7:00〜17:59 | 1分間隔 | 1分間隔（維持） |
-| 18:00〜翌6:59 | 1分間隔 | **5分間隔** |
+| サービス | 時間帯 | 変更前 | 変更後 |
+|---------|-------|-------|-------|
+| 一般予約 | 7:00〜17:59 | 1分間隔 | 1分間隔（維持） |
+| 一般予約 | 18:00〜翌6:59 | 1分間隔 | **5分間隔** |
+| 視野予約 | 7:00〜17:59 | 1分間隔 | **3分間隔** |
+| 視野予約 | 18:00〜翌6:59 | 1分間隔 | **10分間隔** |
 
 ### 期待される効果
 
-- **実行回数**: 2,880回/日 → 1,632回/日（43%削減）
-- **月額費用**: ¥4,500〜5,400 → **¥2,500〜3,000**（約¥2,000削減）
+| 項目 | 変更前 | 変更後 |
+|-----|-------|-------|
+| 一般予約 実行回数/日 | 1,440回 | 816回 |
+| 視野予約 実行回数/日 | 1,440回 | 298回 |
+| **合計** | **2,880回/日** | **1,114回/日（61%削減）** |
+| **月額費用** | **¥4,500〜5,400** | **¥1,700〜2,100** |
+
+**年間削減額: 約¥33,600〜39,600**
 
 ---
 
@@ -36,7 +44,7 @@ gcloud config set project forward-script-470815-c5
 gcloud scheduler jobs list --location=asia-northeast1
 ```
 
-以下の4つのジョブが表示されるはずです:
+以下のジョブが表示されるはずです:
 - `reservation-timeslot-checker-job`（一般予約・1分毎）
 - `reservation-timeslot-checker-shiya-job`（視野予約・1分毎）
 - `monthly-summary-general`（月次集計・月1回）
@@ -71,7 +79,7 @@ gcloud scheduler jobs create http reservation-timeslot-checker-job-peak \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo" \
-  --description="予約時間枠チェック（7:00-17:59、1分毎）"
+  --description="一般予約チェック（7:00-17:59、1分毎）"
 ```
 
 ### 3-2. 診療時間外（18:00〜翌6:59）- 5分間隔
@@ -83,35 +91,35 @@ gcloud scheduler jobs create http reservation-timeslot-checker-job-offpeak \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo" \
-  --description="予約時間枠チェック（18:00-6:59、5分毎）"
+  --description="一般予約チェック（18:00-6:59、5分毎）"
 ```
 
 ---
 
 ## Step 4: 新しいジョブを作成（視野予約）
 
-### 4-1. 診療時間帯（7:00〜17:59）- 1分間隔
+### 4-1. 診療時間帯（7:00〜17:59）- 3分間隔
 
 ```bash
 gcloud scheduler jobs create http reservation-timeslot-checker-shiya-job-peak \
-  --schedule="*/1 7-17 * * *" \
+  --schedule="*/3 7-17 * * *" \
   --uri="https://reservation-timeslot-checker-shiya-745899981028.asia-northeast1.run.app/check" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo" \
-  --description="視野予約時間枠チェック（7:00-17:59、1分毎）"
+  --description="視野予約チェック（7:00-17:59、3分毎）"
 ```
 
-### 4-2. 診療時間外（18:00〜翌6:59）- 5分間隔
+### 4-2. 診療時間外（18:00〜翌6:59）- 10分間隔
 
 ```bash
 gcloud scheduler jobs create http reservation-timeslot-checker-shiya-job-offpeak \
-  --schedule="*/5 0-6,18-23 * * *" \
+  --schedule="*/10 0-6,18-23 * * *" \
   --uri="https://reservation-timeslot-checker-shiya-745899981028.asia-northeast1.run.app/check" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo" \
-  --description="視野予約時間枠チェック（18:00-6:59、5分毎）"
+  --description="視野予約チェック（18:00-6:59、10分毎）"
 ```
 
 ---
@@ -124,12 +132,15 @@ gcloud scheduler jobs list --location=asia-northeast1
 ```
 
 以下の6つのジョブが表示されればOK:
-- `reservation-timeslot-checker-job-peak`（一般・1分毎・7-17時）
-- `reservation-timeslot-checker-job-offpeak`（一般・5分毎・18-6時）
-- `reservation-timeslot-checker-shiya-job-peak`（視野・1分毎・7-17時）
-- `reservation-timeslot-checker-shiya-job-offpeak`（視野・5分毎・18-6時）
-- `monthly-summary-general`（月次集計・月1回）※変更なし
-- `monthly-summary-shiya`（月次集計・月1回）※変更なし
+
+| ジョブ名 | スケジュール | 説明 |
+|---------|------------|------|
+| `reservation-timeslot-checker-job-peak` | `*/1 7-17 * * *` | 一般・1分毎・7-17時 |
+| `reservation-timeslot-checker-job-offpeak` | `*/5 0-6,18-23 * * *` | 一般・5分毎・18-6時 |
+| `reservation-timeslot-checker-shiya-job-peak` | `*/3 7-17 * * *` | 視野・3分毎・7-17時 |
+| `reservation-timeslot-checker-shiya-job-offpeak` | `*/10 0-6,18-23 * * *` | 視野・10分毎・18-6時 |
+| `monthly-summary-general` | `0 1 1 * *` | 月次集計（変更なし） |
+| `monthly-summary-shiya` | `0 1 1 * *` | 月次集計（変更なし） |
 
 ---
 
@@ -215,9 +226,28 @@ gcloud scheduler jobs create http reservation-timeslot-checker-shiya-job \
 | cron式 | 意味 |
 |-------|------|
 | `*/1 7-17 * * *` | 7時〜17時59分の間、毎分実行 |
+| `*/3 7-17 * * *` | 7時〜17時59分の間、3分毎に実行 |
 | `*/5 0-6,18-23 * * *` | 0時〜6時59分と18時〜23時59分の間、5分毎に実行 |
+| `*/10 0-6,18-23 * * *` | 0時〜6時59分と18時〜23時59分の間、10分毎に実行 |
+
+---
+
+## 実行回数の内訳
+
+### 一般予約
+- 7:00〜17:59（11時間）: 1分間隔 = 11 × 60 = **660回/日**
+- 18:00〜6:59（13時間）: 5分間隔 = 13 × 60 / 5 = **156回/日**
+- **小計: 816回/日**
+
+### 視野予約
+- 7:00〜17:59（11時間）: 3分間隔 = 11 × 60 / 3 = **220回/日**
+- 18:00〜6:59（13時間）: 10分間隔 = 13 × 60 / 10 = **78回/日**
+- **小計: 298回/日**
+
+### 合計: 1,114回/日（変更前: 2,880回/日）
 
 ---
 
 **作成日**: 2026年1月9日
-**目的**: Cloud Run費用の最適化（月額約¥2,000削減）
+**更新日**: 2026年1月9日
+**目的**: Cloud Run費用の最適化（月額約¥2,800〜3,300削減）

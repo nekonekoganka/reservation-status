@@ -100,11 +100,12 @@ reservation-status/
 Cloud Runで自動実行（タイムスロット抽出）
 
 - **メリット:** 完全自動、メンテナンス不要
-- **デメリット:** わずかな費用が発生（月20〜40円）
+- **費用:** 月額 約1,700〜2,100円（最適化設定適用後）
 - **Google Cloudプロジェクト:**
   - プロジェクト番号: 224924651996
   - プロジェクト ID: forward-script-470815-c5
 - 詳細：[docker-timeslot-checker/README.md](docker-timeslot-checker/README.md)
+- **コスト最適化手順:** [COST_OPTIMIZATION_GUIDE.md](COST_OPTIMIZATION_GUIDE.md)
 
 ---
 
@@ -234,12 +235,20 @@ const FILE_NAME_SHIYA = 'timeslots-shiya.json';
 | 一般予約 | `timeslot-checker` | `https://timeslot-checker-224924651996.asia-northeast1.run.app` |
 | 視野予約 | `timeslot-checker-shiya` | `https://timeslot-checker-shiya-224924651996.asia-northeast1.run.app` |
 
-### Cloud Scheduler ジョブ
+### Cloud Scheduler ジョブ（最適化設定・実施済み）
 
-| 種類 | ジョブ名 | 呼び出し先 |
-|---|---|---|
-| 一般予約 | `reservation-timeslot-checker-job` | `/check` エンドポイント |
-| 視野予約 | `reservation-timeslot-checker-shiya-job` | `/check` エンドポイント |
+| 種類 | ジョブ名 | スケジュール | 説明 |
+|---|---|---|---|
+| 一般予約（ピーク） | `reservation-timeslot-checker-job-peak` | `*/1 7-17 * * *` | 7:00-17:59、1分毎 |
+| 一般予約（オフピーク） | `reservation-timeslot-checker-job-offpeak` | `*/5 0-6,18-23 * * *` | 18:00-6:59、5分毎 |
+| 視野予約（ピーク） | `reservation-timeslot-checker-shiya-job-peak` | `*/3 7-17 * * *` | 7:00-17:59、3分毎 |
+| 視野予約（オフピーク） | `reservation-timeslot-checker-shiya-job-offpeak` | `*/10 0-6,18-23 * * *` | 18:00-6:59、10分毎 |
+| 月次集計（一般） | `monthly-summary-general` | `0 1 1 * *` | 毎月1日1:00 |
+| 月次集計（視野） | `monthly-summary-shiya` | `0 1 1 * *` | 毎月1日1:00 |
+
+**実施日:** 2026年1月10日
+
+**コスト最適化の詳細:** [COST_OPTIMIZATION_GUIDE.md](COST_OPTIMIZATION_GUIDE.md)
 
 **注意:** Schedulerのジョブ名とCloud Runのサービス名が異なるため、デプロイ後はSchedulerの向き先URLも確認が必要です。
 
@@ -303,7 +312,86 @@ gsutil ls gs://reservation-timeslots-fujiminohikari/history/shiya/
 
 ## 🆕 最近のアップデート（技術的な改善履歴）
 
-### 2026年1月2日 - ダッシュボード大幅改善とスマホ版最適化 🆕
+### 2026年1月10日 - Cloud Scheduler設定変更実施 🆕
+
+#### ✅ コスト最適化の本番適用
+
+**実施日時:** 2026年1月10日
+
+**実施内容:**
+Cloud Schedulerの実行頻度を時間帯・サービス別に最適化し、月額費用を削減しました。
+
+**最終設定:**
+
+| サービス | 時間帯 | 変更前 | 変更後 |
+|---------|-------|-------|-------|
+| 一般予約 | 7:00〜17:59 | 1分間隔 | 1分間隔（維持） |
+| 一般予約 | 18:00〜6:59 | 1分間隔 | **5分間隔** |
+| 視野予約 | 7:00〜17:59 | 1分間隔 | **3分間隔** |
+| 視野予約 | 18:00〜6:59 | 1分間隔 | **10分間隔** |
+
+**作成したジョブ（4つ）:**
+- `reservation-timeslot-checker-job-peak`（一般予約・1分毎・7-17時）
+- `reservation-timeslot-checker-job-offpeak`（一般予約・5分毎・18-6時）
+- `reservation-timeslot-checker-shiya-job-peak`（視野予約・3分毎・7-17時）
+- `reservation-timeslot-checker-shiya-job-offpeak`（視野予約・10分毎・18-6時）
+
+**削除したジョブ（2つ）:**
+- `reservation-timeslot-checker-job`
+- `reservation-timeslot-checker-shiya-job`
+
+**期待される効果:**
+- 実行回数: 2,880回/日 → 1,114回/日（61%削減）
+- 月額費用: 約¥4,500〜5,400 → 約¥1,700〜2,100（約¥3,000削減）
+
+**動作確認:**
+- ジョブの手動実行テスト: ✅ 完了
+- 全8ジョブのSTATE: ENABLED確認済み
+
+**備考:**
+問題発生時は [COST_OPTIMIZATION_GUIDE.md](COST_OPTIMIZATION_GUIDE.md) の「元に戻す場合」セクションを参照して復旧可能。
+
+---
+
+### 2026年1月9日 - Cloud Runコスト最適化
+
+#### 💰 実行頻度の時間帯別最適化
+
+**概要:**
+Cloud Runの実行頻度を時間帯・サービス別に最適化し、月額費用を大幅に削減しました。
+
+**変更内容:**
+
+| サービス | 時間帯 | 変更前 | 変更後 |
+|---------|-------|-------|-------|
+| 一般予約 | 7:00〜17:59 | 1分間隔 | 1分間隔（維持） |
+| 一般予約 | 18:00〜翌6:59 | 1分間隔 | **5分間隔** |
+| 視野予約 | 7:00〜17:59 | 1分間隔 | **3分間隔** |
+| 視野予約 | 18:00〜翌6:59 | 1分間隔 | **10分間隔** |
+
+**効果:**
+
+| 項目 | 変更前 | 変更後 |
+|-----|-------|-------|
+| 実行回数/日 | 2,880回 | 1,114回（61%削減） |
+| 月額費用 | ¥4,500〜5,400 | **¥1,700〜2,100** |
+| 年間削減額 | - | **約¥34,000** |
+
+**背景:**
+- HPや玄関の電光掲示板への表示用途では、診療時間外の即時性は不要
+- 一般予約は患者が頻繁にチェックするため1分間隔を維持
+- 視野予約は即時性が低いため3分間隔に変更
+
+**設定手順:** [COST_OPTIMIZATION_GUIDE.md](COST_OPTIMIZATION_GUIDE.md)
+
+**変更ファイル:**
+- `COST_OPTIMIZATION_GUIDE.md` - 新規作成（設定変更手順書）
+- `docker-timeslot-checker/README.md` - 料金目安を更新
+- `README.md` - Cloud Scheduler設定を更新
+
+---
+
+### 2026年1月2日 - ダッシュボード大幅改善とスマホ版最適化
 
 #### 📊 時間枠別埋まり推移ヒートマップの実装
 
