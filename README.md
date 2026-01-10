@@ -241,8 +241,8 @@ const FILE_NAME_SHIYA = 'timeslots-shiya.json';
 |---|---|---|---|
 | 一般予約（ピーク） | `reservation-timeslot-checker-job-peak` | `*/1 7-17 * * *` | 7:00-17:59、1分毎 |
 | 一般予約（オフピーク） | `reservation-timeslot-checker-job-offpeak` | `*/5 0-6,18-23 * * *` | 18:00-6:59、5分毎 |
-| 視野予約（ピーク） | `reservation-timeslot-checker-shiya-job-peak` | `*/1 7-17 * * *` | 7:00-17:59、1分毎 |
-| 視野予約（オフピーク） | `reservation-timeslot-checker-shiya-job-offpeak` | `*/5 0-6,18-23 * * *` | 18:00-6:59、5分毎 |
+| 視野予約（ピーク） | `reservation-timeslot-checker-shiya-job-peak` | `*/3 7-17 * * *` | 7:00-17:59、3分毎 |
+| 視野予約（オフピーク） | `reservation-timeslot-checker-shiya-job-offpeak` | `*/10 0-6,18-23 * * *` | 18:00-6:59、10分毎 |
 | 月次集計（一般） | `monthly-summary-general` | `0 1 1 * *` | 毎月1日1:00 |
 | 月次集計（視野） | `monthly-summary-shiya` | `0 1 1 * *` | 毎月1日1:00 |
 
@@ -319,28 +319,30 @@ gsutil ls gs://reservation-timeslots-fujiminohikari/history/shiya/
 **実施日時:** 2026年1月10日
 
 **実施内容:**
-Cloud Schedulerの実行頻度を時間帯別に最適化し、月額費用を削減しました。
+Cloud Schedulerの実行頻度を時間帯・サービス別に最適化し、月額費用を削減しました。
 
-**変更詳細:**
+**最終設定:**
 
-| 項目 | 変更前 | 変更後 |
-|-----|-------|-------|
-| 診療時間帯（7:00〜17:59） | 1分間隔 | 1分間隔（維持） |
-| 診療時間外（18:00〜6:59） | 1分間隔 | 5分間隔 |
+| サービス | 時間帯 | 変更前 | 変更後 |
+|---------|-------|-------|-------|
+| 一般予約 | 7:00〜17:59 | 1分間隔 | 1分間隔（維持） |
+| 一般予約 | 18:00〜6:59 | 1分間隔 | **5分間隔** |
+| 視野予約 | 7:00〜17:59 | 1分間隔 | **3分間隔** |
+| 視野予約 | 18:00〜6:59 | 1分間隔 | **10分間隔** |
 
 **作成したジョブ（4つ）:**
 - `reservation-timeslot-checker-job-peak`（一般予約・1分毎・7-17時）
 - `reservation-timeslot-checker-job-offpeak`（一般予約・5分毎・18-6時）
-- `reservation-timeslot-checker-shiya-job-peak`（視野予約・1分毎・7-17時）
-- `reservation-timeslot-checker-shiya-job-offpeak`（視野予約・5分毎・18-6時）
+- `reservation-timeslot-checker-shiya-job-peak`（視野予約・3分毎・7-17時）
+- `reservation-timeslot-checker-shiya-job-offpeak`（視野予約・10分毎・18-6時）
 
 **削除したジョブ（2つ）:**
 - `reservation-timeslot-checker-job`
 - `reservation-timeslot-checker-shiya-job`
 
 **期待される効果:**
-- 実行回数: 2,880回/日 → 1,632回/日（43%削減）
-- 月額費用: 約¥4,500〜5,400 → 約¥2,500〜3,000（約¥2,000削減）
+- 実行回数: 2,880回/日 → 1,114回/日（61%削減）
+- 月額費用: 約¥4,500〜5,400 → 約¥1,700〜2,100（約¥3,000削減）
 
 **動作確認:**
 - ジョブの手動実行テスト: ✅ 完了
