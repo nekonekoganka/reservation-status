@@ -773,11 +773,12 @@ app.get('/generate-daily-summary', async (req, res) => {
         }
       });
 
-      // 5分以内のデータがあれば採用
-      if (closestEntry && minDiff <= 5) {
+      // 10分以内のデータがあれば採用（実行間隔が10分の場合に対応）
+      if (closestEntry && minDiff <= 10) {
         dataPoints.push({
           time: slot,
-          count: closestEntry.count
+          count: closestEntry.count,
+          slots: closestEntry.slots || []  // ヒートマップ用にslots配列を含める
         });
       }
     });
@@ -895,10 +896,11 @@ app.get('/generate-all-daily-summaries', async (req, res) => {
             }
           });
 
-          if (closestEntry && minDiff <= 5) {
+          if (closestEntry && minDiff <= 10) {
             dataPoints.push({
               time: slot,
-              count: closestEntry.count
+              count: closestEntry.count,
+              slots: closestEntry.slots || []
             });
           }
         });
