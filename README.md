@@ -312,11 +312,9 @@ gsutil ls gs://reservation-timeslots-fujiminohikari/history/shiya/
 
 ## 🆕 最近のアップデート（技術的な改善履歴）
 
-### 2026年1月10日 - Cloud Scheduler設定変更実施 🆕
+### 2026年1月10日〜11日 - Cloud Scheduler設定変更実施 🆕
 
 #### ✅ コスト最適化の本番適用
-
-**実施日時:** 2026年1月10日
 
 **実施内容:**
 Cloud Schedulerの実行頻度を時間帯・サービス別に最適化し、月額費用を削減しました。
@@ -329,6 +327,10 @@ Cloud Schedulerの実行頻度を時間帯・サービス別に最適化し、�
 | 一般予約 | 18:00〜6:59 | 1分間隔 | **5分間隔** |
 | 視野予約 | 7:00〜17:59 | 1分間隔 | **3分間隔** |
 | 視野予約 | 18:00〜6:59 | 1分間隔 | **10分間隔** |
+
+**Cloud Run URL（正しいURL）:**
+- 一般予約: `https://timeslot-checker-224924651996.asia-northeast1.run.app/check`
+- 視野予約: `https://timeslot-checker-shiya-224924651996.asia-northeast1.run.app/check`
 
 **作成したジョブ（4つ）:**
 - `reservation-timeslot-checker-job-peak`（一般予約・1分毎・7-17時）
@@ -347,6 +349,10 @@ Cloud Schedulerの実行頻度を時間帯・サービス別に最適化し、�
 **動作確認:**
 - ジョブの手動実行テスト: ✅ 完了
 - 全8ジョブのSTATE: ENABLED確認済み
+
+**修正履歴:**
+- 2026/1/10: 初回設定（URLが間違っていた）
+- 2026/1/11: 正しいURLで再設定完了
 
 **備考:**
 問題発生時は [COST_OPTIMIZATION_GUIDE.md](COST_OPTIMIZATION_GUIDE.md) の「元に戻す場合」セクションを参照して復旧可能。
