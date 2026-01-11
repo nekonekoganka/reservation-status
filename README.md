@@ -312,7 +312,120 @@ gsutil ls gs://reservation-timeslots-fujiminohikari/history/shiya/
 
 ## 🆕 最近のアップデート（技術的な改善履歴）
 
-### 2026年1月10日〜11日 - Cloud Scheduler設定変更実施 🆕
+### 2026年1月10日〜11日 - Cloud Runデプロイ時のキャッシュ問題と解決 🆕
+
+#### ⚠️ 問題の概要
+
+Cloud Schedulerの実行間隔を変更した後、ダッシュボードの以下の機能が動作しなくなりました：
+- 「本日の空き枠推移」グラフで視野予約の折れ線が表示されない
+- 「時間枠別 埋まり推移」ヒートマップに「スロット履歴データがありません」と表示
+
+#### 🔍 原因調査の経緯
+
+**1. 最初の仮説（間違い）: 実行間隔が長すぎる**
+- 視野予約の実行間隔を10分にしたため、データが不足していると考えた
+- しかし実際には、データは保存されていた
+
+**2. 発見した問題①: 日次サマリーの許容誤差が厳しすぎた**
+- 日次サマリー生成時、データポイントを5分以内の誤差でマッチングしていた
+- 10分間隔のデータでは、最大10分の誤差が発生するため、多くのデータが除外されていた
+- **修正**: 許容誤差を5分→10分に拡大
+
+**3. 発見した問題②: 日次サマリーに`slots`配列が含まれていなかった**
+- ヒートマップは各時点での「埋まっている時間枠」を表示するため、`slots`配列が必要
+- 日次サマリー生成コードに`slots`を含める処理がなかった
+- **修正**: `slots: closestEntry.slots || []` を追加
+
+**4. 発見した問題③: 履歴データ自体に`slots`が保存されていなかった**
+- 根本原因：履歴保存関数 `saveHistoryData` で `slots` フィールドを保存していなかった
+- **修正**: `slots: data.slots || []` を履歴エントリに追加
+
+#### 💥 最大のトラブル: Cloud Runのキャッシュ問題
+
+**現象:**
+コードを修正してCloud Runにデプロイしても、変更が反映されなかった。
+
+**再現手順と失敗:**
+1. `server.js` を修正
+2. `gcloud run deploy` でデプロイ → 新しいリビジョン作成
+3. Cloud Schedulerが実行 → **古いコードが動作**
+4. 履歴データを確認 → `slots`フィールドがない
+
+**原因:**
+Cloud Build（`gcloud run deploy --source .`）がDockerレイヤーをキャッシュしており、`server.js`の変更が検出されなかった。
+
+**解決方法:**
+
+```bash
+# Dockerfileに意味のない変更を加えてキャッシュを無効化
+echo "# Force rebuild: $(date)" >> Dockerfile
+
+# 再デプロイ
+gcloud run deploy timeslot-checker-shiya \
+  --source . \
+  --region asia-northeast1 \
+  --memory 1Gi
+```
+
+**確認方法:**
+デバッグログを追加して、実際にコードが更新されたことを確認：
+```javascript
+// saveHistoryData関数内
+console.log('=== 履歴エントリ保存デバッグ ===');
+console.log('data.slots:', JSON.stringify(data.slots));
+console.log('historyEntry:', JSON.stringify(historyEntry));
+```
+
+#### 📋 教訓と今後の対策
+
+**1. Cloud Runデプロイ時のキャッシュ対策**
+```bash
+# 方法1: --no-cache オプション（Cloud Buildに渡す）
+gcloud builds submit --tag gcr.io/PROJECT/SERVICE --no-cache
+gcloud run deploy SERVICE --image gcr.io/PROJECT/SERVICE
+
+# 方法2: Dockerfileに変更を加える（簡単）
+echo "# Rebuild: $(date)" >> Dockerfile
+gcloud run deploy SERVICE --source .
+
+# 方法3: package.jsonのバージョンを更新
+# version: "1.0.0" → "1.0.1"
+```
+
+**2. デプロイ後の確認手順**
+```bash
+# 1. 手動でエンドポイントを呼び出す
+curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
+  https://SERVICE-URL/check
+
+# 2. Cloud Runログでデバッグ出力を確認
+gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=SERVICE AND textPayload:デバッグ" --limit=5
+
+# 3. Cloud Storageで保存されたデータを確認
+gsutil cat gs://BUCKET/history/TYPE/DATE.json | tail -5
+```
+
+**3. 間隔変更時のダッシュボード対応**
+- 日次サマリーの許容誤差は、最大の実行間隔以上に設定する
+- 例: 10分間隔なら許容誤差も10分以上
+
+#### 📁 修正したファイル
+
+| ファイル | 修正内容 |
+|---------|---------|
+| `docker-timeslot-checker/server.js` | `saveHistoryData`に`slots`追加、日次サマリー許容誤差10分、デバッグログ |
+| `docker-timeslot-checker-shiya/server.js` | 同上 |
+| `dashboard.html` | デバッグログ追加（調査用） |
+
+#### ⏱️ 影響と復旧時間
+
+- **URL設定ミス**: 約22時間のデータ欠損（2026/1/10 夜〜1/11 夜）
+- **キャッシュ問題の調査・解決**: 約3時間
+- **最終確認**: 2026/1/11 01:47 に`slots`保存を確認
+
+---
+
+### 2026年1月10日〜11日 - Cloud Scheduler設定変更実施
 
 #### ✅ コスト最適化の本番適用
 
