@@ -3983,9 +3983,21 @@
                     cachedDateList = dateList;
                     updateRawDataDebug();
 
+                    console.log('=== データ処理デバッグ ===');
+                    console.log('一般予約 生データ:', generalData.length, '件');
+                    console.log('視野予約 生データ:', shiyaData.length, '件');
+
+                    const processedGeneral = processRawData(generalData);
+                    const processedShiya = processRawData(shiyaData);
+
+                    console.log('一般予約 処理後:', Object.keys(processedGeneral).length, '日分');
+                    console.log('視野予約 処理後:', Object.keys(processedShiya).length, '日分');
+                    console.log('一般予約 日付一覧:', Object.keys(processedGeneral));
+                    console.log('視野予約 日付一覧:', Object.keys(processedShiya));
+
                     processedData = {
-                        general: processRawData(generalData),
-                        shiya: processRawData(shiyaData)
+                        general: processedGeneral,
+                        shiya: processedShiya
                     };
                     rawData = currentType === 'general' ? generalData : shiyaData;
                     updateAllCharts();
@@ -4465,6 +4477,14 @@
             // 営業日のデータを探す
             const generalToday = generalData[todayStr];
             const shiyaToday = shiyaData[todayStr];
+
+            // デバッグログ
+            console.log('=== 本日の空き枠推移デバッグ ===');
+            console.log('営業日:', todayStr);
+            console.log('一般予約データ:', generalToday ? 'あり' : 'なし', generalToday);
+            console.log('視野予約データ:', shiyaToday ? 'あり' : 'なし', shiyaToday);
+            if (generalToday) console.log('一般予約 detailed:', Object.keys(generalToday.detailed || {}).length, '件');
+            if (shiyaToday) console.log('視野予約 detailed:', Object.keys(shiyaToday.detailed || {}).length, '件');
 
             if (!generalToday && !shiyaToday) {
                 // データがない場合は空のチャートを表示
