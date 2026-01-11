@@ -75,7 +75,7 @@ gcloud scheduler jobs delete reservation-timeslot-checker-shiya-job \
 ```bash
 gcloud scheduler jobs create http reservation-timeslot-checker-job-peak \
   --schedule="*/1 7-17 * * *" \
-  --uri="https://reservation-timeslot-checker-745899981028.asia-northeast1.run.app/check" \
+  --uri="https://timeslot-checker-224924651996.asia-northeast1.run.app/check" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo" \
@@ -87,7 +87,7 @@ gcloud scheduler jobs create http reservation-timeslot-checker-job-peak \
 ```bash
 gcloud scheduler jobs create http reservation-timeslot-checker-job-offpeak \
   --schedule="*/5 0-6,18-23 * * *" \
-  --uri="https://reservation-timeslot-checker-745899981028.asia-northeast1.run.app/check" \
+  --uri="https://timeslot-checker-224924651996.asia-northeast1.run.app/check" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo" \
@@ -103,7 +103,7 @@ gcloud scheduler jobs create http reservation-timeslot-checker-job-offpeak \
 ```bash
 gcloud scheduler jobs create http reservation-timeslot-checker-shiya-job-peak \
   --schedule="*/3 7-17 * * *" \
-  --uri="https://reservation-timeslot-checker-shiya-745899981028.asia-northeast1.run.app/check" \
+  --uri="https://timeslot-checker-shiya-224924651996.asia-northeast1.run.app/check" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo" \
@@ -115,7 +115,7 @@ gcloud scheduler jobs create http reservation-timeslot-checker-shiya-job-peak \
 ```bash
 gcloud scheduler jobs create http reservation-timeslot-checker-shiya-job-offpeak \
   --schedule="*/10 0-6,18-23 * * *" \
-  --uri="https://reservation-timeslot-checker-shiya-745899981028.asia-northeast1.run.app/check" \
+  --uri="https://timeslot-checker-shiya-224924651996.asia-northeast1.run.app/check" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo" \
@@ -183,11 +183,11 @@ gcloud scheduler jobs describe reservation-timeslot-checker-job-peak \
 ### Cloud RunのURLを確認する場合
 
 ```bash
-gcloud run services describe reservation-timeslot-checker \
+gcloud run services describe timeslot-checker \
   --region=asia-northeast1 \
   --format='value(status.url)'
 
-gcloud run services describe reservation-timeslot-checker-shiya \
+gcloud run services describe timeslot-checker-shiya \
   --region=asia-northeast1 \
   --format='value(status.url)'
 ```
@@ -204,7 +204,7 @@ gcloud scheduler jobs delete reservation-timeslot-checker-shiya-job-offpeak --lo
 # 元のジョブを再作成（1分毎・24時間）
 gcloud scheduler jobs create http reservation-timeslot-checker-job \
   --schedule="*/1 * * * *" \
-  --uri="https://reservation-timeslot-checker-745899981028.asia-northeast1.run.app/check" \
+  --uri="https://timeslot-checker-224924651996.asia-northeast1.run.app/check" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo" \
@@ -212,7 +212,7 @@ gcloud scheduler jobs create http reservation-timeslot-checker-job \
 
 gcloud scheduler jobs create http reservation-timeslot-checker-shiya-job \
   --schedule="*/1 * * * *" \
-  --uri="https://reservation-timeslot-checker-shiya-745899981028.asia-northeast1.run.app/check" \
+  --uri="https://timeslot-checker-shiya-224924651996.asia-northeast1.run.app/check" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo" \
@@ -249,5 +249,15 @@ gcloud scheduler jobs create http reservation-timeslot-checker-shiya-job \
 ---
 
 **作成日**: 2026年1月9日
-**更新日**: 2026年1月9日
+**更新日**: 2026年1月11日
 **目的**: Cloud Run費用の最適化（月額約¥2,800〜3,300削減）
+
+---
+
+## 修正履歴
+
+| 日付 | 内容 |
+|-----|-----|
+| 2026/1/9 | 初版作成 |
+| 2026/1/10 | 初回設定実施（URLが間違っていた） |
+| 2026/1/11 | 正しいURL（timeslot-checker-224924651996）で再設定、手順書を修正 |
