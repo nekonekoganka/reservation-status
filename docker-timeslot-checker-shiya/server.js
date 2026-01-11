@@ -571,6 +571,11 @@ async function saveHistoryData(data) {
       targetDate: data.date
     };
 
+    // デバッグログ
+    console.log('=== 履歴エントリ保存デバッグ ===');
+    console.log('data.slots:', JSON.stringify(data.slots));
+    console.log('historyEntry:', JSON.stringify(historyEntry));
+
     let historyData = [];
 
     // 既存の履歴ファイルがあれば読み込む
