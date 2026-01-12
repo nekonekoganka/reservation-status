@@ -56,3 +56,5 @@ EXPOSE 8080
 
 # アプリケーションを起動
 CMD ["node", "server.js"]
+
+# Force rebuild: 2026-01-12 slots fix
