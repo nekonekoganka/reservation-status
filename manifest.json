@@ -1,0 +1,17 @@
+{
+    "name": "予約傾向ダッシュボード",
+    "short_name": "予約ダッシュボード",
+    "description": "予約状況を確認するダッシュボード",
+    "start_url": "./dashboard.html",
+    "display": "standalone",
+    "background_color": "#667eea",
+    "theme_color": "#667eea",
+    "icons": [
+        {
+            "src": "dashboard-icon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
