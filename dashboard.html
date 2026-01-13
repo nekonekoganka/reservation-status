@@ -4536,14 +4536,13 @@
                 });
             }
 
-            // 重なり対策：同じ値の場合は視野予約を少し下にずらす
+            // 重なりポイントを検出（オフセットせず、マーカーで表示）
+            let overlapIndices = [];
             if (generalLineData && shiyaLineData) {
-                shiyaLineData = shiyaLineData.map((val, i) => {
-                    if (val !== null && generalLineData[i] !== null && val === generalLineData[i]) {
-                        // 同じ値の場合、視野予約を0.15下にオフセット
-                        return val - 0.15;
+                generalLineData.forEach((val, i) => {
+                    if (val !== null && shiyaLineData[i] !== null && val === shiyaLineData[i]) {
+                        overlapIndices.push(i);
                     }
-                    return val;
                 });
             }
 
@@ -4563,7 +4562,7 @@
                 });
             }
 
-            // 視野予約（緑）
+            // 視野予約（緑・点線）
             if (shiyaLineData) {
                 datasets.push({
                     label: '視野予約',
@@ -4575,6 +4574,7 @@
                     pointRadius: 0,
                     pointHoverRadius: 4,
                     borderWidth: 3,
+                    borderDash: [8, 4],  // 点線
                     hidden: false
                 });
             }
@@ -4595,12 +4595,52 @@
                 return labels[index] || null;
             };
 
+            // 重なりマーカー描画プラグイン（上半分オレンジ・下半分緑の円）
+            const overlapMarkerPlugin = {
+                id: 'overlapMarker',
+                afterDatasetsDraw: function(chart) {
+                    if (overlapIndices.length === 0) return;
+
+                    const ctx = chart.ctx;
+                    const meta = chart.getDatasetMeta(0); // 一般予約のmeta
+
+                    overlapIndices.forEach(index => {
+                        const point = meta.data[index];
+                        if (point) {
+                            const x = point.x;
+                            const y = point.y;
+                            const radius = 6;
+
+                            // 上半分（オレンジ）
+                            ctx.beginPath();
+                            ctx.arc(x, y, radius, Math.PI, 0, false);
+                            ctx.fillStyle = 'rgba(255, 152, 0, 1)';
+                            ctx.fill();
+
+                            // 下半分（緑）
+                            ctx.beginPath();
+                            ctx.arc(x, y, radius, 0, Math.PI, false);
+                            ctx.fillStyle = 'rgba(76, 175, 80, 1)';
+                            ctx.fill();
+
+                            // 白い枠線
+                            ctx.beginPath();
+                            ctx.arc(x, y, radius, 0, Math.PI * 2);
+                            ctx.strokeStyle = 'white';
+                            ctx.lineWidth = 2;
+                            ctx.stroke();
+                        }
+                    });
+                }
+            };
+
             weeklyProgressChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: datasets
                 },
+                plugins: [overlapMarkerPlugin],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
@@ -4617,7 +4657,6 @@
                                     return `${month}/${day}（${dayOfWeek}） ${DETAILED_TIME_SLOTS[index].label}`;
                                 },
                                 label: function(context) {
-                                    // 表示用の値を整数に丸める（重なり対策のオフセットを補正）
                                     const displayValue = context.parsed.y !== null ? Math.round(context.parsed.y) : null;
                                     return context.dataset.label + ': ' + (displayValue !== null ? displayValue + '枠' : 'データなし');
                                 }
