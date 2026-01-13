@@ -4536,17 +4536,7 @@
                 });
             }
 
-            // 重なりポイントを検出（オフセットせず、マーカーで表示）
-            let overlapIndices = [];
-            if (generalLineData && shiyaLineData) {
-                generalLineData.forEach((val, i) => {
-                    if (val !== null && shiyaLineData[i] !== null && val === shiyaLineData[i]) {
-                        overlapIndices.push(i);
-                    }
-                });
-            }
-
-            // 一般予約（オレンジ）
+            // 一般予約（オレンジ・実線）
             if (generalLineData) {
                 datasets.push({
                     label: '一般予約',
@@ -4595,52 +4585,12 @@
                 return labels[index] || null;
             };
 
-            // 重なりマーカー描画プラグイン（上半分オレンジ・下半分緑の円）
-            const overlapMarkerPlugin = {
-                id: 'overlapMarker',
-                afterDatasetsDraw: function(chart) {
-                    if (overlapIndices.length === 0) return;
-
-                    const ctx = chart.ctx;
-                    const meta = chart.getDatasetMeta(0); // 一般予約のmeta
-
-                    overlapIndices.forEach(index => {
-                        const point = meta.data[index];
-                        if (point) {
-                            const x = point.x;
-                            const y = point.y;
-                            const radius = 6;
-
-                            // 上半分（オレンジ）
-                            ctx.beginPath();
-                            ctx.arc(x, y, radius, Math.PI, 0, false);
-                            ctx.fillStyle = 'rgba(255, 152, 0, 1)';
-                            ctx.fill();
-
-                            // 下半分（緑）
-                            ctx.beginPath();
-                            ctx.arc(x, y, radius, 0, Math.PI, false);
-                            ctx.fillStyle = 'rgba(76, 175, 80, 1)';
-                            ctx.fill();
-
-                            // 白い枠線
-                            ctx.beginPath();
-                            ctx.arc(x, y, radius, 0, Math.PI * 2);
-                            ctx.strokeStyle = 'white';
-                            ctx.lineWidth = 2;
-                            ctx.stroke();
-                        }
-                    });
-                }
-            };
-
             weeklyProgressChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: datasets
                 },
-                plugins: [overlapMarkerPlugin],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
