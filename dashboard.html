@@ -4536,6 +4536,16 @@
                 });
             }
 
+            // 重なりポイントを検出
+            let overlapIndices = [];
+            if (generalLineData && shiyaLineData) {
+                generalLineData.forEach((val, i) => {
+                    if (val !== null && shiyaLineData[i] !== null && val === shiyaLineData[i]) {
+                        overlapIndices.push(i);
+                    }
+                });
+            }
+
             // 一般予約（オレンジ・実線）
             if (generalLineData) {
                 datasets.push({
@@ -4552,7 +4562,7 @@
                 });
             }
 
-            // 視野予約（緑・点線）
+            // 視野予約（緑・実線）
             if (shiyaLineData) {
                 datasets.push({
                     label: '視野予約',
@@ -4564,7 +4574,6 @@
                     pointRadius: 0,
                     pointHoverRadius: 4,
                     borderWidth: 3,
-                    borderDash: [8, 4],  // 点線
                     hidden: false
                 });
             }
@@ -4585,12 +4594,85 @@
                 return labels[index] || null;
             };
 
+            // 重なり区間を上下色分けで描画するプラグイン
+            const overlapLinePlugin = {
+                id: 'overlapLine',
+                afterDatasetsDraw: function(chart) {
+                    if (overlapIndices.length === 0 || chart.data.datasets.length < 2) return;
+
+                    const ctx = chart.ctx;
+                    const meta0 = chart.getDatasetMeta(0); // 一般予約
+                    const meta1 = chart.getDatasetMeta(1); // 視野予約
+
+                    // 連続する重なりポイントを見つけてセグメントを描画
+                    for (let i = 0; i < overlapIndices.length; i++) {
+                        const currentIdx = overlapIndices[i];
+                        const nextIdx = overlapIndices[i + 1];
+
+                        // 連続している場合のみセグメントを描画
+                        if (nextIdx !== undefined && nextIdx === currentIdx + 1) {
+                            const p1 = meta0.data[currentIdx];
+                            const p2 = meta0.data[nextIdx];
+
+                            if (p1 && p2) {
+                                const lineWidth = 5;
+
+                                // 上下色分けのグラデーションを作成
+                                const minY = Math.min(p1.y, p2.y);
+                                const maxY = Math.max(p1.y, p2.y);
+                                const gradient = ctx.createLinearGradient(0, minY - lineWidth/2, 0, maxY + lineWidth/2);
+                                gradient.addColorStop(0, 'rgba(255, 152, 0, 1)');   // オレンジ（上）
+                                gradient.addColorStop(0.5, 'rgba(255, 152, 0, 1)');
+                                gradient.addColorStop(0.5, 'rgba(76, 175, 80, 1)'); // 緑（下）
+                                gradient.addColorStop(1, 'rgba(76, 175, 80, 1)');
+
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.moveTo(p1.x, p1.y);
+                                ctx.lineTo(p2.x, p2.y);
+                                ctx.strokeStyle = gradient;
+                                ctx.lineWidth = lineWidth;
+                                ctx.lineCap = 'round';
+                                ctx.stroke();
+                                ctx.restore();
+                            }
+                        }
+
+                        // 単独ポイント（前後が重なりでない場合）にマーカーを描画
+                        const prevIdx = overlapIndices[i - 1];
+                        const isStartOfSegment = (prevIdx === undefined || prevIdx !== currentIdx - 1);
+                        const isEndOfSegment = (nextIdx === undefined || nextIdx !== currentIdx + 1);
+
+                        if (isStartOfSegment && isEndOfSegment) {
+                            // 孤立した重なりポイント - 小さいマーカーを表示
+                            const point = meta0.data[currentIdx];
+                            if (point) {
+                                const radius = 4;
+                                ctx.save();
+                                // 上半分オレンジ
+                                ctx.beginPath();
+                                ctx.arc(point.x, point.y, radius, Math.PI, 0);
+                                ctx.fillStyle = 'rgba(255, 152, 0, 1)';
+                                ctx.fill();
+                                // 下半分緑
+                                ctx.beginPath();
+                                ctx.arc(point.x, point.y, radius, 0, Math.PI);
+                                ctx.fillStyle = 'rgba(76, 175, 80, 1)';
+                                ctx.fill();
+                                ctx.restore();
+                            }
+                        }
+                    }
+                }
+            };
+
             weeklyProgressChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: datasets
                 },
+                plugins: [overlapLinePlugin],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
