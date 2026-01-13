@@ -1058,7 +1058,7 @@
 
         /* セル行 */
         .combined-timeline .cell-row td {
-            height: 22px;
+            height: 44px;
         }
 
         .combined-timeline .cell-row td.hour-start {
@@ -4593,6 +4593,57 @@
             weeklyScalesConfig.x.ticks.callback = function(value, index) {
                 return labels[index] || null;
             };
+
+            // スマホ版：横軸を現在時刻+1時間までに制限
+            const isMobile = window.innerWidth < 768;
+            let maxIndex = DETAILED_TIME_SLOTS.length - 1; // デフォルトは全範囲
+
+            if (isMobile) {
+                // 現在の日本時間を取得
+                const now = new Date();
+                const jstOffset = 9 * 60; // JST = UTC+9
+                const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+                const jstMinutes = utcMinutes + jstOffset;
+                const jstHour = Math.floor((jstMinutes % 1440) / 60);
+                const jstMinute = jstMinutes % 60;
+
+                // 現在時刻+1時間に対応するインデックスを計算
+                const targetHour = (jstHour + 1) % 24;
+                const targetMinute = Math.floor(jstMinute / 10) * 10; // 10分刻みに丸める
+
+                // DETAILED_TIME_SLOTSでのインデックスを探す
+                for (let i = 0; i < DETAILED_TIME_SLOTS.length; i++) {
+                    const slot = DETAILED_TIME_SLOTS[i];
+                    if (slot.hour === targetHour && slot.minute >= targetMinute) {
+                        maxIndex = i;
+                        break;
+                    }
+                    // 時間が過ぎた場合（翌時間帯）
+                    if (slot.hour === targetHour && i > 0) {
+                        maxIndex = i;
+                        break;
+                    }
+                }
+
+                // 18:30〜23:59の場合と00:00〜18:00の場合で処理を分ける
+                if (jstHour >= 18 || jstHour < 18) {
+                    for (let i = 0; i < DETAILED_TIME_SLOTS.length; i++) {
+                        const slot = DETAILED_TIME_SLOTS[i];
+                        // 目標時刻を超えたらそのインデックスを使用
+                        if (!slot.prevDay && slot.hour > targetHour) {
+                            maxIndex = Math.min(i + 6, DETAILED_TIME_SLOTS.length - 1); // 少し余裕を持たせる
+                            break;
+                        }
+                        if (!slot.prevDay && slot.hour === targetHour) {
+                            maxIndex = Math.min(i + 6, DETAILED_TIME_SLOTS.length - 1);
+                            break;
+                        }
+                    }
+                }
+
+                // X軸の最大値を設定
+                weeklyScalesConfig.x.max = maxIndex;
+            }
 
             // 重なり区間を上下色分けで描画するプラグイン
             const overlapLinePlugin = {
