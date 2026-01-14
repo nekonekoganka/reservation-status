@@ -5528,28 +5528,22 @@
             html += '<div style="font-size: 11px; color: #888; margin-bottom: 10px;">※ 営業日の午前10時時点で空いている割合</div>';
 
             // 午前・午後に分けて表示（12:55は午前、17:55は午後に含める）
-            const amRanked = ranked.filter(s => AM_SLOTS.includes(s.slot) || s.slot === '12:55').slice(0, 5);
-            const pmRanked = ranked.filter(s => PM_SLOTS.includes(s.slot) || s.slot === '17:55').slice(0, 5);
+            const amRanked = ranked.filter(s => AM_SLOTS.includes(s.slot) || s.slot === '12:55').slice(0, 10);
+            const pmRanked = ranked.filter(s => PM_SLOTS.includes(s.slot) || s.slot === '17:55').slice(0, 10);
 
-            html += '<div style="display: flex; gap: 20px; flex-wrap: wrap;">';
+            html += '<div style="display: flex; gap: 30px; flex-wrap: wrap;">';
 
             // 午前ランキング
-            html += '<div style="flex: 1; min-width: 200px;">';
-            html += '<h4 style="margin: 0 0 10px 0; color: #4CAF50;">🌅 午前TOP5</h4>';
+            html += '<div style="flex: 1; min-width: 180px;">';
+            html += '<h4 style="margin: 0 0 8px 0; color: #4CAF50;">🌅 午前TOP10</h4>';
             if (amRanked.length > 0) {
                 amRanked.forEach((item, idx) => {
-                    const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
-                    const barWidth = Math.min(item.availableRate, 100);
+                    const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `<span style="display: inline-block; width: 24px; text-align: center;">${idx + 1}.</span>`;
+                    const medalHtml = idx < 3 ? `<span style="display: inline-block; width: 24px; text-align: center;">${medal}</span>` : medal;
                     html += `
-                        <div style="margin-bottom: 8px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span>${medal} <strong>${item.slot}</strong></span>
-                                <span style="font-size: 12px; color: #888;">空き率 ${item.availableRateDisplay}%</span>
-                            </div>
-                            <div style="background: #eee; border-radius: 4px; height: 8px; margin-top: 3px;">
-                                <div style="background: linear-gradient(90deg, #4CAF50, #8BC34A); width: ${barWidth}%; height: 100%; border-radius: 4px;"></div>
-                            </div>
-                            <div style="font-size: 11px; color: #666; margin-top: 2px;">${item.availableCount}/${item.totalDays}日 空き</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 3px 0; border-bottom: 1px solid #f0f0f0;">
+                            <span>${medalHtml} <strong>${item.slot}</strong></span>
+                            <span style="color: #666;">${item.availableRateDisplay}%</span>
                         </div>
                     `;
                 });
@@ -5559,22 +5553,16 @@
             html += '</div>';
 
             // 午後ランキング
-            html += '<div style="flex: 1; min-width: 200px;">';
-            html += '<h4 style="margin: 0 0 10px 0; color: #8BC34A;">🌆 午後TOP5</h4>';
+            html += '<div style="flex: 1; min-width: 180px;">';
+            html += '<h4 style="margin: 0 0 8px 0; color: #8BC34A;">🌆 午後TOP10</h4>';
             if (pmRanked.length > 0) {
                 pmRanked.forEach((item, idx) => {
-                    const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
-                    const barWidth = Math.min(item.availableRate, 100);
+                    const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `<span style="display: inline-block; width: 24px; text-align: center;">${idx + 1}.</span>`;
+                    const medalHtml = idx < 3 ? `<span style="display: inline-block; width: 24px; text-align: center;">${medal}</span>` : medal;
                     html += `
-                        <div style="margin-bottom: 8px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span>${medal} <strong>${item.slot}</strong></span>
-                                <span style="font-size: 12px; color: #888;">空き率 ${item.availableRateDisplay}%</span>
-                            </div>
-                            <div style="background: #eee; border-radius: 4px; height: 8px; margin-top: 3px;">
-                                <div style="background: linear-gradient(90deg, #8BC34A, #4CAF50); width: ${barWidth}%; height: 100%; border-radius: 4px;"></div>
-                            </div>
-                            <div style="font-size: 11px; color: #666; margin-top: 2px;">${item.availableCount}/${item.totalDays}日 空き</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 3px 0; border-bottom: 1px solid #f0f0f0;">
+                            <span>${medalHtml} <strong>${item.slot}</strong></span>
+                            <span style="color: #666;">${item.availableRateDisplay}%</span>
                         </div>
                     `;
                 });
