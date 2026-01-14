@@ -5438,7 +5438,10 @@
             }
 
             // 全スロット（午前・午後）
-            const allSlots = [...AM_SLOTS, ...PM_SLOTS].filter(s => s !== '13:00' && s !== '18:00');
+            // 当院ルール: 13:00は12:55を、18:00は17:55を表すため、12:55と17:55を追加して13:00と18:00は除外
+            const allSlots = [...AM_SLOTS, ...PM_SLOTS]
+                .filter(s => s !== '13:00' && s !== '18:00')
+                .concat(['12:55', '17:55']);
 
             // 各スロットの「埋まりやすさ」を計算
             // 埋まり時刻が早いほど人気が高い
@@ -5504,7 +5507,8 @@
                     const totalMinutes = times.reduce((sum, time) => {
                         const [h, m] = time.split(':').map(Number);
                         let minutes = h * 60 + m;
-                        if (h < 18) minutes += 24 * 60; // 翌日の場合
+                        // 監視は18:30開始のため、18:30未満は翌日として扱う
+                        if (h < 18 || (h === 18 && m < 30)) minutes += 24 * 60;
                         return sum + minutes;
                     }, 0);
                     const avgMinutes = totalMinutes / times.length;
@@ -5516,16 +5520,19 @@
 
             // 空き率でソート（空きやすい順 = 埋まり率が低い順）
             const ranked = allSlots
-                .map(slot => ({
-                    slot,
-                    ...slotStats[slot],
-                    fillRate: slotStats[slot].totalDays > 0
-                        ? (slotStats[slot].fillCount / slotStats[slot].totalDays * 100).toFixed(1)
-                        : 0,
-                    availableRate: slotStats[slot].totalDays > 0
-                        ? (100 - (slotStats[slot].fillCount / slotStats[slot].totalDays * 100)).toFixed(1)
-                        : 100
-                }))
+                .map(slot => {
+                    const fillRateNum = slotStats[slot].totalDays > 0
+                        ? (slotStats[slot].fillCount / slotStats[slot].totalDays * 100)
+                        : 0;
+                    return {
+                        slot,
+                        ...slotStats[slot],
+                        fillRate: fillRateNum,
+                        fillRateDisplay: fillRateNum.toFixed(1),           // 表示用
+                        availableRate: 100 - fillRateNum,
+                        availableRateDisplay: (100 - fillRateNum).toFixed(1) // 表示用
+                    };
+                })
                 .filter(s => s.totalDays > 0)
                 .sort((a, b) => {
                     // 空き率が高い順（埋まり率が低い順）、同率なら遅く埋まる順
@@ -5539,9 +5546,9 @@
             // HTML生成
             let html = '<div class="available-slots-ranking" style="font-size: 14px;">';
 
-            // 午前・午後に分けて表示
-            const amRanked = ranked.filter(s => AM_SLOTS.includes(s.slot)).slice(0, 5);
-            const pmRanked = ranked.filter(s => PM_SLOTS.includes(s.slot)).slice(0, 5);
+            // 午前・午後に分けて表示（12:55は午前、17:55は午後に含める）
+            const amRanked = ranked.filter(s => AM_SLOTS.includes(s.slot) || s.slot === '12:55').slice(0, 5);
+            const pmRanked = ranked.filter(s => PM_SLOTS.includes(s.slot) || s.slot === '17:55').slice(0, 5);
 
             html += '<div style="display: flex; gap: 20px; flex-wrap: wrap;">';
 
@@ -5556,7 +5563,7 @@
                         <div style="margin-bottom: 8px;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <span>${medal} <strong>${item.slot}</strong></span>
-                                <span style="font-size: 12px; color: #888;">空き残り率 ${item.availableRate}%</span>
+                                <span style="font-size: 12px; color: #888;">空き残り率 ${item.availableRateDisplay}%</span>
                             </div>
                             <div style="background: #eee; border-radius: 4px; height: 8px; margin-top: 3px;">
                                 <div style="background: linear-gradient(90deg, #4CAF50, #8BC34A); width: ${barWidth}%; height: 100%; border-radius: 4px;"></div>
@@ -5581,7 +5588,7 @@
                         <div style="margin-bottom: 8px;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <span>${medal} <strong>${item.slot}</strong></span>
-                                <span style="font-size: 12px; color: #888;">空き残り率 ${item.availableRate}%</span>
+                                <span style="font-size: 12px; color: #888;">空き残り率 ${item.availableRateDisplay}%</span>
                             </div>
                             <div style="background: #eee; border-radius: 4px; height: 8px; margin-top: 3px;">
                                 <div style="background: linear-gradient(90deg, #8BC34A, #4CAF50); width: ${barWidth}%; height: 100%; border-radius: 4px;"></div>
