@@ -5523,9 +5523,9 @@
                     return a.slot.localeCompare(b.slot);
                 });
 
-            // HTML生成 - タイムライン棒グラフ形式
+            // HTML生成 - タイムライン棒グラフ形式（空き率で突き出す）
             let html = '<div class="available-slots-ranking" style="font-size: 14px;">';
-            html += '<div style="font-size: 11px; color: #888; margin-bottom: 10px;">※ 営業日の午前10時時点での埋まり率（凹んでいるほど空きやすい）</div>';
+            html += '<div style="font-size: 11px; color: #888; margin-bottom: 12px;">※ 営業日の午前10時時点での空き率（高いほど空きやすい）</div>';
 
             // 午前・午後のスロットを時間順にソート
             const amSlots = ranked.filter(s => AM_SLOTS.includes(s.slot) || s.slot === '12:55')
@@ -5534,73 +5534,84 @@
                 .sort((a, b) => a.slot.localeCompare(b.slot));
 
             // グラフ設定
-            const graphHeight = 100; // グラフの高さ（px）
-            const minDisplayRate = 30; // 表示する最小埋まり率（カットオフ）
-            const scaleRange = 100 - minDisplayRate; // 表示範囲
+            const graphHeight = 120; // グラフの高さ（px）
 
             // 棒グラフ生成関数
-            function generateBarChart(slots, title, color) {
+            function generateBarChart(slots, title, titleColor) {
                 if (slots.length === 0) return '<div style="color: #888;">データ不足</div>';
 
-                let chart = `<div style="margin-bottom: 20px;">`;
-                chart += `<h4 style="margin: 0 0 8px 0; color: ${color};">${title}</h4>`;
+                let chart = `<div style="margin-bottom: 24px;">`;
+                chart += `<h4 style="margin: 0 0 10px 0; color: ${titleColor};">${title}</h4>`;
 
-                // グラフコンテナ
-                chart += `<div style="display: flex; align-items: flex-end; height: ${graphHeight}px; border-bottom: 2px solid #ddd; padding: 0 5px; gap: 2px;">`;
+                // グラフ全体のコンテナ（Y軸ラベル + グラフ本体）
+                chart += `<div style="display: flex; align-items: stretch;">`;
+
+                // Y軸ラベル
+                chart += `<div style="display: flex; flex-direction: column; justify-content: space-between; font-size: 9px; color: #999; padding-right: 6px; height: ${graphHeight}px;">`;
+                chart += `<span>100%</span>`;
+                chart += `<span>50%</span>`;
+                chart += `<span>0%</span>`;
+                chart += `</div>`;
+
+                // グラフ本体
+                chart += `<div style="flex: 1;">`;
+
+                // グラフエリア（背景グリッド付き）
+                chart += `<div style="position: relative; height: ${graphHeight}px; background: linear-gradient(to bottom, transparent 0%, transparent 49.5%, #eee 49.5%, #eee 50.5%, transparent 50.5%, transparent 100%); border-bottom: 2px solid #ccc;">`;
+
+                // 棒グラフコンテナ
+                chart += `<div style="display: flex; align-items: flex-end; height: 100%; padding: 0 4px; gap: 3px;">`;
 
                 slots.forEach(item => {
-                    const fillRate = 100 - item.availableRate; // 埋まり率
-                    // カットオフを適用してスケーリング
-                    const scaledRate = Math.max(0, Math.min(100, ((fillRate - minDisplayRate) / scaleRange) * 100));
-                    const barHeight = Math.max(2, (scaledRate / 100) * graphHeight); // 最小2px
+                    const rate = item.availableRate; // 空き率
+                    const barHeight = Math.max(4, (rate / 100) * graphHeight);
 
-                    // 色: 埋まり率が高いほど赤、低いほど緑
-                    const hue = 120 - (fillRate * 1.2); // 120(緑)から0(赤)
-                    const saturation = 60;
+                    // 色: 空き率が高いほど緑、低いほど赤
+                    const hue = rate * 1.2; // 0(赤)から120(緑)
+                    const saturation = 70;
                     const lightness = 45;
 
                     chart += `
-                        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0;">
+                        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0;">
+                            <div style="font-size: 9px; color: #555; font-weight: bold; margin-bottom: 2px;">${Math.round(rate)}%</div>
                             <div style="
                                 width: 100%;
                                 height: ${barHeight}px;
-                                background: hsl(${hue}, ${saturation}%, ${lightness}%);
-                                border-radius: 2px 2px 0 0;
-                                transition: all 0.3s;
+                                background: linear-gradient(to top, hsl(${hue}, ${saturation}%, ${lightness}%), hsl(${hue}, ${saturation}%, ${lightness + 15}%));
+                                border-radius: 3px 3px 0 0;
+                                box-shadow: 0 -1px 3px rgba(0,0,0,0.1);
                                 cursor: pointer;
-                            " title="${item.slot}: 空き率${item.availableRateDisplay}%"></div>
+                                transition: all 0.2s;
+                            " title="${item.slot}: 空き率${item.availableRateDisplay}%（${item.availableCount}/${item.totalDays}日）"></div>
                         </div>
                     `;
                 });
 
-                chart += `</div>`;
+                chart += `</div>`; // 棒グラフコンテナ終了
+                chart += `</div>`; // グラフエリア終了
 
                 // 時間ラベル
-                chart += `<div style="display: flex; padding: 0 5px; gap: 2px;">`;
+                chart += `<div style="display: flex; padding: 4px 4px 0; gap: 3px;">`;
                 slots.forEach((item, idx) => {
-                    // 表示を間引く（狭い場合は3つおきに表示）
-                    const showLabel = idx === 0 || idx === slots.length - 1 || idx % 3 === 0;
-                    const label = showLabel ? item.slot.substring(0, 5) : '';
+                    const showLabel = idx === 0 || idx === slots.length - 1 || idx % 2 === 0;
+                    const timeLabel = item.slot.substring(0, 5);
                     chart += `
-                        <div style="flex: 1; text-align: center; font-size: 9px; color: #888; min-width: 0; overflow: hidden;">
-                            ${label}
+                        <div style="flex: 1; text-align: center; font-size: 9px; color: #888; min-width: 0;">
+                            ${showLabel ? timeLabel : ''}
                         </div>
                     `;
                 });
                 chart += `</div>`;
 
-                // Y軸ラベル（埋まり率）
-                chart += `<div style="display: flex; justify-content: space-between; font-size: 9px; color: #aaa; margin-top: 4px;">`;
-                chart += `<span>← 空きやすい</span>`;
-                chart += `<span>埋まりやすい →</span>`;
-                chart += `</div>`;
+                chart += `</div>`; // グラフ本体終了
+                chart += `</div>`; // 全体コンテナ終了
 
                 chart += `</div>`;
                 return chart;
             }
 
-            html += generateBarChart(amSlots, '🌅 午前', '#4CAF50');
-            html += generateBarChart(pmSlots, '🌆 午後', '#8BC34A');
+            html += generateBarChart(amSlots, '🌅 午前', '#2e7d32');
+            html += generateBarChart(pmSlots, '🌆 午後', '#558b2f');
 
             html += '</div>';
 
