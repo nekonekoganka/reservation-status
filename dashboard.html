@@ -5622,21 +5622,8 @@
                 chart += `</div>`; // 棒グラフコンテナ終了
                 chart += `</div>`; // グラフエリア終了
 
-                // 2段ヘッダー - 1行目（時間）
+                // 2段ヘッダー - 1行目（分）※上
                 chart += `<div style="display: flex; padding: 6px 4px 0; gap: 2px;">`;
-                hourGroups.forEach((group, groupIdx) => {
-                    const marginLeft = groupIdx > 0 ? '8px' : '0';
-                    const slotCount = group.slots.filter(s => slotMap[s]).length;
-                    chart += `
-                        <div style="flex: ${slotCount}; text-align: center; font-size: 11px; font-weight: 600; color: #555; background: ${headerBg}; padding: 3px 0; border-radius: 3px 3px 0 0; margin-left: ${marginLeft};">
-                            ${group.hour}時
-                        </div>
-                    `;
-                });
-                chart += `</div>`;
-
-                // 2段ヘッダー - 2行目（分）
-                chart += `<div style="display: flex; padding: 0 4px 4px; gap: 2px;">`;
                 hourGroups.forEach((group, groupIdx) => {
                     group.slots.forEach((slotTime, slotIdx) => {
                         if (!slotMap[slotTime]) return;
@@ -5644,11 +5631,24 @@
                         const marginLeft = (groupIdx > 0 && slotIdx === 0) ? '8px' : '0';
                         const bgColor = minute === '00' ? headerAccent : headerBg;
                         chart += `
-                            <div style="flex: 1; text-align: center; font-size: 9px; color: #666; background: ${bgColor}; padding: 2px 0; margin-left: ${marginLeft};">
+                            <div style="flex: 1; text-align: center; font-size: 12px; font-weight: 500; color: #555; background: ${bgColor}; padding: 4px 0; border-radius: 3px 3px 0 0; margin-left: ${marginLeft};">
                                 ${minute}
                             </div>
                         `;
                     });
+                });
+                chart += `</div>`;
+
+                // 2段ヘッダー - 2行目（時間）※下
+                chart += `<div style="display: flex; padding: 0 4px 4px; gap: 2px;">`;
+                hourGroups.forEach((group, groupIdx) => {
+                    const marginLeft = groupIdx > 0 ? '8px' : '0';
+                    const slotCount = group.slots.filter(s => slotMap[s]).length;
+                    chart += `
+                        <div style="flex: ${slotCount}; text-align: center; font-size: 13px; font-weight: 700; color: #333; background: ${headerBg}; padding: 4px 0; border-radius: 0 0 3px 3px; margin-left: ${marginLeft};">
+                            ${group.hour}時
+                        </div>
+                    `;
                 });
                 chart += `</div>`;
 
