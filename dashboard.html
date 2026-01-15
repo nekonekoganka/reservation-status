@@ -5535,7 +5535,7 @@
             const graphHeight = 120; // グラフの高さ（px）
 
             // 棒グラフ生成関数
-            function generateBarChart(slots, title, titleColor) {
+            function generateBarChart(slots, title, titleColor, isAm) {
                 if (slots.length === 0) return '<div style="color: #888;">データ不足</div>';
 
                 // 最大空き率を取得（上限をデータに合わせる）
@@ -5543,6 +5543,23 @@
                 // 上限を5%刻みで切り上げ（見やすさのため少し余裕を持たせる）
                 const chartMax = Math.ceil(maxRate / 5) * 5;
                 const chartMid = Math.round(chartMax / 2);
+
+                // 時間グループを定義
+                const hourGroups = isAm
+                    ? [
+                        { hour: 10, slots: ['10:00', '10:15', '10:30', '10:45'] },
+                        { hour: 11, slots: ['11:00', '11:15', '11:30', '11:45'] },
+                        { hour: 12, slots: ['12:00', '12:15', '12:30', '12:45', '12:55'] }
+                    ]
+                    : [
+                        { hour: 15, slots: ['15:00', '15:15', '15:30', '15:45'] },
+                        { hour: 16, slots: ['16:00', '16:15', '16:30', '16:45'] },
+                        { hour: 17, slots: ['17:00', '17:15', '17:30', '17:45', '17:55'] }
+                    ];
+
+                // 背景色
+                const headerBg = isAm ? '#fff3e0' : '#e3f2fd';
+                const headerAccent = isAm ? '#ffe0b2' : '#bbdefb';
 
                 let chart = `<div style="margin-bottom: 24px;">`;
                 chart += `<h4 style="margin: 0 0 10px 0; color: ${titleColor};">${title}</h4>`;
@@ -5564,48 +5581,74 @@
                 chart += `<div style="position: relative; height: ${graphHeight}px; background: linear-gradient(to bottom, transparent 0%, transparent 49.5%, #eee 49.5%, #eee 50.5%, transparent 50.5%, transparent 100%); border-bottom: 2px solid #ccc;">`;
 
                 // 棒グラフコンテナ
-                chart += `<div style="display: flex; align-items: flex-end; height: 100%; padding: 0 4px; gap: 3px;">`;
+                chart += `<div style="display: flex; align-items: flex-end; height: 100%; padding: 0 4px; gap: 2px;">`;
 
-                slots.forEach(item => {
-                    const rate = item.availableRate; // 空き率
-                    // 最大値を基準にスケーリング
-                    const barHeight = Math.max(4, (rate / chartMax) * graphHeight);
+                // スロットをMapに変換（検索用）
+                const slotMap = {};
+                slots.forEach(s => slotMap[s.slot] = s);
 
-                    // 色: 空き率が高いほど緑、低いほど赤（最大値を基準に）
-                    const normalizedRate = (rate / chartMax) * 100;
-                    const hue = normalizedRate * 1.2; // 0(赤)から120(緑)
-                    const saturation = 70;
-                    const lightness = 45;
+                hourGroups.forEach((group, groupIdx) => {
+                    group.slots.forEach((slotTime, slotIdx) => {
+                        const item = slotMap[slotTime];
+                        if (!item) return;
 
-                    chart += `
-                        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0;">
-                            <div style="font-size: 9px; color: #555; font-weight: bold; margin-bottom: 2px;">${Math.round(rate)}%</div>
-                            <div style="
-                                width: 100%;
-                                height: ${barHeight}px;
-                                background: linear-gradient(to top, hsl(${hue}, ${saturation}%, ${lightness}%), hsl(${hue}, ${saturation}%, ${lightness + 15}%));
-                                border-radius: 3px 3px 0 0;
-                                box-shadow: 0 -1px 3px rgba(0,0,0,0.1);
-                                cursor: pointer;
-                                transition: all 0.2s;
-                            " title="${item.slot}: 空き率${item.availableRateDisplay}%（${item.availableCount}/${item.totalDays}日）"></div>
-                        </div>
-                    `;
+                        const rate = item.availableRate;
+                        const barHeight = Math.max(4, (rate / chartMax) * graphHeight);
+                        const normalizedRate = (rate / chartMax) * 100;
+                        const hue = normalizedRate * 1.2;
+                        const saturation = 70;
+                        const lightness = 45;
+
+                        // 時間グループの区切りで左マージンを追加
+                        const marginLeft = (groupIdx > 0 && slotIdx === 0) ? '8px' : '0';
+
+                        chart += `
+                            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; margin-left: ${marginLeft};">
+                                <div style="font-size: 9px; color: #555; font-weight: bold; margin-bottom: 2px;">${Math.round(rate)}%</div>
+                                <div style="
+                                    width: 100%;
+                                    height: ${barHeight}px;
+                                    background: linear-gradient(to top, hsl(${hue}, ${saturation}%, ${lightness}%), hsl(${hue}, ${saturation}%, ${lightness + 15}%));
+                                    border-radius: 3px 3px 0 0;
+                                    box-shadow: 0 -1px 3px rgba(0,0,0,0.1);
+                                    cursor: pointer;
+                                    transition: all 0.2s;
+                                " title="${item.slot}: 空き率${item.availableRateDisplay}%（${item.availableCount}/${item.totalDays}日）"></div>
+                            </div>
+                        `;
+                    });
                 });
 
                 chart += `</div>`; // 棒グラフコンテナ終了
                 chart += `</div>`; // グラフエリア終了
 
-                // 時間ラベル
-                chart += `<div style="display: flex; padding: 4px 4px 0; gap: 3px;">`;
-                slots.forEach((item, idx) => {
-                    const showLabel = idx === 0 || idx === slots.length - 1 || idx % 2 === 0;
-                    const timeLabel = item.slot.substring(0, 5);
+                // 2段ヘッダー - 1行目（時間）
+                chart += `<div style="display: flex; padding: 6px 4px 0; gap: 2px;">`;
+                hourGroups.forEach((group, groupIdx) => {
+                    const marginLeft = groupIdx > 0 ? '8px' : '0';
+                    const slotCount = group.slots.filter(s => slotMap[s]).length;
                     chart += `
-                        <div style="flex: 1; text-align: center; font-size: 9px; color: #888; min-width: 0;">
-                            ${showLabel ? timeLabel : ''}
+                        <div style="flex: ${slotCount}; text-align: center; font-size: 11px; font-weight: 600; color: #555; background: ${headerBg}; padding: 3px 0; border-radius: 3px 3px 0 0; margin-left: ${marginLeft};">
+                            ${group.hour}時
                         </div>
                     `;
+                });
+                chart += `</div>`;
+
+                // 2段ヘッダー - 2行目（分）
+                chart += `<div style="display: flex; padding: 0 4px 4px; gap: 2px;">`;
+                hourGroups.forEach((group, groupIdx) => {
+                    group.slots.forEach((slotTime, slotIdx) => {
+                        if (!slotMap[slotTime]) return;
+                        const minute = slotTime.split(':')[1];
+                        const marginLeft = (groupIdx > 0 && slotIdx === 0) ? '8px' : '0';
+                        const bgColor = minute === '00' ? headerAccent : headerBg;
+                        chart += `
+                            <div style="flex: 1; text-align: center; font-size: 9px; color: #666; background: ${bgColor}; padding: 2px 0; margin-left: ${marginLeft};">
+                                ${minute}
+                            </div>
+                        `;
+                    });
                 });
                 chart += `</div>`;
 
@@ -5616,8 +5659,8 @@
                 return chart;
             }
 
-            html += generateBarChart(amSlots, '🌅 午前', '#2e7d32');
-            html += generateBarChart(pmSlots, '🌆 午後', '#558b2f');
+            html += generateBarChart(amSlots, '🌅 午前', '#2e7d32', true);
+            html += generateBarChart(pmSlots, '🌆 午後', '#558b2f', false);
 
             html += '</div>';
 
