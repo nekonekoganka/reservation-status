@@ -4341,7 +4341,7 @@
             updateMonthlyChart(data);
             updateDayFullRateChart(data);
             updateRecentDataTable(data);
-            updatePopularSlotsRanking(data);
+            updatePopularSlotsRanking(processedData['general'] || {}, processedData['shiya'] || {});
             updateSlotFillProgressChart(data);
 
             // ローディング表示を非表示
@@ -5427,109 +5427,100 @@
         // スロットごとの埋まり時刻データを保存
         let slotFillAnalysisData = {};
 
-        function updatePopularSlotsRanking(data) {
+        function updatePopularSlotsRanking(generalData, shiyaData) {
             const container = document.getElementById('popularSlotsContainer');
 
-            if (!data || Object.keys(data).length === 0) {
+            const hasGeneral = generalData && Object.keys(generalData).length > 0;
+            const hasShiya = shiyaData && Object.keys(shiyaData).length > 0;
+
+            if (!hasGeneral && !hasShiya) {
                 container.innerHTML = '<div class="no-data">データがありません</div>';
                 return;
             }
 
             // 全スロット（午前・午後）
-            // 当院ルール: 13:00は12:55を、18:00は17:55を表すため、12:55と17:55を追加して13:00と18:00は除外
             const allSlots = [...AM_SLOTS, ...PM_SLOTS]
                 .filter(s => s !== '13:00' && s !== '18:00')
                 .concat(['12:55', '17:55']);
 
-            // 各スロットの統計を初期化
-            const slotStats = {};
-            allSlots.forEach(slot => {
-                slotStats[slot] = {
-                    availableCount: 0,   // 午前10時時点で空いていた回数
-                    totalDays: 0         // 計測日数
-                };
-            });
-
-            // 日付ごとに午前10時時点の空き状況を分析
-            const sortedDates = Object.keys(data).sort();
-            slotFillAnalysisData = {}; // リセット
-
-            sortedDates.forEach(date => {
-                const dayData = data[date];
-                if (!dayData.slotHistory || dayData.slotHistory.length === 0) return;
-
-                slotFillAnalysisData[date] = {};
-                const history = dayData.slotHistory;
-
-                // 午前10時に最も近いエントリを探す（10:00〜10:15の範囲で）
-                const targetMinutes = 10 * 60; // 10:00
-                let closestEntry = null;
-                let closestDiff = Infinity;
-
-                for (const entry of history) {
-                    const [h, m] = entry.time.split(':').map(Number);
-                    const entryMinutes = h * 60 + m;
-                    const diff = Math.abs(entryMinutes - targetMinutes);
-
-                    // 10:00〜10:15の範囲内で最も近いエントリを採用
-                    if (diff <= 15 && diff < closestDiff) {
-                        closestDiff = diff;
-                        closestEntry = entry;
-                    }
-                }
-
-                // 午前10時頃のデータがない場合はスキップ
-                if (!closestEntry) return;
-
-                const availableSlots = closestEntry.slots || [];
-
+            // データを分析してランキングを返すヘルパー関数
+            function analyzeData(data) {
+                const slotStats = {};
                 allSlots.forEach(slot => {
-                    slotStats[slot].totalDays++;
+                    slotStats[slot] = { availableCount: 0, totalDays: 0 };
+                });
 
-                    // スロットが空いているかチェック（当院ルール対応）
-                    const isAvailable = availableSlots.includes(slot) ||
-                        (slot === '12:55' && availableSlots.includes('13:00')) ||
-                        (slot === '17:55' && availableSlots.includes('18:00'));
+                const sortedDates = Object.keys(data).sort();
+                sortedDates.forEach(date => {
+                    const dayData = data[date];
+                    if (!dayData.slotHistory || dayData.slotHistory.length === 0) return;
 
-                    if (isAvailable) {
-                        slotStats[slot].availableCount++;
-                        slotFillAnalysisData[date][slot] = '空き';
-                    } else {
-                        slotFillAnalysisData[date][slot] = '埋まり';
+                    const history = dayData.slotHistory;
+                    const targetMinutes = 10 * 60;
+                    let closestEntry = null;
+                    let closestDiff = Infinity;
+
+                    for (const entry of history) {
+                        const [h, m] = entry.time.split(':').map(Number);
+                        const entryMinutes = h * 60 + m;
+                        const diff = Math.abs(entryMinutes - targetMinutes);
+                        if (diff <= 15 && diff < closestDiff) {
+                            closestDiff = diff;
+                            closestEntry = entry;
+                        }
                     }
-                });
-            });
 
-            // 空き率でソート（空きやすい順）
-            const ranked = allSlots
-                .map(slot => {
-                    const availableRate = slotStats[slot].totalDays > 0
-                        ? (slotStats[slot].availableCount / slotStats[slot].totalDays * 100)
-                        : 0;
-                    return {
-                        slot,
-                        ...slotStats[slot],
-                        availableRate: availableRate,
-                        availableRateDisplay: availableRate.toFixed(1)
-                    };
-                })
-                .filter(s => s.totalDays > 0)
-                .sort((a, b) => {
-                    // 空き率が高い順
-                    if (a.availableRate !== b.availableRate) return b.availableRate - a.availableRate;
-                    // 同率ならスロット時刻順
-                    return a.slot.localeCompare(b.slot);
+                    if (!closestEntry) return;
+                    const availableSlots = closestEntry.slots || [];
+
+                    allSlots.forEach(slot => {
+                        slotStats[slot].totalDays++;
+                        const isAvailable = availableSlots.includes(slot) ||
+                            (slot === '12:55' && availableSlots.includes('13:00')) ||
+                            (slot === '17:55' && availableSlots.includes('18:00'));
+                        if (isAvailable) slotStats[slot].availableCount++;
+                    });
                 });
 
-            // HTML生成 - タイムライン棒グラフ形式（空き率で突き出す）
+                return allSlots
+                    .map(slot => {
+                        const availableRate = slotStats[slot].totalDays > 0
+                            ? (slotStats[slot].availableCount / slotStats[slot].totalDays * 100)
+                            : 0;
+                        return {
+                            slot,
+                            ...slotStats[slot],
+                            availableRate,
+                            availableRateDisplay: availableRate.toFixed(1)
+                        };
+                    })
+                    .filter(s => s.totalDays > 0)
+                    .sort((a, b) => {
+                        if (a.availableRate !== b.availableRate) return b.availableRate - a.availableRate;
+                        return a.slot.localeCompare(b.slot);
+                    });
+            }
+
+            // 一般と視野それぞれのデータを分析
+            const generalRanked = hasGeneral ? analyzeData(generalData) : [];
+            const shiyaRanked = hasShiya ? analyzeData(shiyaData) : [];
+
+            // HTML生成
             let html = '<div class="available-slots-ranking" style="font-size: 14px;">';
             html += '<div style="font-size: 11px; color: #888; margin-bottom: 12px;">※ 営業日の午前10時時点での空き率（高いほど空きやすい）</div>';
 
             // 午前・午後のスロットを時間順にソート
-            const amSlots = ranked.filter(s => AM_SLOTS.includes(s.slot) || s.slot === '12:55')
-                .sort((a, b) => a.slot.localeCompare(b.slot));
-            const pmSlots = ranked.filter(s => PM_SLOTS.includes(s.slot) || s.slot === '17:55')
-                .sort((a, b) => a.slot.localeCompare(b.slot));
+            function splitAmPm(ranked) {
+                return {
+                    am: ranked.filter(s => AM_SLOTS.includes(s.slot) || s.slot === '12:55')
+                        .sort((a, b) => a.slot.localeCompare(b.slot)),
+                    pm: ranked.filter(s => PM_SLOTS.includes(s.slot) || s.slot === '17:55')
+                        .sort((a, b) => a.slot.localeCompare(b.slot))
+                };
+            }
+
+            const generalSplit = splitAmPm(generalRanked);
+            const shiyaSplit = splitAmPm(shiyaRanked);
 
             // グラフ設定
             const graphHeight = 120; // グラフの高さ（px）
@@ -5631,7 +5622,7 @@
                         const marginLeft = (groupIdx > 0 && slotIdx === 0) ? '8px' : '0';
                         const bgColor = minute === '00' ? headerAccent : headerBg;
                         chart += `
-                            <div style="flex: 1; text-align: center; font-size: 12px; font-weight: 500; color: #555; background: ${bgColor}; padding: 4px 0; border-radius: 3px 3px 0 0; margin-left: ${marginLeft};">
+                            <div style="flex: 1; text-align: center; font-size: 16px; font-weight: 600; color: #444; background: ${bgColor}; padding: 5px 0; border-radius: 3px 3px 0 0; margin-left: ${marginLeft};">
                                 ${minute}
                             </div>
                         `;
@@ -5645,7 +5636,7 @@
                     const marginLeft = groupIdx > 0 ? '8px' : '0';
                     const slotCount = group.slots.filter(s => slotMap[s]).length;
                     chart += `
-                        <div style="flex: ${slotCount}; text-align: center; font-size: 13px; font-weight: 700; color: #333; background: ${headerBg}; padding: 4px 0; border-radius: 0 0 3px 3px; margin-left: ${marginLeft};">
+                        <div style="flex: ${slotCount}; text-align: center; font-size: 17px; font-weight: 700; color: #222; background: ${headerBg}; padding: 5px 0; border-radius: 0 0 3px 3px; margin-left: ${marginLeft};">
                             ${group.hour}時
                         </div>
                     `;
@@ -5659,8 +5650,23 @@
                 return chart;
             }
 
-            html += generateBarChart(amSlots, '🌅 午前', '#2e7d32', true);
-            html += generateBarChart(pmSlots, '🌆 午後', '#558b2f', false);
+            // 一般予約セクション
+            if (hasGeneral && generalRanked.length > 0) {
+                html += `<div style="margin-bottom: 30px; padding: 15px; background: #fff8e1; border-radius: 8px; border-left: 4px solid #CC6600;">`;
+                html += `<h4 style="margin: 0 0 15px 0; color: #CC6600; font-size: 16px;">📙 一般予約</h4>`;
+                html += generateBarChart(generalSplit.am, '🌅 午前', '#bf6000', true);
+                html += generateBarChart(generalSplit.pm, '🌆 午後', '#cc7700', false);
+                html += `</div>`;
+            }
+
+            // 視野予約セクション
+            if (hasShiya && shiyaRanked.length > 0) {
+                html += `<div style="padding: 15px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #006633;">`;
+                html += `<h4 style="margin: 0 0 15px 0; color: #006633; font-size: 16px;">📗 視野予約</h4>`;
+                html += generateBarChart(shiyaSplit.am, '🌅 午前', '#2e7d32', true);
+                html += generateBarChart(shiyaSplit.pm, '🌆 午後', '#388e3c', false);
+                html += `</div>`;
+            }
 
             html += '</div>';
 
