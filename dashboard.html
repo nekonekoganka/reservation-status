@@ -2676,7 +2676,7 @@
 
         <!-- 空きやすい時間枠ランキング -->
         <div class="chart-card">
-            <h3>🕐 空きやすい時間枠ランキング<span class="help-icon" onclick="openHelpModal('availableSlots')">?<span class="tooltip">最後まで空いている時間枠をランキング表示</span></span></h3>
+            <h3>🕐 空きやすい時間枠ランキング<span class="help-icon" onclick="openHelpModal('availableSlots')">?<span class="tooltip">午前10時時点の空き率を棒グラフ表示</span></span></h3>
             <div id="popularSlotsContainer">
                 <div class="loading">
                     <div class="spinner"></div>
@@ -6327,24 +6327,25 @@
                 title: '🕐 空きやすい時間枠ランキング',
                 content: `
                     <h3>表示内容</h3>
-                    <p>どの予約時間枠が<strong>最後まで空いているか</strong>をランキング形式で表示します。</p>
+                    <p><strong>営業日の午前10時時点</strong>で、どの予約時間枠が空いているかを棒グラフで表示します。</p>
+                    <p>一般予約と視野予約の両方を表示します。</p>
 
-                    <h3>指標の説明</h3>
-                    <h4>空き残り率</h4>
-                    <p>その時間枠が「最後まで空いていた日」の割合です。</p>
+                    <h3>計算方法</h3>
+                    <h4>空き率</h4>
+                    <p>午前10時時点でその時間枠が<strong>まだ空いていた日</strong>の割合です。</p>
                     <div class="example">
-                        例: 80% → 10日中8日でこの時間枠は埋まらなかった
+                        例: 85% → 10日中8.5日で、午前10時の時点でこの時間枠はまだ予約可能だった
                     </div>
 
-                    <h4>埋まる場合の平均時刻</h4>
-                    <p>埋まる場合、平均して何時頃に埋まるかを示します。</p>
-                    <div class="example">
-                        例: 平均 15:30 → 埋まる場合でも午後まで空いていることが多い
-                    </div>
+                    <h3>グラフの見方</h3>
+                    <ul>
+                        <li><strong>棒が高い</strong>（緑色）: 空き率が高い＝予約が取りやすい</li>
+                        <li><strong>棒が低い</strong>（赤色）: 空き率が低い＝すぐ埋まりやすい</li>
+                    </ul>
 
                     <h3>活用方法</h3>
                     <div class="tip">
-                        空きやすい時間枠を把握しておくと、「この時間帯なら比較的予約が取りやすいですよ」と患者さんに案内できます。
+                        空き率の高い時間枠を把握しておくと、「この時間帯なら比較的予約が取りやすいですよ」と患者さんに案内できます。
                     </div>
                 `
             },
