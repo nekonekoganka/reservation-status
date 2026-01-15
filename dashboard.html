@@ -5538,23 +5538,29 @@
             function generateBarChart(slots, title, titleColor) {
                 if (slots.length === 0) return '<div style="color: #888;">データ不足</div>';
 
+                // 最大空き率を取得（上限をデータに合わせる）
+                const maxRate = Math.max(...slots.map(s => s.availableRate));
+                // 上限を5%刻みで切り上げ（見やすさのため少し余裕を持たせる）
+                const chartMax = Math.ceil(maxRate / 5) * 5;
+                const chartMid = Math.round(chartMax / 2);
+
                 let chart = `<div style="margin-bottom: 24px;">`;
                 chart += `<h4 style="margin: 0 0 10px 0; color: ${titleColor};">${title}</h4>`;
 
                 // グラフ全体のコンテナ（Y軸ラベル + グラフ本体）
                 chart += `<div style="display: flex; align-items: stretch;">`;
 
-                // Y軸ラベル
+                // Y軸ラベル（動的に最大値を表示）
                 chart += `<div style="display: flex; flex-direction: column; justify-content: space-between; font-size: 9px; color: #999; padding-right: 6px; height: ${graphHeight}px;">`;
-                chart += `<span>100%</span>`;
-                chart += `<span>50%</span>`;
+                chart += `<span>${chartMax}%</span>`;
+                chart += `<span>${chartMid}%</span>`;
                 chart += `<span>0%</span>`;
                 chart += `</div>`;
 
                 // グラフ本体
                 chart += `<div style="flex: 1;">`;
 
-                // グラフエリア（背景グリッド付き）
+                // グラフエリア（背景グリッド付き - 中央線）
                 chart += `<div style="position: relative; height: ${graphHeight}px; background: linear-gradient(to bottom, transparent 0%, transparent 49.5%, #eee 49.5%, #eee 50.5%, transparent 50.5%, transparent 100%); border-bottom: 2px solid #ccc;">`;
 
                 // 棒グラフコンテナ
@@ -5562,10 +5568,12 @@
 
                 slots.forEach(item => {
                     const rate = item.availableRate; // 空き率
-                    const barHeight = Math.max(4, (rate / 100) * graphHeight);
+                    // 最大値を基準にスケーリング
+                    const barHeight = Math.max(4, (rate / chartMax) * graphHeight);
 
-                    // 色: 空き率が高いほど緑、低いほど赤
-                    const hue = rate * 1.2; // 0(赤)から120(緑)
+                    // 色: 空き率が高いほど緑、低いほど赤（最大値を基準に）
+                    const normalizedRate = (rate / chartMax) * 100;
+                    const hue = normalizedRate * 1.2; // 0(赤)から120(緑)
                     const saturation = 70;
                     const lightness = 45;
 
