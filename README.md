@@ -51,6 +51,14 @@
   - 曜日別・時間帯別の予約傾向をグラフ表示
   - 詳細：[DASHBOARD-README.md](DASHBOARD-README.md)
 
+### 📱 Androidアプリ
+
+- **[Androidステータスバー表示アプリ](android-reservation-status/README.md)**
+  - スマホのステータスバー（時計や電波アイコンの横）に空き枠数を常時表示
+  - 一般予約・視野予約の2つの枠数をリアルタイム表示
+  - 1分ごとに自動更新、端末起動時に自動開始
+  - 詳細：[android-reservation-status/README.md](android-reservation-status/README.md)
+
 ---
 
 ## 📌 主な機能
@@ -62,10 +70,11 @@
 2. **Chrome拡張機能（3種類）**
    - **予約枠数表示拡張機能** - タスクバーに枠数を数字で表示（一般・視野）
    - ディスプレイ自動リロード拡張機能
-3. **Docker自動化システム** - Cloud Runで自動実行（タイムスロット抽出）
-4. **タイムスロット表示システム** - 空き時間枠を詳細に表示（iframe埋め込み用）
-5. **GitHub Pagesバナー** - ホームページに埋め込み可能なバナー
-6. **曜日・時間対応** - 火曜18:30以降は木曜、水曜は木曜をチェック
+3. **Androidアプリ** - スマホのステータスバーに空き枠数を常時表示
+4. **Docker自動化システム** - Cloud Runで自動実行（タイムスロット抽出）
+5. **タイムスロット表示システム** - 空き時間枠を詳細に表示（iframe埋め込み用）
+6. **GitHub Pagesバナー** - ホームページに埋め込み可能なバナー
+7. **曜日・時間対応** - 火曜18:30以降は木曜、水曜は木曜をチェック
 
 ---
 
@@ -84,6 +93,7 @@ reservation-status/
 ├── chrome-extension-timeslot-shiya/    # Chrome拡張機能（視野予約枠数表示）
 ├── chrome-extension-auto-reload/   # Chrome拡張機能（ディスプレイ自動リロード）
 ├── chrome-web-store/           # Chrome Web Store公開用ファイル
+├── android-reservation-status/ # Androidアプリ（ステータスバー表示）
 ├── docker-timeslot-checker-unified/ # ⭐統合版: 一般・視野両対応（Cloud Run）
 ├── docker-timeslot-checker/    # 旧一般予約（統合版移行済み）
 ├── docker-timeslot-checker-shiya/  # 旧視野予約（統合版移行済み）
@@ -179,6 +189,7 @@ setInterval(checkAndHideBanner, 60000);
 - **Data Storage:** Cloud Storage (JSON)
 - **Hosting:** GitHub Pages
 - **Browser Extension:** Chrome Extension (Manifest V3)
+- **Mobile:** Android (Kotlin 2.0, OkHttp, Coroutines)
 - **Automation:** Node.js, Puppeteer, Docker
 - **Cloud Platform:** Google Cloud Run, Cloud Scheduler, Cloud Storage
   - プロジェクト番号: 224924651996
