@@ -198,10 +198,11 @@ const val UPDATE_INTERVAL = 60000L // 1分（ミリ秒）
 ## 技術仕様
 
 - **最小Android版**: 8.0 (API 26)
-- **対象Android版**: 14 (API 34)
-- **言語**: Kotlin
+- **対象Android版**: 15 (API 35)
+- **言語**: Kotlin 2.0
 - **ネットワーク**: OkHttp
 - **非同期処理**: Coroutines
+- **ビルドツール**: Android Gradle Plugin 8.7.3, Gradle 8.11.1
 
 ---
 

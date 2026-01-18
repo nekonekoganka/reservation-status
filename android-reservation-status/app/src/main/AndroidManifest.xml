@@ -16,7 +16,7 @@
         android:roundIcon="@drawable/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.ReservationStatus"
-        tools:targetApi="31">
+        tools:targetApi="35">
 
         <!-- メイン画面 -->
         <activity
