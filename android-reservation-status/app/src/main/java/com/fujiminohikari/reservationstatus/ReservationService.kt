@@ -20,6 +20,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.IconCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
@@ -31,6 +33,9 @@ class ReservationService : Service() {
 
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var updateRunnable: Runnable
+
+    // サービスのライフサイクルに紐付いたCoroutineScope
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     companion object {
         const val CHANNEL_ID_GENERAL = "reservation_general"
@@ -63,6 +68,7 @@ class ReservationService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacks(updateRunnable)
+        serviceScope.cancel() // コルーチンをキャンセル
         isRunning = false
     }
 
@@ -133,7 +139,7 @@ class ReservationService : Service() {
      * 通知を更新
      */
     private fun updateNotifications() {
-        CoroutineScope(Dispatchers.IO).launch {
+        serviceScope.launch {
             try {
                 val generalData = DataFetcher.fetchGeneralData()
                 val shiyaData = DataFetcher.fetchShiyaData()
