@@ -6082,6 +6082,26 @@
                             }
                         }
 
+                        // 今日の場合、slotFillTimes/slotOpenTimesを使用して追加の色分け判定
+                        // （視野予約のように履歴間隔が大きい場合でも正しく色分けされる）
+                        if (isToday && stateClass === '') {
+                            let internalSlot = slot;
+                            if (slot === '12:55') internalSlot = '13:00';
+                            if (slot === '17:55') internalSlot = '18:00';
+
+                            if (!hasSlot) {
+                                const timeClass = getFilledTimeClass(internalSlot, type);
+                                if (timeClass === 'recent') {
+                                    stateClass = ' recent';
+                                }
+                            } else {
+                                const openedClass = getOpenedTimeClass(internalSlot, type);
+                                if (openedClass) {
+                                    stateClass = ` recently-opened ${config.borderClass}`;
+                                }
+                            }
+                        }
+
                         const minute = slot.split(':')[1];
                         const dividerClass = minute === '00' ? ' hour-divider' : '';
                         const timeMarkerClass = (slot === rowTimeSlot) ? ` ${config.markerClass}` : '';
