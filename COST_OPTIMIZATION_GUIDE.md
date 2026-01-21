@@ -261,3 +261,89 @@ gcloud scheduler jobs create http reservation-timeslot-checker-shiya-job \
 | 2026/1/9 | 初版作成 |
 | 2026/1/10 | 初回設定実施（URLが間違っていた） |
 | 2026/1/11 | 正しいURL（timeslot-checker-224924651996）で再設定、手順書を修正 |
+| 2026/1/21 | 水曜日・年末年始の日中を10分間隔に変更する手順を追加 |
+
+---
+
+## 追加最適化: 休診日（水曜日）の日中も10分間隔に変更
+
+### 概要
+
+水曜日は休診日のため、日中（7:00〜17:59）も夜間と同じ10分間隔でチェックするように変更します。
+
+### 変更内容
+
+| サービス | 時間帯 | 通常日 | **水曜日** |
+|---------|-------|--------|-----------|
+| 一般予約 | 7:00〜17:59 | 1分毎 | **10分毎** |
+| 視野予約 | 7:00〜17:59 | 3分毎 | **10分毎** |
+
+**注意**: 年末年始（12/31〜1/3）の日中も10分間隔にするロジックは、コード側（server.js）で対応済みです。
+
+### Step 1: 現在のピーク時間帯ジョブを更新（水曜日を除外）
+
+**統合版の場合:**
+
+```bash
+# 一般予約ピーク: 水曜日を除外
+gcloud scheduler jobs update http timeslot-checker-unified-general-peak \
+  --schedule="*/1 7-17 * * 0-2,4-6" \
+  --location=asia-northeast1
+
+# 視野予約ピーク: 水曜日を除外
+gcloud scheduler jobs update http timeslot-checker-unified-shiya-peak \
+  --schedule="*/3 7-17 * * 0-2,4-6" \
+  --location=asia-northeast1
+```
+
+### Step 2: 水曜日の日中用ジョブを新規作成
+
+**統合版の場合:**
+
+```bash
+# 一般予約・水曜日の日中（10分毎）
+gcloud scheduler jobs create http timeslot-checker-unified-general-wed \
+  --schedule="*/10 7-17 * * 3" \
+  --uri="https://timeslot-checker-unified-224924651996.asia-northeast1.run.app/check?type=general" \
+  --http-method=GET \
+  --location=asia-northeast1 \
+  --time-zone="Asia/Tokyo" \
+  --description="一般予約チェック（水曜日7:00-17:59、10分毎）"
+
+# 視野予約・水曜日の日中（10分毎）
+gcloud scheduler jobs create http timeslot-checker-unified-shiya-wed \
+  --schedule="*/10 7-17 * * 3" \
+  --uri="https://timeslot-checker-unified-224924651996.asia-northeast1.run.app/check?type=shiya" \
+  --http-method=GET \
+  --location=asia-northeast1 \
+  --time-zone="Asia/Tokyo" \
+  --description="視野予約チェック（水曜日7:00-17:59、10分毎）"
+```
+
+### Step 3: 設定確認
+
+```bash
+gcloud scheduler jobs list --location=asia-northeast1
+```
+
+以下のジョブが表示されればOK:
+
+| ジョブ名 | スケジュール | 説明 |
+|---------|------------|------|
+| `timeslot-checker-unified-general-peak` | `*/1 7-17 * * 0-2,4-6` | 一般・1分毎・水曜以外 |
+| `timeslot-checker-unified-general-offpeak` | `*/5 0-6,18-23 * * *` | 一般・5分毎・夜間 |
+| `timeslot-checker-unified-general-wed` | `*/10 7-17 * * 3` | 一般・10分毎・水曜日中 |
+| `timeslot-checker-unified-shiya-peak` | `*/3 7-17 * * 0-2,4-6` | 視野・3分毎・水曜以外 |
+| `timeslot-checker-unified-shiya-offpeak` | `*/10 0-6,18-23 * * *` | 視野・10分毎・夜間 |
+| `timeslot-checker-unified-shiya-wed` | `*/10 7-17 * * 3` | 視野・10分毎・水曜日中 |
+
+### cron式の説明
+
+| cron式 | 意味 |
+|-------|------|
+| `*/1 7-17 * * 0-2,4-6` | 日〜火、木〜土の7時〜17時、毎分実行 |
+| `*/10 7-17 * * 3` | 水曜日の7時〜17時、10分毎に実行 |
+
+### 年末年始の対応について
+
+年末年始（12/31〜1/3）の日中も10分間隔でチェックするロジックは、**コード側（server.js）** で対応済みです。Cloud Schedulerからは通常通り呼び出されますが、10分間隔以外のリクエストはスキップされます。
