@@ -59,49 +59,6 @@ function isNewYearHoliday(date) {
 }
 
 /**
- * 年末年始休業期間かどうかを月・日で判定する関数
- * @param {number} month - 月（1-12）
- * @param {number} day - 日
- * @returns {boolean} 年末年始休業期間の場合true
- */
-function isNewYearHolidayByMonthDay(month, day) {
-  // 12/31 〜 1/3
-  return (month === 12 && day === 31) || (month === 1 && day <= 3);
-}
-
-/**
- * 休診日（水曜日または年末年始）の日中に10分間隔以外のリクエストをスキップすべきかを判定
- * @returns {Object} { shouldSkip: boolean, reason: string }
- */
-function shouldSkipForHolidayDaytime() {
-  const japanTime = getJapanTime();
-  const { month, date, dayOfWeek, hour, minute } = japanTime;
-
-  // 日中時間帯（7:00〜17:59）かチェック
-  const isDaytime = hour >= 7 && hour <= 17;
-  if (!isDaytime) {
-    return { shouldSkip: false, reason: null };
-  }
-
-  // 年末年始（12/31〜1/3）かチェック
-  const isNewYear = isNewYearHolidayByMonthDay(month, date);
-  if (!isNewYear) {
-    return { shouldSkip: false, reason: null };
-  }
-
-  // 10分間隔（分が0, 10, 20, 30, 40, 50）以外はスキップ
-  const isOn10MinInterval = minute % 10 === 0;
-  if (isOn10MinInterval) {
-    return { shouldSkip: false, reason: null };
-  }
-
-  return {
-    shouldSkip: true,
-    reason: `年末年始（${month}/${date}）の日中のため、10分間隔以外のリクエストをスキップ`
-  };
-}
-
-/**
  * 日本時間を取得する関数（タイムゾーン設定に依存しない）
  * UTCから+9時間のオフセットで計算する堅牢な方法
  * @returns {Object} {year, month, date, dayOfWeek, hour, minute}
@@ -698,17 +655,6 @@ app.get('/check', async (req, res) => {
     return res.status(400).json({
       success: false,
       message: `不明なタイプ: ${type}。'general' または 'shiya' を指定してください。`
-    });
-  }
-
-  // 年末年始の日中は10分間隔以外のリクエストをスキップ
-  const holidaySkip = shouldSkipForHolidayDaytime();
-  if (holidaySkip.shouldSkip) {
-    console.log(`スキップ: ${holidaySkip.reason}`);
-    return res.status(200).json({
-      success: true,
-      skipped: true,
-      message: holidaySkip.reason
     });
   }
 
