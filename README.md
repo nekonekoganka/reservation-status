@@ -252,21 +252,22 @@ const FILE_NAME_SHIYA = 'timeslots-shiya.json';
 - 一般予約: `/check?type=general`
 - 視野予約: `/check?type=shiya`
 
-### Cloud Scheduler ジョブ（統合版・2026年1月21日更新）
+### Cloud Scheduler ジョブ（統合版・2026年1月22日更新）
 
 | 種類 | ジョブ名 | スケジュール | 説明 |
 |---|---|---|---|
-| 一般予約（ピーク） | `timeslot-checker-unified-general-peak` | `*/1 7-17 * * 0-2,4-6` | 7:00-17:59、1分毎（水曜除く） |
-| 一般予約（オフピーク） | `timeslot-checker-unified-general-offpeak` | `*/5 0-6,18-23 * * *` | 18:00-6:59、5分毎 |
-| 一般予約（水曜日中） | `timeslot-checker-unified-general-wed` | `*/10 7-17 * * 3` | 水曜7:00-17:59、10分毎 |
-| 視野予約（ピーク） | `timeslot-checker-unified-shiya-peak` | `*/3 7-17 * * 0-2,4-6` | 7:00-17:59、3分毎（水曜除く） |
-| 視野予約（オフピーク） | `timeslot-checker-unified-shiya-offpeak` | `*/10 0-6,18-23 * * *` | 18:00-6:59、10分毎 |
-| 視野予約（水曜日中） | `timeslot-checker-unified-shiya-wed` | `*/10 7-17 * * 3` | 水曜7:00-17:59、10分毎 |
+| 一般予約（午前） | `timeslot-checker-unified-general-morning` | `*/1 7-12 * * 0-2,4-6` | 7:00-12:59、1分毎（水曜除く） |
+| 一般予約（午後） | `timeslot-checker-unified-general-afternoon` | `*/2 13-16 * * 0-2,4-6` | 13:00-16:59、2分毎（水曜除く） |
+| 一般予約（夜間） | `timeslot-checker-unified-general-offpeak` | `*/5 0-6,17-23 * * *` | 17:00-6:59、5分毎 |
+| 一般予約（水曜） | `timeslot-checker-unified-general-wed` | `*/10 7-17 * * 3` | 水曜7:00-17:59、10分毎 |
+| 視野予約（日中） | `timeslot-checker-unified-shiya-daytime` | `*/5 7-17 * * 0-2,4-6` | 7:00-17:59、5分毎（水曜除く） |
+| 視野予約（夜間） | `timeslot-checker-unified-shiya-offpeak` | `*/10 0-6,18-23 * * *` | 18:00-6:59、10分毎 |
+| 視野予約（水曜） | `timeslot-checker-unified-shiya-wed` | `*/10 7-17 * * 3` | 水曜7:00-17:59、10分毎 |
 | 月次集計（一般） | `monthly-summary-unified` | `0 1 1 * *` | 毎月1日1:00 |
 | 月次集計（視野） | `monthly-summary-unified-shiya` | `5 1 1 * *` | 毎月1日1:05 |
 
 **統合版移行日:** 2026年1月15日
-**休診日対応:** 2026年1月22日実施（水曜日の日中は10分間隔）
+**コスト最適化:** 2026年1月22日更新（一般:午後2分/夜間5分、視野:日中5分）
 
 **コスト最適化の詳細:** [COST_OPTIMIZATION_GUIDE.md](COST_OPTIMIZATION_GUIDE.md)
 
