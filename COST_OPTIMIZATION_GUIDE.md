@@ -262,7 +262,8 @@ gcloud scheduler jobs create http reservation-timeslot-checker-shiya-job \
 | 2026/1/10 | 初回設定実施（URLが間違っていた） |
 | 2026/1/11 | 正しいURL（timeslot-checker-224924651996）で再設定、手順書を修正 |
 | 2026/1/21 | 水曜日の日中を10分間隔に変更する手順を追加 |
-| 2026/1/22 | **Cloud Scheduler設定変更を実施完了** |
+| 2026/1/22 | **Cloud Scheduler設定変更を実施完了**（水曜日対応） |
+| 2026/1/22 | 一般予約（午後2分/17時以降5分）・視野予約（日中5分）の最適化手順を追加 |
 
 ---
 
@@ -342,3 +343,109 @@ gcloud scheduler jobs list --location=asia-northeast1
 |-------|------|
 | `*/1 7-17 * * 0-2,4-6` | 日〜火、木〜土の7時〜17時、毎分実行 |
 | `*/10 7-17 * * 3` | 水曜日の7時〜17時、10分毎に実行 |
+
+---
+
+## 追加最適化2: 一般予約（午後・夜間）と視野予約（日中）の間隔変更
+
+### 概要
+
+コスト削減のため、以下の変更を行います：
+- 一般予約: 午後（13-16時）を2分間隔、17時以降を5分間隔に変更
+- 視野予約: 日中（7-17時）を5分間隔に変更
+
+### 変更内容
+
+**一般予約（水曜以外）:**
+
+| 時間帯 | 変更前 | 変更後 |
+|--------|-------|--------|
+| 7:00〜12:59 | 1分毎 | 1分毎（変更なし） |
+| 13:00〜16:59 | 1分毎 | **2分毎** |
+| 17:00〜6:59 | 1分/5分 | **5分毎** |
+
+**視野予約（水曜以外）:**
+
+| 時間帯 | 変更前 | 変更後 |
+|--------|-------|--------|
+| 7:00〜17:59 | 3分毎 | **5分毎** |
+| 18:00〜6:59 | 10分毎 | 10分毎（変更なし） |
+
+### 期待される効果
+
+| 項目 | 変更前 | 変更後 | 削減 |
+|------|-------|--------|------|
+| 一般予約/日 | 816回 | 648回 | 168回 |
+| 視野予約/日 | 298回 | 210回 | 88回 |
+| **月額コスト** | **約2,181円** | **約1,689円** | **約492円** |
+| **年間削減** | | | **約5,900円** |
+
+### Step 1: 既存ジョブの削除
+
+```bash
+# 一般予約の既存ピークジョブを削除
+gcloud scheduler jobs delete timeslot-checker-unified-general-peak \
+  --location=asia-northeast1 --quiet
+
+# 視野予約の既存ピークジョブを削除
+gcloud scheduler jobs delete timeslot-checker-unified-shiya-peak \
+  --location=asia-northeast1 --quiet
+```
+
+### Step 2: 一般予約の新ジョブを作成
+
+```bash
+# 一般予約・午前（7-12時、1分毎、水曜除く）
+gcloud scheduler jobs create http timeslot-checker-unified-general-morning \
+  --schedule="*/1 7-12 * * 0-2,4-6" \
+  --uri="https://timeslot-checker-unified-224924651996.asia-northeast1.run.app/check?type=general" \
+  --http-method=GET \
+  --location=asia-northeast1 \
+  --time-zone="Asia/Tokyo" \
+  --description="一般予約チェック（午前7:00-12:59、1分毎、水曜除く）"
+
+# 一般予約・午後（13-16時、2分毎、水曜除く）
+gcloud scheduler jobs create http timeslot-checker-unified-general-afternoon \
+  --schedule="*/2 13-16 * * 0-2,4-6" \
+  --uri="https://timeslot-checker-unified-224924651996.asia-northeast1.run.app/check?type=general" \
+  --http-method=GET \
+  --location=asia-northeast1 \
+  --time-zone="Asia/Tokyo" \
+  --description="一般予約チェック（午後13:00-16:59、2分毎、水曜除く）"
+
+# 一般予約・夜間（17-6時、5分毎）を更新
+gcloud scheduler jobs update http timeslot-checker-unified-general-offpeak \
+  --schedule="*/5 0-6,17-23 * * *" \
+  --location=asia-northeast1
+```
+
+### Step 3: 視野予約の日中ジョブを更新
+
+```bash
+# 視野予約・日中（7-17時、5分毎、水曜除く）
+gcloud scheduler jobs create http timeslot-checker-unified-shiya-daytime \
+  --schedule="*/5 7-17 * * 0-2,4-6" \
+  --uri="https://timeslot-checker-unified-224924651996.asia-northeast1.run.app/check?type=shiya" \
+  --http-method=GET \
+  --location=asia-northeast1 \
+  --time-zone="Asia/Tokyo" \
+  --description="視野予約チェック（日中7:00-17:59、5分毎、水曜除く）"
+```
+
+### Step 4: 設定確認
+
+```bash
+gcloud scheduler jobs list --location=asia-northeast1
+```
+
+以下のジョブが表示されればOK:
+
+| ジョブ名 | スケジュール | 説明 |
+|---------|------------|------|
+| `timeslot-checker-unified-general-morning` | `*/1 7-12 * * 0-2,4-6` | 一般・1分毎・午前 |
+| `timeslot-checker-unified-general-afternoon` | `*/2 13-16 * * 0-2,4-6` | 一般・2分毎・午後 |
+| `timeslot-checker-unified-general-offpeak` | `*/5 0-6,17-23 * * *` | 一般・5分毎・夜間 |
+| `timeslot-checker-unified-general-wed` | `*/10 7-17 * * 3` | 一般・10分毎・水曜 |
+| `timeslot-checker-unified-shiya-daytime` | `*/5 7-17 * * 0-2,4-6` | 視野・5分毎・日中 |
+| `timeslot-checker-unified-shiya-offpeak` | `*/10 0-6,18-23 * * *` | 視野・10分毎・夜間 |
+| `timeslot-checker-unified-shiya-wed` | `*/10 7-17 * * 3` | 視野・10分毎・水曜 |
