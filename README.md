@@ -267,7 +267,8 @@ const FILE_NAME_SHIYA = 'timeslots-shiya.json';
 | 月次集計（視野） | `monthly-summary-unified-shiya` | `5 1 1 * *` | 毎月1日1:05 |
 
 **統合版移行日:** 2026年1月15日
-**コスト最適化:** 2026年1月22日更新（一般:午後2分/夜間5分、視野:日中5分）
+**コスト最適化:** 2026年1月22日設定完了（一般:午前1分/午後2分/夜間5分、視野:日中5分/夜間10分、水曜10分）
+**年間削減効果:** 約5,900円
 
 **コスト最適化の詳細:** [COST_OPTIMIZATION_GUIDE.md](COST_OPTIMIZATION_GUIDE.md)
 
