@@ -262,6 +262,7 @@ gcloud scheduler jobs create http reservation-timeslot-checker-shiya-job \
 | 2026/1/10 | 初回設定実施（URLが間違っていた） |
 | 2026/1/11 | 正しいURL（timeslot-checker-224924651996）で再設定、手順書を修正 |
 | 2026/1/21 | 水曜日の日中を10分間隔に変更する手順を追加 |
+| 2026/1/22 | **Cloud Scheduler設定変更を実施完了** |
 
 ---
 
