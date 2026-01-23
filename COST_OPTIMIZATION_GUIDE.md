@@ -38,135 +38,28 @@ gcloud config set project forward-script-470815-c5
 
 ---
 
-## Step 1: 現在のジョブを確認
+## 現在のジョブを確認
 
 ```bash
 gcloud scheduler jobs list --location=asia-northeast1
 ```
 
 以下のジョブが表示されるはずです:
-- `reservation-timeslot-checker-job`（一般予約・1分毎）
-- `reservation-timeslot-checker-shiya-job`（視野予約・1分毎）
-- `monthly-summary-general`（月次集計・月1回）
-- `monthly-summary-shiya`（月次集計・月1回）
+- `timeslot-checker-unified-general-morning`（一般予約・午前1分毎）
+- `timeslot-checker-unified-general-afternoon`（一般予約・午後2分毎）
+- `timeslot-checker-unified-general-offpeak`（一般予約・夜間5分毎）
+- `timeslot-checker-unified-general-wed`（一般予約・水曜10分毎）
+- `timeslot-checker-unified-shiya-daytime`（視野予約・日中5分毎）
+- `timeslot-checker-unified-shiya-offpeak`（視野予約・夜間10分毎）
+- `timeslot-checker-unified-shiya-wed`（視野予約・水曜10分毎）
+- `monthly-summary-unified`（月次集計・一般）
+- `monthly-summary-unified-shiya`（月次集計・視野）
 
 ---
 
-## Step 2: 既存ジョブの削除
-
-```bash
-# 一般予約用ジョブを削除
-gcloud scheduler jobs delete reservation-timeslot-checker-job \
-  --location=asia-northeast1 \
-  --quiet
-
-# 視野予約用ジョブを削除
-gcloud scheduler jobs delete reservation-timeslot-checker-shiya-job \
-  --location=asia-northeast1 \
-  --quiet
-```
-
----
-
-## Step 3: 新しいジョブを作成（一般予約）
-
-### 3-1. 診療時間帯（7:00〜17:59）- 1分間隔
-
-```bash
-gcloud scheduler jobs create http reservation-timeslot-checker-job-peak \
-  --schedule="*/1 7-17 * * *" \
-  --uri="https://timeslot-checker-224924651996.asia-northeast1.run.app/check" \
-  --http-method=GET \
-  --location=asia-northeast1 \
-  --time-zone="Asia/Tokyo" \
-  --description="一般予約チェック（7:00-17:59、1分毎）"
-```
-
-### 3-2. 診療時間外（18:00〜翌6:59）- 5分間隔
-
-```bash
-gcloud scheduler jobs create http reservation-timeslot-checker-job-offpeak \
-  --schedule="*/5 0-6,18-23 * * *" \
-  --uri="https://timeslot-checker-224924651996.asia-northeast1.run.app/check" \
-  --http-method=GET \
-  --location=asia-northeast1 \
-  --time-zone="Asia/Tokyo" \
-  --description="一般予約チェック（18:00-6:59、5分毎）"
-```
-
----
-
-## Step 4: 新しいジョブを作成（視野予約）
-
-### 4-1. 診療時間帯（7:00〜17:59）- 3分間隔
-
-```bash
-gcloud scheduler jobs create http reservation-timeslot-checker-shiya-job-peak \
-  --schedule="*/3 7-17 * * *" \
-  --uri="https://timeslot-checker-shiya-224924651996.asia-northeast1.run.app/check" \
-  --http-method=GET \
-  --location=asia-northeast1 \
-  --time-zone="Asia/Tokyo" \
-  --description="視野予約チェック（7:00-17:59、3分毎）"
-```
-
-### 4-2. 診療時間外（18:00〜翌6:59）- 10分間隔
-
-```bash
-gcloud scheduler jobs create http reservation-timeslot-checker-shiya-job-offpeak \
-  --schedule="*/10 0-6,18-23 * * *" \
-  --uri="https://timeslot-checker-shiya-224924651996.asia-northeast1.run.app/check" \
-  --http-method=GET \
-  --location=asia-northeast1 \
-  --time-zone="Asia/Tokyo" \
-  --description="視野予約チェック（18:00-6:59、10分毎）"
-```
-
----
-
-## Step 5: 設定確認
-
-```bash
-# ジョブ一覧を表示
-gcloud scheduler jobs list --location=asia-northeast1
-```
-
-以下の6つのジョブが表示されればOK:
-
-| ジョブ名 | スケジュール | 説明 |
-|---------|------------|------|
-| `reservation-timeslot-checker-job-peak` | `*/1 7-17 * * *` | 一般・1分毎・7-17時 |
-| `reservation-timeslot-checker-job-offpeak` | `*/5 0-6,18-23 * * *` | 一般・5分毎・18-6時 |
-| `reservation-timeslot-checker-shiya-job-peak` | `*/3 7-17 * * *` | 視野・3分毎・7-17時 |
-| `reservation-timeslot-checker-shiya-job-offpeak` | `*/10 0-6,18-23 * * *` | 視野・10分毎・18-6時 |
-| `monthly-summary-general` | `0 1 1 * *` | 月次集計（変更なし） |
-| `monthly-summary-shiya` | `0 1 1 * *` | 月次集計（変更なし） |
-
----
-
-## Step 6: 動作テスト
-
-```bash
-# 一般予約（ピーク時間帯）
-gcloud scheduler jobs run reservation-timeslot-checker-job-peak \
-  --location=asia-northeast1
-
-# 視野予約（ピーク時間帯）
-gcloud scheduler jobs run reservation-timeslot-checker-shiya-job-peak \
-  --location=asia-northeast1
-```
-
-実行後、Cloud Storageのデータが更新されたか確認:
-```bash
-gsutil cat gs://reservation-timeslots-fujiminohikari/timeslots.json
-gsutil cat gs://reservation-timeslots-fujiminohikari/timeslots-shiya.json
-```
-
----
-
-## 完了！
-
-設定変更が完了しました。翌日以降の請求画面で費用削減を確認してください。
+> **注意:** 旧版（2サービス分離）の手順は統合版への移行完了に伴い削除しました。
+> 統合版の設定手順は [DEPLOY_UNIFIED_SERVICE.md](DEPLOY_UNIFIED_SERVICE.md) を参照してください。
+> Cloud Run URL: `https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app`
 
 ---
 
@@ -176,47 +69,16 @@ gsutil cat gs://reservation-timeslots-fujiminohikari/timeslots-shiya.json
 
 ```bash
 # ジョブの詳細を確認
-gcloud scheduler jobs describe reservation-timeslot-checker-job-peak \
+gcloud scheduler jobs describe timeslot-checker-unified-general-morning \
   --location=asia-northeast1
 ```
 
 ### Cloud RunのURLを確認する場合
 
 ```bash
-gcloud run services describe timeslot-checker \
+gcloud run services describe reservation-timeslot-checker-unified \
   --region=asia-northeast1 \
   --format='value(status.url)'
-
-gcloud run services describe timeslot-checker-shiya \
-  --region=asia-northeast1 \
-  --format='value(status.url)'
-```
-
-### 元に戻す場合
-
-```bash
-# 新しいジョブを削除
-gcloud scheduler jobs delete reservation-timeslot-checker-job-peak --location=asia-northeast1 --quiet
-gcloud scheduler jobs delete reservation-timeslot-checker-job-offpeak --location=asia-northeast1 --quiet
-gcloud scheduler jobs delete reservation-timeslot-checker-shiya-job-peak --location=asia-northeast1 --quiet
-gcloud scheduler jobs delete reservation-timeslot-checker-shiya-job-offpeak --location=asia-northeast1 --quiet
-
-# 元のジョブを再作成（1分毎・24時間）
-gcloud scheduler jobs create http reservation-timeslot-checker-job \
-  --schedule="*/1 * * * *" \
-  --uri="https://timeslot-checker-224924651996.asia-northeast1.run.app/check" \
-  --http-method=GET \
-  --location=asia-northeast1 \
-  --time-zone="Asia/Tokyo" \
-  --description="予約時間枠チェック（1分毎）"
-
-gcloud scheduler jobs create http reservation-timeslot-checker-shiya-job \
-  --schedule="*/1 * * * *" \
-  --uri="https://timeslot-checker-shiya-224924651996.asia-northeast1.run.app/check" \
-  --http-method=GET \
-  --location=asia-northeast1 \
-  --time-zone="Asia/Tokyo" \
-  --description="視野予約時間枠チェック（1分毎）"
 ```
 
 ---
