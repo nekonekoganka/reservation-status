@@ -127,6 +127,7 @@ gcloud run services describe reservation-timeslot-checker-unified \
 | 2026/1/22 | **Cloud Scheduler設定変更を実施完了**（水曜日対応） |
 | 2026/1/22 | 一般予約（午後2分/17時以降5分）・視野予約（日中5分）の最適化手順を追加 |
 | 2026/1/22 | **追加最適化2 設定変更を実施完了**（年間約5,900円削減） |
+| 2026/1/23 | **URL修正**: 新規ジョブのURLに `reservation-` プレフィックス欠落を修正（5ジョブ） |
 
 ---
 
