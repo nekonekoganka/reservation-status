@@ -263,6 +263,8 @@ const FILE_NAME_SHIYA = 'timeslots-shiya.json';
 | 視野予約（日中） | `timeslot-checker-unified-shiya-daytime` | `*/5 7-17 * * 0-2,4-6` | 7:00-17:59、5分毎（水曜除く） |
 | 視野予約（夜間） | `timeslot-checker-unified-shiya-offpeak` | `*/10 0-6,18-23 * * *` | 18:00-6:59、10分毎 |
 | 視野予約（水曜） | `timeslot-checker-unified-shiya-wed` | `*/10 7-17 * * 3` | 水曜7:00-17:59、10分毎 |
+| 日次集計（一般） | `generate-daily-summary-general` | `5 0 * * *` | 毎日0:05 |
+| 日次集計（視野） | `generate-daily-summary-shiya` | `10 0 * * *` | 毎日0:10 |
 | 月次集計（一般） | `monthly-summary-unified` | `0 1 1 * *` | 毎月1日1:00 |
 | 月次集計（視野） | `monthly-summary-unified-shiya` | `5 1 1 * *` | 毎月1日1:05 |
 
