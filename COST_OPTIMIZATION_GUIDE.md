@@ -49,7 +49,7 @@ gcloud scheduler jobs list --location=asia-northeast1
 - `timeslot-checker-unified-general-afternoon`（一般予約・午後2分毎）
 - `timeslot-checker-unified-general-offpeak`（一般予約・夜間**10分毎**）
 - `timeslot-checker-unified-general-wed`（一般予約・水曜10分毎）
-- `timeslot-checker-unified-shiya-daytime`（視野予約・日中**10分毎**）
+- `timeslot-checker-unified-shiya-daytime`（視野予約・日中**5分毎**）
 - `timeslot-checker-unified-shiya-offpeak`（視野予約・夜間10分毎）
 - `timeslot-checker-unified-shiya-wed`（視野予約・水曜10分毎）
 - `monthly-summary-unified`（月次集計・一般）
@@ -108,9 +108,9 @@ gcloud run services describe reservation-timeslot-checker-unified \
 - **小計: 150回/日**
 
 ### 視野予約（水曜以外）
-- 7:00〜17:59（11時間）: 10分間隔 = 11 × 60 / 10 = **66回/日**
+- 7:00〜17:59（11時間）: 5分間隔 = 11 × 60 / 5 = **132回/日**
 - 0:00〜6:59, 18:00〜23:59（13時間）: 10分間隔 = 13 × 60 / 10 = **78回/日**
-- **小計: 144回/日**
+- **小計: 210回/日**
 
 ### 視野予約（水曜日）
 - 7:00〜17:59（11時間）: 10分間隔 = **66回/日**
@@ -118,10 +118,10 @@ gcloud run services describe reservation-timeslot-checker-unified \
 - **小計: 144回/日**
 
 ### 合計
-- **通常日: 708回/日**（一般564 + 視野144）
+- **通常日: 774回/日**（一般564 + 視野210）
 - **水曜日: 294回/日**（一般150 + 視野144）
-- **週平均: 約649回/日**
-- **月間: 約19,500回/月**（変更前: 2,880回/日 → 約86,400回/月）
+- **週平均: 約706回/日**
+- **月間: 約21,200回/月**（変更前: 2,880回/日 → 約86,400回/月）
 
 ---
 
@@ -143,7 +143,8 @@ gcloud run services describe reservation-timeslot-checker-unified \
 | 2026/1/22 | 一般予約（午後2分/17時以降5分）・視野予約（日中5分）の最適化手順を追加 |
 | 2026/1/22 | **追加最適化2 設定変更を実施完了**（年間約5,900円削減） |
 | 2026/1/23 | **URL修正**: 新規ジョブのURLに `reservation-` プレフィックス欠落を修正（5ジョブ） |
-| 2026/2/8 | **追加最適化3**: 一般予約・夜間を10分間隔に、視野予約・日中を10分間隔に変更 |
+| 2026/2/8 | **追加最適化3**: 一般予約・夜間を10分間隔に変更 |
+| 2026/2/8 | **視野予約・日中を5分間隔に戻す**（10分間隔から5分間隔に復元） |
 
 ---
 
@@ -326,19 +327,19 @@ gcloud scheduler jobs list --location=asia-northeast1
 | `timeslot-checker-unified-general-afternoon` | `*/2 13-16 * * 0-2,4-6` | 一般・2分毎・午後 |
 | `timeslot-checker-unified-general-offpeak` | `*/10 0-6,17-23 * * *` | 一般・**10分毎**・夜間 |
 | `timeslot-checker-unified-general-wed` | `*/10 7-17 * * 3` | 一般・10分毎・水曜 |
-| `timeslot-checker-unified-shiya-daytime` | `*/10 7-17 * * 0-2,4-6` | 視野・**10分毎**・日中 |
+| `timeslot-checker-unified-shiya-daytime` | `*/5 7-17 * * 0-2,4-6` | 視野・**5分毎**・日中 |
 | `timeslot-checker-unified-shiya-offpeak` | `*/10 0-6,18-23 * * *` | 視野・10分毎・夜間 |
 | `timeslot-checker-unified-shiya-wed` | `*/10 7-17 * * 3` | 視野・10分毎・水曜 |
 
 ---
 
-## 追加最適化3: 一般予約・夜間と視野予約・日中を10分間隔に変更
+## 追加最適化3: 一般予約・夜間を10分間隔に変更
 
 ### 概要
 
 2月の請求額調査を受け、Cloud Runの無料枠（180,000 vCPU秒/月）内に収めることを目標に、以下を変更します：
 - 一般予約・夜間（0-6時, 17-23時）: 5分間隔 → **10分間隔**
-- 視野予約・日中（7-17時、水曜除く）: 5分間隔 → **10分間隔**
+- ~~視野予約・日中（7-17時、水曜除く）: 5分間隔 → 10分間隔~~ → **5分間隔に戻した（2026/2/8）**
 
 ### 変更内容
 
@@ -350,26 +351,21 @@ gcloud scheduler jobs list --location=asia-northeast1
 
 **視野予約（水曜以外）:**
 
-| 時間帯 | 変更前 | 変更後 |
-|--------|-------|--------|
-| 7:00〜17:59 | 5分毎 | **10分毎** |
+| 時間帯 | 当初変更 | 最終（2/8戻し） |
+|--------|---------|----------------|
+| 7:00〜17:59 | 10分毎 | **5分毎（元に戻し）** |
 
 ### 期待される効果
 
 | 項目 | 変更前 | 変更後 | 削減 |
 |------|-------|--------|------|
 | 一般予約・夜間/日 | 168回 | 84回 | -84回 |
-| 視野予約・日中/日 | 132回 | 66回 | -66回 |
-| 通常日合計/日 | 858回 | **708回** | -150回 |
+| 通常日合計/日 | 858回 | **774回** | -84回 |
 | 水曜日合計/日 | 378回 | **294回** | -84回 |
-| **月額コスト** | **¥90〜1,100** | **¥90〜600** | **¥0〜500** |
-
-CPU使用量が無料枠内に収まる可能性が高くなり、Cloud Run費用がほぼ¥0になる月も見込まれる。
 
 ### 実用面の影響
 
 - 一般予約・夜間（診療時間外）: 予約変動が少ないため**影響なし**
-- 視野予約・日中: 視野予約はもともと予約変動が少なく**実用上問題なし**
 
 ### Step 1: 既存ジョブの更新
 
@@ -378,10 +374,14 @@ CPU使用量が無料枠内に収まる可能性が高くなり、Cloud Run費�
 gcloud scheduler jobs update http timeslot-checker-unified-general-offpeak \
   --schedule="*/10 0-6,17-23 * * *" \
   --location=asia-northeast1
+```
 
-# 視野予約・日中: 5分毎 → 10分毎
+### 視野予約・日中を5分に戻す（2026/2/8実施）
+
+```bash
+# 視野予約・日中: 10分毎 → 5分毎に戻す
 gcloud scheduler jobs update http timeslot-checker-unified-shiya-daytime \
-  --schedule="*/10 7-17 * * 0-2,4-6" \
+  --schedule="*/5 7-17 * * 0-2,4-6" \
   --location=asia-northeast1
 ```
 
