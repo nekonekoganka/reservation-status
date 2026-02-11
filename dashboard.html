@@ -2955,57 +2955,6 @@
         <!-- ============================== -->
         <div class="tab-content active" id="tab-operations">
 
-        <!-- ヒーローステータス (A1改 + A2 + A3 + A6) -->
-        <div class="hero-status status-loading" id="heroStatus">
-            <div class="hero-status-header">
-                <div class="hero-status-main-text" id="heroMainText">読み込み中...</div>
-                <div class="hero-status-sub-text" id="heroSubText"></div>
-            </div>
-
-            <!-- 次の空き時間 (A2) -->
-            <div class="next-available" id="nextAvailable" style="display:none;">
-                <span class="next-available-label">次の空き →</span>
-                <span class="next-available-time" id="nextAvailableTime">--:--</span>
-                <span class="next-available-type" id="nextAvailableType"></span>
-            </div>
-
-            <!-- 午前/午後サマリー (A3) -->
-            <div class="ampm-summary">
-                <div class="ampm-card">
-                    <div class="ampm-card-label">🌅 午前（10:00〜13:00）</div>
-                    <div class="ampm-card-counts">
-                        <div class="ampm-count-item">
-                            <span class="ampm-count-value" id="amCountGeneral">--</span>
-                            <span class="ampm-count-type">一般</span>
-                        </div>
-                        <div class="ampm-count-item">
-                            <span class="ampm-count-value" id="amCountShiya">--</span>
-                            <span class="ampm-count-type">視野</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="ampm-card">
-                    <div class="ampm-card-label">🌆 午後（15:00〜18:00）</div>
-                    <div class="ampm-card-counts">
-                        <div class="ampm-count-item">
-                            <span class="ampm-count-value" id="pmCountGeneral">--</span>
-                            <span class="ampm-count-type">一般</span>
-                        </div>
-                        <div class="ampm-count-item">
-                            <span class="ampm-count-value" id="pmCountShiya">--</span>
-                            <span class="ampm-count-type">視野</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 空き時間テキストリスト (A6) -->
-            <div class="available-times-list" id="availableTimesList">
-                <h4>空き時間一覧（電話案内用）</h4>
-                <div class="available-times-text" id="availableTimesText">読み込み中...</div>
-            </div>
-        </div>
-
         <!-- 従来のステータスセクション（タイムライン） -->
         <div class="current-status-section" id="currentStatusSection">
             <h3>🔴 現在の空き状況</h3>
@@ -3080,6 +3029,17 @@
             </div>
         </div>
 
+        <!-- 時間枠別埋まり推移ヒートマップ（横幅いっぱい） -->
+        <div class="chart-card" id="slotFillProgressSection">
+            <h3>📉 時間枠別 埋まり推移<span class="help-icon" onclick="openHelpModal('slotFillProgress')">?<span class="tooltip">各時間枠がいつ埋まったかをヒートマップで表示</span></span></h3>
+            <div class="slot-fill-controls" style="margin-bottom: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <select id="slotFillDateSelect" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                    <option value="">日付を選択...</option>
+                </select>
+            </div>
+            <div id="slotFillHeatmap" class="slot-fill-heatmap"></div>
+        </div>
+
         <!-- 本日の空き枠推移 -->
         <div class="charts-grid weekly-progress-chart">
             <div class="chart-card">
@@ -3104,17 +3064,6 @@
                     <canvas id="dailyProgressChart"></canvas>
                 </div>
             </div>
-        </div>
-
-        <!-- 時間枠別埋まり推移ヒートマップ（横幅いっぱい） -->
-        <div class="chart-card" id="slotFillProgressSection">
-            <h3>📉 時間枠別 埋まり推移<span class="help-icon" onclick="openHelpModal('slotFillProgress')">?<span class="tooltip">各時間枠がいつ埋まったかをヒートマップで表示</span></span></h3>
-            <div class="slot-fill-controls" style="margin-bottom: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
-                <select id="slotFillDateSelect" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
-                    <option value="">日付を選択...</option>
-                </select>
-            </div>
-            <div id="slotFillHeatmap" class="slot-fill-heatmap"></div>
         </div>
 
         <!-- 運用ビュー: 自動更新インジケーター -->
@@ -7252,6 +7201,7 @@
             const totalAvailable = generalSlots.length + shiyaSlots.length;
 
             const heroEl = document.getElementById('heroStatus');
+            if (!heroEl) return; // ヒーローセクション削除済み
             const mainText = document.getElementById('heroMainText');
             const subText = document.getElementById('heroSubText');
 
