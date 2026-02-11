@@ -2463,17 +2463,550 @@
                 padding: 8px 4px;
             }
         }
+        /* ============================================
+           タブナビゲーション (C1)
+           ============================================ */
+        .tab-navigation {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.15);
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            transition: all 0.3s;
+            background: transparent;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ============================================
+           運用ビュー: ヒーローステータス (A1改)
+           ============================================ */
+        .hero-status {
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            transition: background 0.5s;
+        }
+
+        .hero-status.status-available {
+            background: linear-gradient(135deg, #2E7D32 0%, #43A047 100%);
+            color: white;
+        }
+
+        .hero-status.status-full {
+            background: linear-gradient(135deg, #c62828 0%, #e53935 100%);
+            color: white;
+        }
+
+        .hero-status.status-loading {
+            background: linear-gradient(135deg, #616161 0%, #757575 100%);
+            color: white;
+        }
+
+        .hero-status-header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .hero-status-main-text {
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .hero-status-sub-text {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+
+        /* 次の空き時間 (A2) */
+        .next-available {
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .next-available-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .next-available-time {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .next-available-type {
+            font-size: 12px;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* 午前/午後サマリー (A3) */
+        .ampm-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .ampm-card {
+            background: rgba(255,255,255,0.12);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .ampm-card-label {
+            font-size: 13px;
+            opacity: 0.85;
+            margin-bottom: 4px;
+        }
+
+        .ampm-card-counts {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .ampm-count-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .ampm-count-value {
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .ampm-count-type {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        /* 空き時間テキストリスト (A6) */
+        .available-times-list {
+            background: rgba(255,255,255,0.12);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+        }
+
+        .available-times-list h4 {
+            font-size: 13px;
+            opacity: 0.85;
+            margin-bottom: 8px;
+        }
+
+        .available-times-text {
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        .available-times-text .slot-time {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin: 2px 3px;
+            font-size: 16px;
+        }
+
+        .available-times-text .type-label {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 3px;
+            margin-right: 4px;
+        }
+
+        .available-times-text .type-label.general {
+            background: #CC6600;
+        }
+
+        .available-times-text .type-label.shiya {
+            background: #006633;
+        }
+
+        .auto-refresh-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .auto-refresh-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* ============================================
+           経営分析ビュー: KPIサマリーカード (B1)
+           ============================================ */
+        .kpi-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .kpi-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .kpi-cards {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .kpi-card-label {
+            font-size: 12px;
+            color: #888;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .kpi-card-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: #333;
+        }
+
+        .kpi-card-value small {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .kpi-card-change {
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .kpi-card-change.positive {
+            color: #c62828;
+        }
+
+        .kpi-card-change.negative {
+            color: #2E7D32;
+        }
+
+        .kpi-card-change.neutral {
+            color: #888;
+        }
+
+        /* ============================================
+           季節性ヒートマップ (B5)
+           ============================================ */
+        .seasonal-heatmap-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .seasonal-heatmap-table th,
+        .seasonal-heatmap-table td {
+            padding: 10px 6px;
+            text-align: center;
+            border: 1px solid #eee;
+        }
+
+        .seasonal-heatmap-table th {
+            background: #f8f9fa;
+            font-weight: 700;
+            color: #333;
+        }
+
+        /* ============================================
+           週次レポート (B6)
+           ============================================ */
+        .weekly-report {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .weekly-report-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .weekly-report-card h4 {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .weekly-report-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #333;
+        }
+
+        .weekly-report-detail {
+            font-size: 13px;
+            color: #888;
+            margin-top: 6px;
+        }
+
+        /* ============================================
+           比較ビュー (B7)
+           ============================================ */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .comparison-column {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .comparison-column.general {
+            border-top: 4px solid #CC6600;
+        }
+
+        .comparison-column.shiya {
+            border-top: 4px solid #006633;
+        }
+
+        .comparison-column h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .comparison-metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+
+        .comparison-metric:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-metric-label {
+            color: #666;
+        }
+
+        .comparison-metric-value {
+            font-weight: 700;
+            color: #333;
+        }
+
+        /* ============================================
+           弱い時間帯 (B3) / 消化速度 (B4)
+           ============================================ */
+        .weak-slots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .weak-slot-item {
+            background: #fff3e0;
+            border-radius: 8px;
+            padding: 12px;
+            border-left: 4px solid #ff9800;
+        }
+
+        .weak-slot-item.critical {
+            background: #ffebee;
+            border-left-color: #f44336;
+        }
+
+        .weak-slot-time {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .weak-slot-detail {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .speed-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .speed-bar-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            min-width: 50px;
+        }
+
+        .speed-bar {
+            flex: 1;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .speed-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+
+        .speed-bar-value {
+            font-size: 12px;
+            color: #666;
+            min-width: 60px;
+            text-align: right;
+        }
+
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>📊 予約傾向ダッシュボード <span class="header-subtitle">- 予約の埋まり方パターンを分析</span></h1>
+            <h1>📊 予約状況ダッシュボード</h1>
         </header>
+
+        <!-- タブナビゲーション (C1) -->
+        <div class="tab-navigation">
+            <button class="tab-btn active" data-tab="operations" onclick="switchTab('operations')">📋 今日の運用</button>
+            <button class="tab-btn" data-tab="analytics" onclick="switchTab('analytics')">📈 経営分析</button>
+        </div>
 
         <div class="error-message" id="errorMessage"></div>
 
-        <!-- 現在の空き状況セクション -->
+        <!-- ============================== -->
+        <!-- タブ1: 今日の運用 -->
+        <!-- ============================== -->
+        <div class="tab-content active" id="tab-operations">
+
+        <!-- ヒーローステータス (A1改 + A2 + A3 + A6) -->
+        <div class="hero-status status-loading" id="heroStatus">
+            <div class="hero-status-header">
+                <div class="hero-status-main-text" id="heroMainText">読み込み中...</div>
+                <div class="hero-status-sub-text" id="heroSubText"></div>
+            </div>
+
+            <!-- 次の空き時間 (A2) -->
+            <div class="next-available" id="nextAvailable" style="display:none;">
+                <span class="next-available-label">次の空き →</span>
+                <span class="next-available-time" id="nextAvailableTime">--:--</span>
+                <span class="next-available-type" id="nextAvailableType"></span>
+            </div>
+
+            <!-- 午前/午後サマリー (A3) -->
+            <div class="ampm-summary">
+                <div class="ampm-card">
+                    <div class="ampm-card-label">🌅 午前（10:00〜13:00）</div>
+                    <div class="ampm-card-counts">
+                        <div class="ampm-count-item">
+                            <span class="ampm-count-value" id="amCountGeneral">--</span>
+                            <span class="ampm-count-type">一般</span>
+                        </div>
+                        <div class="ampm-count-item">
+                            <span class="ampm-count-value" id="amCountShiya">--</span>
+                            <span class="ampm-count-type">視野</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="ampm-card">
+                    <div class="ampm-card-label">🌆 午後（15:00〜18:00）</div>
+                    <div class="ampm-card-counts">
+                        <div class="ampm-count-item">
+                            <span class="ampm-count-value" id="pmCountGeneral">--</span>
+                            <span class="ampm-count-type">一般</span>
+                        </div>
+                        <div class="ampm-count-item">
+                            <span class="ampm-count-value" id="pmCountShiya">--</span>
+                            <span class="ampm-count-type">視野</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 空き時間テキストリスト (A6) -->
+            <div class="available-times-list" id="availableTimesList">
+                <h4>空き時間一覧（電話案内用）</h4>
+                <div class="available-times-text" id="availableTimesText">読み込み中...</div>
+            </div>
+        </div>
+
+        <!-- 従来のステータスセクション（タイムライン） -->
         <div class="current-status-section" id="currentStatusSection">
             <h3>🔴 現在の空き状況</h3>
             <!-- アイコンを上部に左右配置 -->
@@ -2547,6 +3080,84 @@
             </div>
         </div>
 
+        <!-- 本日の空き枠推移 -->
+        <div class="charts-grid weekly-progress-chart">
+            <div class="chart-card">
+                <h3>📈 本日の空き枠推移 - 10分刻み<span class="help-icon" onclick="openHelpModal('todayProgress')">?<span class="tooltip">本日の空き枠推移を表示</span></span></h3>
+                <div class="chart-container large" style="position: relative;">
+                    <div id="chartLoading" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.9); z-index: 10;">
+                        <div style="text-align: center; color: #666;">
+                            <div class="loading-spinner" style="width: 40px; height: 40px; border: 4px solid #e0e0e0; border-top-color: #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>
+                            <div>グラフを読み込み中...</div>
+                        </div>
+                    </div>
+                    <canvas id="weeklyProgressChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1日の空き枠推移（曜日別平均） -->
+        <div class="charts-grid daily-progress-chart">
+            <div class="chart-card">
+                <h3>📈 1日の空き枠推移（曜日別平均）- 10分刻み<span class="help-icon" onclick="openHelpModal('dailyProgress')">?<span class="tooltip">曜日別の空き枠推移を表示</span></span></h3>
+                <div class="chart-container large">
+                    <canvas id="dailyProgressChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 時間枠別埋まり推移ヒートマップ（横幅いっぱい） -->
+        <div class="chart-card" id="slotFillProgressSection">
+            <h3>📉 時間枠別 埋まり推移<span class="help-icon" onclick="openHelpModal('slotFillProgress')">?<span class="tooltip">各時間枠がいつ埋まったかをヒートマップで表示</span></span></h3>
+            <div class="slot-fill-controls" style="margin-bottom: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <select id="slotFillDateSelect" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                    <option value="">日付を選択...</option>
+                </select>
+            </div>
+            <div id="slotFillHeatmap" class="slot-fill-heatmap"></div>
+        </div>
+
+        <!-- 運用ビュー: 自動更新インジケーター -->
+        <div style="text-align: center; margin: 15px 0;">
+            <div class="auto-refresh-indicator" style="justify-content: center;">
+                <div class="auto-refresh-dot"></div>
+                <span id="autoRefreshText">1分ごとに自動更新中</span>
+                <span id="operationsStatusTime" style="margin-left: 8px; color: rgba(255,255,255,0.7);">--:--</span>
+            </div>
+        </div>
+
+        </div><!-- /tab-operations -->
+
+        <!-- ============================== -->
+        <!-- タブ2: 経営分析 -->
+        <!-- ============================== -->
+        <div class="tab-content" id="tab-analytics">
+
+        <!-- KPIサマリーカード (B1) -->
+        <div class="kpi-cards" id="kpiCards">
+            <div class="kpi-card">
+                <div class="kpi-card-label">稼働率</div>
+                <div class="kpi-card-value" id="kpiUtilization">--<small>%</small></div>
+                <div class="kpi-card-change neutral" id="kpiUtilizationChange">--</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">平均空き枠数</div>
+                <div class="kpi-card-value" id="kpiAvgSlots">--<small>枠</small></div>
+                <div class="kpi-card-change neutral" id="kpiAvgSlotsChange">--</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">満枠日数の割合</div>
+                <div class="kpi-card-value" id="kpiFullDays">--<small>%</small></div>
+                <div class="kpi-card-change neutral" id="kpiFullDaysChange">--</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">平均満枠到達時刻</div>
+                <div class="kpi-card-value" id="kpiFullTime" style="font-size: 28px;">--:--</div>
+                <div class="kpi-card-change neutral" id="kpiFullTimeChange">--</div>
+            </div>
+        </div>
+
+        <!-- コントロール -->
         <div class="controls">
             <div class="control-group">
                 <label>種別:</label>
@@ -2597,43 +3208,6 @@
             <button class="btn" id="loadBtn" onclick="loadData()">
                 📥 データ読み込み
             </button>
-        </div>
-
-        <!-- 本日の空き枠推移 -->
-        <div class="charts-grid weekly-progress-chart">
-            <div class="chart-card">
-                <h3>📈 本日の空き枠推移 - 10分刻み<span class="help-icon" onclick="openHelpModal('todayProgress')">?<span class="tooltip">本日の空き枠推移を表示</span></span></h3>
-                <div class="chart-container large" style="position: relative;">
-                    <div id="chartLoading" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.9); z-index: 10;">
-                        <div style="text-align: center; color: #666;">
-                            <div class="loading-spinner" style="width: 40px; height: 40px; border: 4px solid #e0e0e0; border-top-color: #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>
-                            <div>グラフを読み込み中...</div>
-                        </div>
-                    </div>
-                    <canvas id="weeklyProgressChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- 1日の空き枠推移（曜日別平均） -->
-        <div class="charts-grid daily-progress-chart">
-            <div class="chart-card">
-                <h3>📈 1日の空き枠推移（曜日別平均）- 10分刻み<span class="help-icon" onclick="openHelpModal('dailyProgress')">?<span class="tooltip">曜日別の空き枠推移を表示</span></span></h3>
-                <div class="chart-container large">
-                    <canvas id="dailyProgressChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- 時間枠別埋まり推移ヒートマップ（横幅いっぱい） -->
-        <div class="chart-card" id="slotFillProgressSection">
-            <h3>📉 時間枠別 埋まり推移<span class="help-icon" onclick="openHelpModal('slotFillProgress')">?<span class="tooltip">各時間枠がいつ埋まったかをヒートマップで表示</span></span></h3>
-            <div class="slot-fill-controls" style="margin-bottom: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
-                <select id="slotFillDateSelect" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
-                    <option value="">日付を選択...</option>
-                </select>
-            </div>
-            <div id="slotFillHeatmap" class="slot-fill-heatmap"></div>
         </div>
 
         <!-- 2列グラフ -->
@@ -2704,6 +3278,69 @@
             </div>
         </div>
 
+        <!-- 稼働率推移チャート (B2) -->
+        <div class="chart-card">
+            <h3>📊 稼働率の推移<span class="help-icon" onclick="openHelpModal('utilization')">?<span class="tooltip">全枠に対する使用率を%で表示</span></span></h3>
+            <div class="chart-container large">
+                <canvas id="utilizationChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 弱い時間帯の可視化 (B3) -->
+        <div class="chart-card">
+            <h3>⚠️ 空きが目立つ時間帯（広告・キャンペーン候補）<span class="help-icon" onclick="openHelpModal('weakSlots')">?<span class="tooltip">常に空いている時間帯を特定</span></span></h3>
+            <div id="weakSlotsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span>データを読み込んでください</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 予約消化速度 (B4) -->
+        <div class="chart-card">
+            <h3>⏱️ 予約消化速度（枠が埋まるまでの時間）<span class="help-icon" onclick="openHelpModal('bookingSpeed')">?<span class="tooltip">枠が公開されてから埋まるまでの平均時間</span></span></h3>
+            <div id="bookingSpeedContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span>データを読み込んでください</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 季節性トレンド (B5) -->
+        <div class="chart-card">
+            <h3>🗓️ 季節性トレンド（月×曜日ヒートマップ）<span class="help-icon" onclick="openHelpModal('seasonal')">?<span class="tooltip">月と曜日の組み合わせで混雑パターンを把握</span></span></h3>
+            <div id="seasonalHeatmapContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span>データを読み込んでください</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 一般 vs 視野 比較ビュー (B7) -->
+        <div class="chart-card">
+            <h3>🔀 一般予約 vs 視野予約 比較<span class="help-icon" onclick="openHelpModal('comparison')">?<span class="tooltip">2つの予約タイプを並べて比較</span></span></h3>
+            <div id="comparisonContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span>データを読み込んでください</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 週次レポート (B6) -->
+        <div class="chart-card">
+            <h3>📋 週次レポート<span class="help-icon" onclick="openHelpModal('weeklyReport')">?<span class="tooltip">先週の実績サマリー</span></span></h3>
+            <div id="weeklyReportContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span>データを読み込んでください</span>
+                </div>
+            </div>
+        </div>
+
         <!-- 直近の埋まり方データ -->
         <div class="chart-card">
             <h3>📋 直近の埋まり方データ<span class="help-icon" onclick="openHelpModal('recentData')">?<span class="tooltip">生データ一覧を確認</span></span></h3>
@@ -2722,6 +3359,8 @@
                 <span style="color: #888;">データを読み込んでください</span>
             </div>
         </div>
+
+        </div><!-- /tab-analytics -->
 
         <footer>
             <p>ふじみ野ひかり眼科 予約傾向ダッシュボード v2.0</p>
@@ -6555,6 +7194,932 @@
                 closeHelpModal();
             }
         });
+
+        // ========================================
+        // C1: タブ切り替え
+        // ========================================
+        let currentTab = 'operations';
+
+        function switchTab(tabName) {
+            currentTab = tabName;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tabName);
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.id === `tab-${tabName}`);
+            });
+            // 経営分析タブに切り替え時、データ未読込なら読み込み
+            if (tabName === 'analytics' && Object.keys(processedData).length === 0) {
+                loadData();
+            }
+        }
+
+        // ========================================
+        // C2 + A5: 自動リフレッシュ
+        // ========================================
+        let autoRefreshInterval = null;
+
+        function startAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            autoRefreshInterval = setInterval(async () => {
+                await loadCurrentStatus();
+                updateHeroStatus();
+                // 今日の推移チャートも更新
+                if (processedData && Object.keys(processedData).length > 0) {
+                    const todayStr = getBusinessDate();
+                    // 当日の履歴を再取得
+                    const [genHist, shyHist] = await Promise.all([
+                        fetchTodayHistory('general'),
+                        fetchTodayHistory('shiya')
+                    ]);
+                    if (genHist) analyzeSlotFillTimes(genHist, 'general');
+                    if (shyHist) analyzeSlotFillTimes(shyHist, 'shiya');
+                    renderCombinedTimeline();
+                }
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+                const el = document.getElementById('operationsStatusTime');
+                if (el) el.textContent = `最終更新: ${timeStr}`;
+            }, 60000); // 1分ごと
+        }
+
+        // ========================================
+        // A2 + A3 + A6: ヒーローステータス更新
+        // ========================================
+        function updateHeroStatus() {
+            const generalSlots = currentSlotsData.general || [];
+            const shiyaSlots = currentSlotsData.shiya || [];
+            const totalAvailable = generalSlots.length + shiyaSlots.length;
+
+            const heroEl = document.getElementById('heroStatus');
+            const mainText = document.getElementById('heroMainText');
+            const subText = document.getElementById('heroSubText');
+
+            // ステータスクラス更新
+            heroEl.classList.remove('status-available', 'status-full', 'status-loading');
+            if (totalAvailable > 0) {
+                heroEl.classList.add('status-available');
+                mainText.textContent = `本日 空きあり（残り${totalAvailable}枠）`;
+            } else {
+                heroEl.classList.add('status-full');
+                mainText.textContent = '本日 満枠';
+            }
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+            subText.textContent = `${now.getMonth() + 1}/${now.getDate()}（${DAY_NAMES[now.getDay()]}） ${timeStr}更新`;
+
+            // A3: 午前/午後サマリー
+            const generalAM = generalSlots.filter(s => {
+                const h = parseInt(s.split(':')[0], 10);
+                return h < 14;
+            }).length;
+            const generalPM = generalSlots.filter(s => {
+                const h = parseInt(s.split(':')[0], 10);
+                return h >= 14;
+            }).length;
+            const shiyaAM = shiyaSlots.filter(s => {
+                const h = parseInt(s.split(':')[0], 10);
+                return h < 14;
+            }).length;
+            const shiyaPM = shiyaSlots.filter(s => {
+                const h = parseInt(s.split(':')[0], 10);
+                return h >= 14;
+            }).length;
+
+            document.getElementById('amCountGeneral').textContent = generalAM;
+            document.getElementById('amCountShiya').textContent = shiyaAM;
+            document.getElementById('pmCountGeneral').textContent = generalPM;
+            document.getElementById('pmCountShiya').textContent = shiyaPM;
+
+            // A2: 次の空き時間
+            updateNextAvailable(generalSlots, shiyaSlots);
+
+            // A6: 空き時間テキストリスト
+            updateAvailableTimesList(generalSlots, shiyaSlots);
+        }
+
+        // A2: 次の空き時間を計算・表示
+        function updateNextAvailable(generalSlots, shiyaSlots) {
+            const nextEl = document.getElementById('nextAvailable');
+            const timeEl = document.getElementById('nextAvailableTime');
+            const typeEl = document.getElementById('nextAvailableType');
+
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+            // 現在時刻以降のスロットを探す
+            function findNextSlot(slots) {
+                for (const slot of slots) {
+                    const [h, m] = slot.split(':').map(Number);
+                    if (h * 60 + m >= currentMinutes) return slot;
+                }
+                return null;
+            }
+
+            const nextGeneral = findNextSlot(generalSlots.sort());
+            const nextShiya = findNextSlot(shiyaSlots.sort());
+
+            let nextSlot = null;
+            let nextType = '';
+
+            if (nextGeneral && nextShiya) {
+                const [gh, gm] = nextGeneral.split(':').map(Number);
+                const [sh, sm] = nextShiya.split(':').map(Number);
+                if (gh * 60 + gm <= sh * 60 + sm) {
+                    nextSlot = nextGeneral;
+                    nextType = '一般予約';
+                } else {
+                    nextSlot = nextShiya;
+                    nextType = '視野予約';
+                }
+            } else if (nextGeneral) {
+                nextSlot = nextGeneral;
+                nextType = '一般予約';
+            } else if (nextShiya) {
+                nextSlot = nextShiya;
+                nextType = '視野予約';
+            }
+
+            if (nextSlot) {
+                nextEl.style.display = 'flex';
+                timeEl.textContent = nextSlot;
+                typeEl.textContent = nextType;
+            } else {
+                nextEl.style.display = generalSlots.length + shiyaSlots.length > 0 ? 'flex' : 'none';
+                timeEl.textContent = 'なし';
+                typeEl.textContent = '本日以降の空きなし';
+            }
+        }
+
+        // A6: 空き時間テキストリスト
+        function updateAvailableTimesList(generalSlots, shiyaSlots) {
+            const container = document.getElementById('availableTimesText');
+            if (!container) return;
+
+            let html = '';
+
+            if (generalSlots.length > 0) {
+                html += '<div style="margin-bottom:8px;"><span class="type-label general">一般</span>';
+                generalSlots.sort().forEach(slot => {
+                    let display = slot;
+                    if (slot === '12:55') display = '12:55';
+                    if (slot === '17:55') display = '17:55';
+                    html += `<span class="slot-time">${display}</span>`;
+                });
+                html += '</div>';
+            } else {
+                html += '<div style="margin-bottom:8px;"><span class="type-label general">一般</span> 空きなし</div>';
+            }
+
+            if (shiyaSlots.length > 0) {
+                html += '<div><span class="type-label shiya">視野</span>';
+                shiyaSlots.sort().forEach(slot => {
+                    let display = slot;
+                    if (slot === '12:55') display = '12:55';
+                    if (slot === '17:55') display = '17:55';
+                    html += `<span class="slot-time">${display}</span>`;
+                });
+                html += '</div>';
+            } else {
+                html += '<div><span class="type-label shiya">視野</span> 空きなし</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ========================================
+        // B1: KPIサマリーカード更新
+        // ========================================
+        function updateKPICards(generalData, shiyaData) {
+            const data = currentType === 'general' ? generalData : shiyaData;
+            if (!data || Object.keys(data).length === 0) return;
+
+            const TOTAL_SLOTS = AM_SLOTS.length + PM_SLOTS.length; // 26枠
+            const sortedDates = Object.keys(data).sort();
+            const totalDays = sortedDates.length;
+
+            // 稼働率（checkTime時点の枠使用率）
+            let totalUsed = 0;
+            let totalCapacity = 0;
+            let fullDays = 0;
+            let checkTimeDays = 0;
+
+            // 期間を前半・後半に分割
+            const midIdx = Math.floor(totalDays / 2);
+            let recentUsed = 0, recentCapacity = 0, recentFullDays = 0, recentCheckDays = 0;
+            let prevUsed = 0, prevCapacity = 0, prevFullDays = 0, prevCheckDays = 0;
+            let recentSlotSum = 0, prevSlotSum = 0;
+
+            // 満枠到達時刻
+            let fullTimes = [];
+
+            sortedDates.forEach((date, idx) => {
+                const dayData = data[date];
+                const val = dayData.detailed ? dayData.detailed[checkTime] : dayData[checkTime];
+
+                if (val !== undefined) {
+                    const used = TOTAL_SLOTS - val;
+                    totalUsed += used;
+                    totalCapacity += TOTAL_SLOTS;
+                    checkTimeDays++;
+
+                    if (val <= fullThreshold) fullDays++;
+
+                    if (idx >= midIdx) {
+                        recentUsed += used;
+                        recentCapacity += TOTAL_SLOTS;
+                        recentSlotSum += val;
+                        recentCheckDays++;
+                        if (val <= fullThreshold) recentFullDays++;
+                    } else {
+                        prevUsed += used;
+                        prevCapacity += TOTAL_SLOTS;
+                        prevSlotSum += val;
+                        prevCheckDays++;
+                        if (val <= fullThreshold) prevFullDays++;
+                    }
+                }
+
+                // 満枠到達時刻
+                for (const slot of DETAILED_TIME_SLOTS) {
+                    const c = dayData.detailed ? dayData.detailed[slot.label] : dayData[slot.label];
+                    if (c !== undefined && c <= fullThreshold) {
+                        let minutes;
+                        if (slot.prevDay) {
+                            minutes = (slot.hour - 18) * 60 + slot.minute - 30;
+                        } else {
+                            minutes = (24 - 18) * 60 - 30 + slot.hour * 60 + slot.minute;
+                        }
+                        fullTimes.push(minutes);
+                        break;
+                    }
+                }
+            });
+
+            // 稼働率
+            const utilization = totalCapacity > 0 ? Math.round((totalUsed / totalCapacity) * 100) : 0;
+            const recentUtil = recentCapacity > 0 ? Math.round((recentUsed / recentCapacity) * 100) : 0;
+            const prevUtil = prevCapacity > 0 ? Math.round((prevUsed / prevCapacity) * 100) : 0;
+            const utilDiff = recentUtil - prevUtil;
+
+            document.getElementById('kpiUtilization').innerHTML = `${utilization}<small>%</small>`;
+            const utilChangeEl = document.getElementById('kpiUtilizationChange');
+            utilChangeEl.textContent = utilDiff > 0 ? `+${utilDiff}% ↑ 前期比` : utilDiff < 0 ? `${utilDiff}% ↓ 前期比` : '±0% 前期比';
+            utilChangeEl.className = `kpi-card-change ${utilDiff > 0 ? 'positive' : utilDiff < 0 ? 'negative' : 'neutral'}`;
+
+            // 平均空き枠
+            const avgSlots = checkTimeDays > 0 ? Math.round((recentSlotSum + prevSlotSum) / checkTimeDays * 10) / 10 : 0;
+            const recentAvg = recentCheckDays > 0 ? Math.round(recentSlotSum / recentCheckDays * 10) / 10 : 0;
+            const prevAvg = prevCheckDays > 0 ? Math.round(prevSlotSum / prevCheckDays * 10) / 10 : 0;
+            const avgDiff = Math.round((recentAvg - prevAvg) * 10) / 10;
+
+            document.getElementById('kpiAvgSlots').innerHTML = `${avgSlots}<small>枠</small>`;
+            const avgChangeEl = document.getElementById('kpiAvgSlotsChange');
+            avgChangeEl.textContent = avgDiff > 0 ? `+${avgDiff}枠 前期比` : avgDiff < 0 ? `${avgDiff}枠 前期比` : '±0 前期比';
+            avgChangeEl.className = `kpi-card-change ${avgDiff > 0 ? 'negative' : avgDiff < 0 ? 'positive' : 'neutral'}`;
+
+            // 満枠日数割合
+            const fullRate = checkTimeDays > 0 ? Math.round((fullDays / checkTimeDays) * 100) : 0;
+            const recentFullRate = recentCheckDays > 0 ? Math.round((recentFullDays / recentCheckDays) * 100) : 0;
+            const prevFullRate = prevCheckDays > 0 ? Math.round((prevFullDays / prevCheckDays) * 100) : 0;
+            const fullDiff = recentFullRate - prevFullRate;
+
+            document.getElementById('kpiFullDays').innerHTML = `${fullRate}<small>%</small>`;
+            const fullChangeEl = document.getElementById('kpiFullDaysChange');
+            fullChangeEl.textContent = fullDiff > 0 ? `+${fullDiff}% ↑ 前期比` : fullDiff < 0 ? `${fullDiff}% ↓ 前期比` : '±0% 前期比';
+            fullChangeEl.className = `kpi-card-change ${fullDiff > 0 ? 'positive' : fullDiff < 0 ? 'negative' : 'neutral'}`;
+
+            // 満枠到達時刻
+            if (fullTimes.length > 0) {
+                const avgFullMin = fullTimes.reduce((a, b) => a + b, 0) / fullTimes.length;
+                document.getElementById('kpiFullTime').textContent = minutesToTimeLabel(avgFullMin);
+                document.getElementById('kpiFullTimeChange').textContent = `${fullTimes.length}/${totalDays}日が満枠到達`;
+                document.getElementById('kpiFullTimeChange').className = 'kpi-card-change neutral';
+            } else {
+                document.getElementById('kpiFullTime').textContent = '--:--';
+                document.getElementById('kpiFullTimeChange').textContent = '期間中満枠なし';
+            }
+        }
+
+        // ========================================
+        // B2: 稼働率推移チャート
+        // ========================================
+        let utilizationChart = null;
+
+        function updateUtilizationChart(generalData, shiyaData) {
+            const ctx = document.getElementById('utilizationChart');
+            if (!ctx) return;
+            const context = ctx.getContext('2d');
+
+            if (utilizationChart) utilizationChart.destroy();
+
+            const TOTAL_SLOTS = AM_SLOTS.length + PM_SLOTS.length;
+
+            function calcDailyUtilization(data) {
+                const sortedDates = Object.keys(data).sort();
+                return sortedDates.map(date => {
+                    const dayData = data[date];
+                    const val = dayData.detailed ? dayData.detailed[checkTime] : dayData[checkTime];
+                    if (val === undefined) return null;
+                    return { date, rate: Math.round(((TOTAL_SLOTS - val) / TOTAL_SLOTS) * 100) };
+                }).filter(d => d !== null);
+            }
+
+            const generalUtil = calcDailyUtilization(generalData || {});
+            const shiyaUtil = calcDailyUtilization(shiyaData || {});
+
+            // 日付リストを統合
+            const allDates = [...new Set([...generalUtil.map(d => d.date), ...shiyaUtil.map(d => d.date)])].sort();
+            const generalMap = {};
+            generalUtil.forEach(d => generalMap[d.date] = d.rate);
+            const shiyaMap = {};
+            shiyaUtil.forEach(d => shiyaMap[d.date] = d.rate);
+
+            const labels = allDates.map(d => {
+                const dt = parseDate(d);
+                return `${dt.getMonth()+1}/${dt.getDate()}`;
+            });
+
+            const datasets = [];
+            if (Object.keys(generalData || {}).length > 0) {
+                datasets.push({
+                    label: '一般予約',
+                    data: allDates.map(d => generalMap[d] !== undefined ? generalMap[d] : null),
+                    borderColor: 'rgba(255, 152, 0, 1)',
+                    backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: allDates.length > 30 ? 0 : 2,
+                    borderWidth: 2
+                });
+            }
+            if (Object.keys(shiyaData || {}).length > 0) {
+                datasets.push({
+                    label: '視野予約',
+                    data: allDates.map(d => shiyaMap[d] !== undefined ? shiyaMap[d] : null),
+                    borderColor: 'rgba(76, 175, 80, 1)',
+                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: allDates.length > 30 ? 0 : 2,
+                    borderWidth: 2
+                });
+            }
+
+            utilizationChart = new Chart(context, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: getResponsiveLegendConfig(),
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}%`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: '稼働率 (%)' },
+                            ticks: { callback: v => v + '%' }
+                        },
+                        x: {
+                            ticks: { maxTicksLimit: 15 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ========================================
+        // B3: 弱い時間帯の可視化
+        // ========================================
+        function updateWeakSlots(generalData, shiyaData) {
+            const container = document.getElementById('weakSlotsContainer');
+            if (!container) return;
+
+            const allSlots = [...AM_SLOTS, ...PM_SLOTS].filter(s => s !== '13:00' && s !== '18:00').concat(['12:55', '17:55']);
+
+            function analyzeWeakSlots(data, typeName) {
+                const slotStats = {};
+                allSlots.forEach(s => slotStats[s] = { available: 0, total: 0 });
+
+                Object.values(data).forEach(dayData => {
+                    if (!dayData.slotHistory || dayData.slotHistory.length === 0) return;
+                    const history = dayData.slotHistory;
+                    const targetMin = 10 * 60;
+                    let closest = null;
+                    let closestDiff = Infinity;
+                    for (const e of history) {
+                        const [h, m] = e.time.split(':').map(Number);
+                        const diff = Math.abs(h * 60 + m - targetMin);
+                        if (diff <= 15 && diff < closestDiff) {
+                            closestDiff = diff;
+                            closest = e;
+                        }
+                    }
+                    if (!closest) return;
+                    const slots = closest.slots || [];
+                    allSlots.forEach(s => {
+                        slotStats[s].total++;
+                        const available = slots.includes(s) || (s === '12:55' && slots.includes('13:00')) || (s === '17:55' && slots.includes('18:00'));
+                        if (available) slotStats[s].available++;
+                    });
+                });
+
+                return allSlots.map(s => ({
+                    slot: s,
+                    availableRate: slotStats[s].total > 0 ? (slotStats[s].available / slotStats[s].total * 100) : 0,
+                    avgAvailable: slotStats[s].available,
+                    totalDays: slotStats[s].total
+                })).filter(s => s.totalDays > 0 && s.availableRate >= 60)
+                  .sort((a, b) => b.availableRate - a.availableRate);
+            }
+
+            const generalWeak = analyzeWeakSlots(generalData || {}, '一般');
+            const shiyaWeak = analyzeWeakSlots(shiyaData || {}, '視野');
+
+            if (generalWeak.length === 0 && shiyaWeak.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#666; padding:20px;">特定の弱い時間帯は見つかりませんでした（全体的に予約が入っています）</div>';
+                return;
+            }
+
+            let html = '<div style="font-size:12px; color:#888; margin-bottom:12px;">10:00時点で60%以上の日に空きがある時間枠</div>';
+
+            function renderWeakSection(items, label, color) {
+                if (items.length === 0) return '';
+                let h = `<h4 style="color:${color}; margin-bottom:10px;">${label}</h4><div class="weak-slots-grid">`;
+                items.forEach(item => {
+                    const isCritical = item.availableRate >= 80;
+                    h += `<div class="weak-slot-item ${isCritical ? 'critical' : ''}">
+                        <div class="weak-slot-time">${item.slot}</div>
+                        <div class="weak-slot-detail">空き率: ${Math.round(item.availableRate)}% (${item.avgAvailable}/${item.totalDays}日)</div>
+                        <div class="weak-slot-detail">${isCritical ? '→ キャンペーン推奨' : '→ 広告候補'}</div>
+                    </div>`;
+                });
+                h += '</div>';
+                return h;
+            }
+
+            html += renderWeakSection(generalWeak, '📙 一般予約', '#CC6600');
+            if (generalWeak.length > 0 && shiyaWeak.length > 0) html += '<div style="margin:15px 0;"></div>';
+            html += renderWeakSection(shiyaWeak, '📗 視野予約', '#006633');
+            container.innerHTML = html;
+        }
+
+        // ========================================
+        // B4: 予約消化速度
+        // ========================================
+        function updateBookingSpeed(generalData, shiyaData) {
+            const container = document.getElementById('bookingSpeedContainer');
+            if (!container) return;
+
+            const allSlots = [...AM_SLOTS, ...PM_SLOTS].filter(s => s !== '13:00' && s !== '18:00').concat(['12:55', '17:55']);
+
+            function analyzeSpeed(data) {
+                const slotFillMinutes = {};
+                allSlots.forEach(s => slotFillMinutes[s] = []);
+
+                Object.values(data).forEach(dayData => {
+                    if (!dayData.slotHistory || dayData.slotHistory.length < 2) return;
+                    const history = dayData.slotHistory;
+                    let prevSlots = null;
+                    let startMinutes = null;
+
+                    history.forEach(entry => {
+                        const [h, m] = entry.time.split(':').map(Number);
+                        let entryMin = h * 60 + m;
+                        if (entryMin < 18 * 60 + 30) entryMin += 24 * 60;
+
+                        if (startMinutes === null) startMinutes = entryMin;
+
+                        if (prevSlots !== null) {
+                            const currentSlots = entry.slots || [];
+                            allSlots.forEach(slot => {
+                                const wasAvail = prevSlots.includes(slot) || (slot === '12:55' && prevSlots.includes('13:00')) || (slot === '17:55' && prevSlots.includes('18:00'));
+                                const isAvail = currentSlots.includes(slot) || (slot === '12:55' && currentSlots.includes('13:00')) || (slot === '17:55' && currentSlots.includes('18:00'));
+                                if (wasAvail && !isAvail) {
+                                    slotFillMinutes[slot].push(entryMin - startMinutes);
+                                }
+                            });
+                        }
+                        prevSlots = entry.slots || [];
+                    });
+                });
+
+                return allSlots.map(s => ({
+                    slot: s,
+                    avgMinutes: slotFillMinutes[s].length > 0 ? slotFillMinutes[s].reduce((a, b) => a + b, 0) / slotFillMinutes[s].length : null,
+                    count: slotFillMinutes[s].length
+                })).filter(s => s.avgMinutes !== null)
+                  .sort((a, b) => a.avgMinutes - b.avgMinutes);
+            }
+
+            const generalSpeed = analyzeSpeed(generalData || {});
+            const shiyaSpeed = analyzeSpeed(shiyaData || {});
+
+            if (generalSpeed.length === 0 && shiyaSpeed.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#666; padding:20px;">消化速度データ不足</div>';
+                return;
+            }
+
+            const maxMinutes = Math.max(
+                ...generalSpeed.map(s => s.avgMinutes),
+                ...shiyaSpeed.map(s => s.avgMinutes),
+                60
+            );
+
+            function renderSpeedBars(items, label, color) {
+                if (items.length === 0) return '';
+                let h = `<h4 style="color:${color}; margin:12px 0 8px;">${label}（人気枠トップ10）</h4>`;
+                const top10 = items.slice(0, 10);
+                top10.forEach(item => {
+                    const hours = Math.floor(item.avgMinutes / 60);
+                    const mins = Math.round(item.avgMinutes % 60);
+                    const timeStr = hours > 0 ? `${hours}時間${mins}分` : `${mins}分`;
+                    const pct = Math.min(100, (item.avgMinutes / maxMinutes) * 100);
+                    const hue = Math.min(120, (item.avgMinutes / maxMinutes) * 120);
+                    h += `<div class="speed-bar-container">
+                        <span class="speed-bar-label">${item.slot}</span>
+                        <div class="speed-bar"><div class="speed-bar-fill" style="width:${pct}%; background:hsl(${120 - hue}, 70%, 45%);"></div></div>
+                        <span class="speed-bar-value">${timeStr}</span>
+                    </div>`;
+                });
+                return h;
+            }
+
+            let html = '<div style="font-size:12px; color:#888; margin-bottom:8px;">枠公開（18:30）から埋まるまでの平均時間。短いほど人気</div>';
+            html += renderSpeedBars(generalSpeed, '📙 一般予約', '#CC6600');
+            html += renderSpeedBars(shiyaSpeed, '📗 視野予約', '#006633');
+            container.innerHTML = html;
+        }
+
+        // ========================================
+        // B5: 季節性トレンドヒートマップ
+        // ========================================
+        function updateSeasonalHeatmap(generalData, shiyaData) {
+            const container = document.getElementById('seasonalHeatmapContainer');
+            if (!container) return;
+
+            const data = currentType === 'general' ? generalData : shiyaData;
+            if (!data || Object.keys(data).length === 0) {
+                container.innerHTML = '<div class="no-data">データがありません</div>';
+                return;
+            }
+
+            // 月×曜日の平均空き枠
+            const grid = {};
+            for (let m = 1; m <= 12; m++) {
+                grid[m] = {};
+                for (let d = 0; d < 7; d++) {
+                    grid[m][d] = { total: 0, count: 0 };
+                }
+            }
+
+            Object.values(data).forEach(dayData => {
+                const val = dayData.detailed ? dayData.detailed[checkTime] : dayData[checkTime];
+                if (val !== undefined && dayData.month && dayData.dayOfWeek !== undefined) {
+                    grid[dayData.month][dayData.dayOfWeek].total += val;
+                    grid[dayData.month][dayData.dayOfWeek].count++;
+                }
+            });
+
+            const typeName = currentType === 'general' ? '一般予約' : '視野予約';
+            let html = `<div style="font-size:12px; color:#888; margin-bottom:8px;">${typeName} - ${checkTime.replace(':00', '時')}時点の平均空き枠数</div>`;
+            html += '<div style="overflow-x:auto;"><table class="seasonal-heatmap-table"><thead><tr><th>月＼曜日</th>';
+            [0,1,2,3,4,5,6].forEach(d => html += `<th>${DAY_NAMES[d]}</th>`);
+            html += '</tr></thead><tbody>';
+
+            for (let m = 1; m <= 12; m++) {
+                let hasData = false;
+                for (let d = 0; d < 7; d++) {
+                    if (grid[m][d].count > 0) hasData = true;
+                }
+                if (!hasData) continue;
+
+                html += `<tr><td style="font-weight:700;">${m}月</td>`;
+                [0,1,2,3,4,5,6].forEach(d => {
+                    const stat = grid[m][d];
+                    if (stat.count > 0) {
+                        const avg = Math.round(stat.total / stat.count);
+                        html += `<td class="${getHeatClass(avg)}" title="${m}月${DAY_NAMES[d]}曜 平均${avg}枠 (${stat.count}日)">${avg}</td>`;
+                    } else {
+                        html += '<td>-</td>';
+                    }
+                });
+                html += '</tr>';
+            }
+
+            html += '</tbody></table></div>';
+
+            // 凡例
+            const t = fullThreshold;
+            html += `<div class="heat-legend" style="margin-top:10px;">
+                <div class="heat-legend-item"><div class="heat-legend-color heat-5"></div>${t+10}枠以上</div>
+                <div class="heat-legend-item"><div class="heat-legend-color heat-4"></div>${t+7}-${t+9}枠</div>
+                <div class="heat-legend-item"><div class="heat-legend-color heat-3"></div>${t+5}-${t+6}枠</div>
+                <div class="heat-legend-item"><div class="heat-legend-color heat-2"></div>${t+3}-${t+4}枠</div>
+                <div class="heat-legend-item"><div class="heat-legend-color heat-1"></div>${t+1}-${t+2}枠</div>
+                <div class="heat-legend-item"><div class="heat-legend-color heat-0"></div>${t}枠以下</div>
+            </div>`;
+
+            container.innerHTML = html;
+        }
+
+        // ========================================
+        // B6: 週次レポート
+        // ========================================
+        function updateWeeklyReport(generalData, shiyaData) {
+            const container = document.getElementById('weeklyReportContainer');
+            if (!container) return;
+
+            const data = currentType === 'general' ? generalData : shiyaData;
+            if (!data || Object.keys(data).length === 0) {
+                container.innerHTML = '<div class="no-data">データがありません</div>';
+                return;
+            }
+
+            const TOTAL_SLOTS = AM_SLOTS.length + PM_SLOTS.length;
+            const today = new Date();
+            const lastWeekStart = new Date(today);
+            lastWeekStart.setDate(today.getDate() - today.getDay() - 7);
+            const lastWeekEnd = new Date(lastWeekStart);
+            lastWeekEnd.setDate(lastWeekStart.getDate() + 6);
+            const prevWeekStart = new Date(lastWeekStart);
+            prevWeekStart.setDate(lastWeekStart.getDate() - 7);
+            const prevWeekEnd = new Date(prevWeekStart);
+            prevWeekEnd.setDate(prevWeekStart.getDate() + 6);
+
+            function getWeekData(start, end) {
+                const result = { totalSlots: 0, usedSlots: 0, fullDays: 0, days: 0, byDay: {} };
+                const startStr = formatDate(start);
+                const endStr = formatDate(end);
+                Object.entries(data).forEach(([date, dayData]) => {
+                    if (date >= startStr && date <= endStr) {
+                        const val = dayData.detailed ? dayData.detailed[checkTime] : dayData[checkTime];
+                        if (val !== undefined) {
+                            result.totalSlots += TOTAL_SLOTS;
+                            result.usedSlots += (TOTAL_SLOTS - val);
+                            result.days++;
+                            if (val <= fullThreshold) result.fullDays++;
+                            result.byDay[DAY_NAMES[dayData.dayOfWeek]] = val;
+                        }
+                    }
+                });
+                return result;
+            }
+
+            const lastWeek = getWeekData(lastWeekStart, lastWeekEnd);
+            const prevWeek = getWeekData(prevWeekStart, prevWeekEnd);
+
+            const lastUtil = lastWeek.totalSlots > 0 ? Math.round((lastWeek.usedSlots / lastWeek.totalSlots) * 100) : 0;
+            const prevUtil = prevWeek.totalSlots > 0 ? Math.round((prevWeek.usedSlots / prevWeek.totalSlots) * 100) : 0;
+            const lastFull = lastWeek.days > 0 ? Math.round((lastWeek.fullDays / lastWeek.days) * 100) : 0;
+            const prevFull = prevWeek.days > 0 ? Math.round((prevWeek.fullDays / prevWeek.days) * 100) : 0;
+
+            const lwStartStr = `${lastWeekStart.getMonth()+1}/${lastWeekStart.getDate()}`;
+            const lwEndStr = `${lastWeekEnd.getMonth()+1}/${lastWeekEnd.getDate()}`;
+            const typeName = currentType === 'general' ? '一般予約' : '視野予約';
+
+            let html = `<div style="font-size:12px; color:#888; margin-bottom:12px;">${typeName} - 先週 ${lwStartStr}〜${lwEndStr} のサマリー</div>`;
+            html += '<div class="weekly-report">';
+
+            html += `<div class="weekly-report-card">
+                <h4>稼働率</h4>
+                <div class="weekly-report-value">${lastUtil}%</div>
+                <div class="weekly-report-detail">前々週: ${prevUtil}%（${lastUtil - prevUtil > 0 ? '+' : ''}${lastUtil - prevUtil}%）</div>
+            </div>`;
+
+            html += `<div class="weekly-report-card">
+                <h4>満枠率</h4>
+                <div class="weekly-report-value">${lastFull}%</div>
+                <div class="weekly-report-detail">前々週: ${prevFull}%（${lastFull - prevFull > 0 ? '+' : ''}${lastFull - prevFull}%）</div>
+            </div>`;
+
+            html += `<div class="weekly-report-card">
+                <h4>営業日数</h4>
+                <div class="weekly-report-value">${lastWeek.days}<small>日</small></div>
+                <div class="weekly-report-detail">うち満枠: ${lastWeek.fullDays}日</div>
+            </div>`;
+
+            // 曜日別空き枠
+            html += `<div class="weekly-report-card">
+                <h4>曜日別空き枠数（${checkTime.replace(':00','時')}時点）</h4>`;
+            if (Object.keys(lastWeek.byDay).length > 0) {
+                html += '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">';
+                Object.entries(lastWeek.byDay).forEach(([day, val]) => {
+                    const color = val <= fullThreshold ? '#c62828' : val <= fullThreshold + 4 ? '#ff9800' : '#43a047';
+                    html += `<div style="background:#f0f0f0; padding:6px 10px; border-radius:6px; text-align:center;">
+                        <div style="font-size:12px; color:#666;">${day}</div>
+                        <div style="font-size:20px; font-weight:700; color:${color};">${val}</div>
+                    </div>`;
+                });
+                html += '</div>';
+            } else {
+                html += '<div style="color:#888; font-size:13px;">データなし</div>';
+            }
+            html += '</div>';
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // ========================================
+        // B7: 一般 vs 視野 比較ビュー
+        // ========================================
+        function updateComparison(generalData, shiyaData) {
+            const container = document.getElementById('comparisonContainer');
+            if (!container) return;
+
+            const hasGeneral = generalData && Object.keys(generalData).length > 0;
+            const hasShiya = shiyaData && Object.keys(shiyaData).length > 0;
+
+            if (!hasGeneral && !hasShiya) {
+                container.innerHTML = '<div class="no-data">データがありません</div>';
+                return;
+            }
+
+            const TOTAL_SLOTS = AM_SLOTS.length + PM_SLOTS.length;
+
+            function calcMetrics(data) {
+                let totalUsed = 0, totalCap = 0, fullDays = 0, checkDays = 0;
+                let fullTimes = [];
+
+                Object.values(data).forEach(dayData => {
+                    const val = dayData.detailed ? dayData.detailed[checkTime] : dayData[checkTime];
+                    if (val !== undefined) {
+                        totalUsed += (TOTAL_SLOTS - val);
+                        totalCap += TOTAL_SLOTS;
+                        checkDays++;
+                        if (val <= fullThreshold) fullDays++;
+                    }
+                    for (const slot of DETAILED_TIME_SLOTS) {
+                        const c = dayData.detailed ? dayData.detailed[slot.label] : dayData[slot.label];
+                        if (c !== undefined && c <= fullThreshold) {
+                            let min;
+                            if (slot.prevDay) { min = (slot.hour - 18) * 60 + slot.minute - 30; }
+                            else { min = (24 - 18) * 60 - 30 + slot.hour * 60 + slot.minute; }
+                            fullTimes.push(min);
+                            break;
+                        }
+                    }
+                });
+
+                const util = totalCap > 0 ? Math.round((totalUsed / totalCap) * 100) : 0;
+                const fullRate = checkDays > 0 ? Math.round((fullDays / checkDays) * 100) : 0;
+                const avgSlots = checkDays > 0 ? Math.round((totalCap - totalUsed) / checkDays * 10) / 10 : 0;
+                const avgFull = fullTimes.length > 0 ? minutesToTimeLabel(fullTimes.reduce((a,b)=>a+b,0)/fullTimes.length) : '--:--';
+
+                // 最も混む曜日
+                const dayStats = {};
+                [0,1,2,3,4,5,6].forEach(d => dayStats[d] = { total: 0, count: 0 });
+                Object.values(data).forEach(dd => {
+                    const v = dd.detailed ? dd.detailed[checkTime] : dd[checkTime];
+                    if (v !== undefined) {
+                        dayStats[dd.dayOfWeek].total += v;
+                        dayStats[dd.dayOfWeek].count++;
+                    }
+                });
+                let busiestDay = '-';
+                let minAvg = Infinity;
+                [0,1,2,3,4,5,6].forEach(d => {
+                    if (dayStats[d].count > 0) {
+                        const avg = dayStats[d].total / dayStats[d].count;
+                        if (avg < minAvg) { minAvg = avg; busiestDay = DAY_NAMES[d] + '曜'; }
+                    }
+                });
+
+                return { util, fullRate, avgSlots, avgFull, busiestDay, days: checkDays };
+            }
+
+            const gm = hasGeneral ? calcMetrics(generalData) : null;
+            const sm = hasShiya ? calcMetrics(shiyaData) : null;
+
+            function renderColumn(label, metrics, cssClass) {
+                if (!metrics) return `<div class="comparison-column ${cssClass}"><h4>${label}</h4><div style="color:#888;">データなし</div></div>`;
+                return `<div class="comparison-column ${cssClass}">
+                    <h4>${label}</h4>
+                    <div class="comparison-metric"><span class="comparison-metric-label">稼働率</span><span class="comparison-metric-value">${metrics.util}%</span></div>
+                    <div class="comparison-metric"><span class="comparison-metric-label">平均空き枠</span><span class="comparison-metric-value">${metrics.avgSlots}枠</span></div>
+                    <div class="comparison-metric"><span class="comparison-metric-label">満枠率</span><span class="comparison-metric-value">${metrics.fullRate}%</span></div>
+                    <div class="comparison-metric"><span class="comparison-metric-label">満枠到達時刻</span><span class="comparison-metric-value">${metrics.avgFull}</span></div>
+                    <div class="comparison-metric"><span class="comparison-metric-label">最混雑曜日</span><span class="comparison-metric-value">${metrics.busiestDay}</span></div>
+                    <div class="comparison-metric"><span class="comparison-metric-label">分析日数</span><span class="comparison-metric-value">${metrics.days}日</span></div>
+                </div>`;
+            }
+
+            let html = '<div class="comparison-grid">';
+            html += renderColumn('📙 一般予約', gm, 'general');
+            html += renderColumn('📗 視野予約', sm, 'shiya');
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
+        // ========================================
+        // updateAllCharts を拡張（B機能を追加）
+        // ========================================
+        const _originalUpdateAllCharts = updateAllCharts;
+        updateAllCharts = function() {
+            _originalUpdateAllCharts();
+            const gd = processedData['general'] || {};
+            const sd = processedData['shiya'] || {};
+            updateKPICards(gd, sd);
+            updateUtilizationChart(gd, sd);
+            updateWeakSlots(gd, sd);
+            updateBookingSpeed(gd, sd);
+            updateSeasonalHeatmap(gd, sd);
+            updateWeeklyReport(gd, sd);
+            updateComparison(gd, sd);
+        };
+
+        // ========================================
+        // loadCurrentStatus を拡張（ヒーロー更新）
+        // ========================================
+        const _originalLoadCurrentStatus = loadCurrentStatus;
+        loadCurrentStatus = async function() {
+            await _originalLoadCurrentStatus();
+            updateHeroStatus();
+        };
+
+        // ========================================
+        // DOMContentLoaded の初期化拡張
+        // ========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // 自動リフレッシュ開始 (A5, C2)
+            startAutoRefresh();
+        });
+
+        // ========================================
+        // 追加のヘルプコンテンツ
+        // ========================================
+        Object.assign(HELP_CONTENT, {
+            utilization: {
+                title: '📊 稼働率の推移',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>全予約枠（午前13枠＋午後13枠＝26枠）に対して、何%が予約済みかを日次で表示します。</p>
+                    <h3>計算方法</h3>
+                    <p>稼働率 = (26 - 空き枠数) ÷ 26 × 100</p>
+                    <h3>活用方法</h3>
+                    <div class="tip">稼働率が低い日が続く場合、広告や施策で集患を強化する判断材料になります。</div>
+                `
+            },
+            weakSlots: {
+                title: '⚠️ 空きが目立つ時間帯',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>10:00時点で60%以上の営業日に空いている時間枠を表示します。</p>
+                    <h3>活用方法</h3>
+                    <div class="tip">これらの時間帯をターゲットにした広告やキャンペーン（例：「○時台なら待ち時間ゼロ！」）で埋める余地があります。</div>
+                `
+            },
+            bookingSpeed: {
+                title: '⏱️ 予約消化速度',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>各時間枠が予約公開（18:30）から埋まるまでの平均時間を表示します。</p>
+                    <h3>見方</h3>
+                    <ul>
+                        <li><strong>短い</strong>（赤）= 人気枠。すぐ埋まる</li>
+                        <li><strong>長い</strong>（緑）= 不人気枠。当日まで空いている</li>
+                    </ul>
+                `
+            },
+            seasonal: {
+                title: '🗓️ 季節性トレンド',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>月と曜日の組み合わせごとに平均空き枠を色で表示。繁忙期・閑散期のパターンが分かります。</p>
+                    <h3>活用方法</h3>
+                    <div class="tip">花粉症シーズン（2-4月）やインフルエンザシーズン等の季節性をデータで確認し、事前にスタッフ配置や広告計画を立てられます。</div>
+                `
+            },
+            comparison: {
+                title: '🔀 一般 vs 視野 比較',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>一般予約と視野予約の主要指標を横並びで比較します。</p>
+                    <h3>活用方法</h3>
+                    <div class="tip">リソース配分の最適化に活用。例えば「一般は月曜が弱いが視野は月曜が強い」のようなクロス分析が可能。</div>
+                `
+            },
+            weeklyReport: {
+                title: '📋 週次レポート',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>先週の主要指標サマリーです。前々週との比較付き。</p>
+                    <h3>活用方法</h3>
+                    <div class="tip">毎週月曜にチェックし、先週のパフォーマンスを振り返り、今週の施策に活かします。</div>
+                `
+            }
+        });
+
     </script>
 </body>
 </html>
