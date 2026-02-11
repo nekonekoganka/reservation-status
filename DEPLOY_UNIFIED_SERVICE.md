@@ -57,7 +57,7 @@ gcloud run deploy reservation-timeslot-checker-unified \
   --source . \
   --platform managed \
   --region asia-northeast1 \
-  --allow-unauthenticated \
+  --no-allow-unauthenticated \
   --memory 1Gi \
   --cpu 1 \
   --timeout 300 \
@@ -67,6 +67,8 @@ gcloud run deploy reservation-timeslot-checker-unified \
 ```
 
 所要時間: 約5〜10分。質問されたら `y` と入力。
+
+> **重要:** `--no-allow-unauthenticated` を必ず指定してください。認証なしアクセスを防ぎます。
 
 ### Step 4: 動作確認
 
@@ -160,6 +162,68 @@ gcloud scheduler jobs run timeslot-checker-unified-shiya-peak --location=asia-no
 ```bash
 gcloud run services delete reservation-timeslot-checker --region=asia-northeast1 --quiet
 gcloud run services delete reservation-timeslot-checker-shiya --region=asia-northeast1 --quiet
+```
+
+---
+
+## Cloud Run 認証設定
+
+Cloud Run は認証必須に設定されています。Cloud Scheduler からの正規リクエストのみが許可されます。
+
+### 現在の設定
+
+- Cloud Run: `--no-allow-unauthenticated`（認証なしアクセスは 403 Forbidden）
+- Cloud Scheduler: OIDC トークン認証を使用
+- サービスアカウント: `224924651996-compute@developer.gserviceaccount.com`（Cloud Run Invoker 権限付き）
+
+### 認証の仕組み
+
+```
+Cloud Scheduler
+  → OIDC トークンを自動付与
+    → Cloud Run がトークンを検証
+      → 正規リクエストのみ処理
+```
+
+HTML ページ・Android アプリ・Chrome 拡張は Cloud Storage から直接データを読むため、この認証の影響を受けません。
+
+### 再デプロイ時の注意
+
+Cloud Run を再デプロイする場合は `--no-allow-unauthenticated` を指定してください：
+
+```bash
+gcloud run deploy reservation-timeslot-checker-unified \
+  --source . \
+  --platform managed \
+  --region asia-northeast1 \
+  --no-allow-unauthenticated \
+  --memory 1Gi \
+  --cpu 1 \
+  --timeout 300 \
+  --max-instances 3 \
+  --min-instances 0 \
+  --set-env-vars BUCKET_NAME=reservation-timeslots-fujiminohikari
+```
+
+### 新しい Scheduler ジョブを追加する場合
+
+OIDC 認証オプションを必ず付けてください：
+
+```bash
+gcloud scheduler jobs create http <ジョブ名> \
+  --schedule="<cron式>" \
+  --uri="https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/<エンドポイント>" \
+  --http-method=GET \
+  --location=asia-northeast1 \
+  --time-zone="Asia/Tokyo" \
+  --oidc-service-account-email=224924651996-compute@developer.gserviceaccount.com \
+  --oidc-token-audience=https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app
+```
+
+### 認証を一括で再設定する場合
+
+```bash
+bash secure-cloudrun.sh
 ```
 
 ---
