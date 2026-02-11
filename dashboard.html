@@ -2694,11 +2694,11 @@
         .kpi-cards {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
+            gap: 12px;
             margin-bottom: 20px;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .kpi-cards {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -2707,7 +2707,7 @@
         @media (max-width: 480px) {
             .kpi-cards {
                 grid-template-columns: 1fr 1fr;
-                gap: 10px;
+                gap: 8px;
             }
         }
 
@@ -2934,6 +2934,286 @@
             text-align: right;
         }
 
+        /* ============================================
+           午前/午後別充足率 (B8)
+           ============================================ */
+        .ampm-analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .ampm-analysis-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .ampm-analysis-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .ampm-analysis-card.am {
+            border-top: 4px solid #FF9800;
+        }
+
+        .ampm-analysis-card.pm {
+            border-top: 4px solid #2196F3;
+        }
+
+        .ampm-analysis-card h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .ampm-stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+
+        .ampm-stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .ampm-stat-label {
+            color: #666;
+        }
+
+        .ampm-stat-value {
+            font-weight: 700;
+            color: #333;
+        }
+
+        .ampm-bar-chart {
+            margin-top: 12px;
+        }
+
+        .ampm-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .ampm-bar-label {
+            font-size: 12px;
+            color: #666;
+            min-width: 28px;
+            text-align: right;
+        }
+
+        .ampm-bar-track {
+            flex: 1;
+            height: 16px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .ampm-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s;
+        }
+
+        .ampm-bar-value {
+            font-size: 12px;
+            color: #333;
+            font-weight: 600;
+            min-width: 36px;
+        }
+
+        /* ============================================
+           キャンセル分析 (B9)
+           ============================================ */
+        .cancel-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .cancel-summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .cancel-stat-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .cancel-stat-card .stat-label {
+            font-size: 11px;
+            color: #888;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .cancel-stat-card .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #333;
+        }
+
+        .cancel-stat-card .stat-value small {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .cancel-stat-card .stat-sub {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .cancel-time-dist {
+            margin-top: 12px;
+        }
+
+        .cancel-time-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .cancel-time-label {
+            font-size: 12px;
+            color: #666;
+            min-width: 90px;
+        }
+
+        .cancel-time-bar {
+            flex: 1;
+            height: 16px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .cancel-time-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: #ef5350;
+        }
+
+        .cancel-time-value {
+            font-size: 12px;
+            color: #333;
+            font-weight: 600;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        /* ============================================
+           予約リードタイム分析 (B10)
+           ============================================ */
+        .leadtime-phases {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .leadtime-phases {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .leadtime-phase {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+            border-left: 4px solid #ccc;
+        }
+
+        .leadtime-phase.evening { border-left-color: #7E57C2; }
+        .leadtime-phase.night { border-left-color: #5C6BC0; }
+        .leadtime-phase.morning { border-left-color: #FFA726; }
+        .leadtime-phase.daytime { border-left-color: #66BB6A; }
+
+        .leadtime-phase .phase-label {
+            font-size: 11px;
+            color: #888;
+            font-weight: 600;
+        }
+
+        .leadtime-phase .phase-time {
+            font-size: 10px;
+            color: #aaa;
+            margin-bottom: 6px;
+        }
+
+        .leadtime-phase .phase-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: #333;
+        }
+
+        .leadtime-phase .phase-value small {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .leadtime-phase .phase-sub {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .leadtime-dayofweek {
+            margin-top: 12px;
+        }
+
+        .leadtime-dow-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 3px;
+        }
+
+        .leadtime-dow-label {
+            font-size: 12px;
+            color: #666;
+            min-width: 24px;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .leadtime-dow-bar {
+            flex: 1;
+            height: 18px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .leadtime-dow-seg {
+            height: 100%;
+            transition: width 0.5s;
+        }
+
+        .leadtime-dow-value {
+            font-size: 12px;
+            color: #333;
+            font-weight: 600;
+            min-width: 36px;
+            text-align: right;
+        }
+
     </style>
 </head>
 <body>
@@ -3104,6 +3384,26 @@
                 <div class="kpi-card-value" id="kpiFullTime" style="font-size: 28px;">--:--</div>
                 <div class="kpi-card-change neutral" id="kpiFullTimeChange">--</div>
             </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">午前 稼働率</div>
+                <div class="kpi-card-value" id="kpiAmUtil">--<small>%</small></div>
+                <div class="kpi-card-change neutral" id="kpiAmUtilChange">--</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">午後 稼働率</div>
+                <div class="kpi-card-value" id="kpiPmUtil">--<small>%</small></div>
+                <div class="kpi-card-change neutral" id="kpiPmUtilChange">--</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">キャンセル率</div>
+                <div class="kpi-card-value" id="kpiCancelRate">--<small>%</small></div>
+                <div class="kpi-card-change neutral" id="kpiCancelRateChange">--</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">午前/午後バランス</div>
+                <div class="kpi-card-value" id="kpiAmPmBalance" style="font-size: 22px;">--</div>
+                <div class="kpi-card-change neutral" id="kpiAmPmBalanceChange">--</div>
+            </div>
         </div>
 
         <!-- コントロール -->
@@ -3235,6 +3535,39 @@
             </div>
         </div>
 
+        <!-- 午前/午後別充足率 (B8) -->
+        <div class="chart-card">
+            <h3>🌅 午前/午後別 充足率分析<span class="help-icon" onclick="openHelpModal('ampmAnalysis')">?<span class="tooltip">午前（10:00-13:00）と午後（15:00-18:00）の稼働率を比較し、どちらに空きが偏っているかを分析します</span></span></h3>
+            <div id="ampmAnalysisContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span>データを読み込んでください</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- キャンセル分析 (B9) -->
+        <div class="chart-card">
+            <h3>🔄 キャンセル分析<span class="help-icon" onclick="openHelpModal('cancelAnalysis')">?<span class="tooltip">キャンセル（一度埋まった枠が再び空きになった回数）の傾向を分析。再充足時間はキャンセル後に再び埋まるまでの平均時間です</span></span></h3>
+            <div id="cancelAnalysisContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span>データを読み込んでください</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 予約リードタイム分析 (B10) -->
+        <div class="chart-card">
+            <h3>🕐 予約リードタイム分析<span class="help-icon" onclick="openHelpModal('leadtime')">?<span class="tooltip">予約がいつ入るかの時間帯パターン。枠公開（18:30）後、各フェーズでどの程度の枠が消化されるかを分析します</span></span></h3>
+            <div id="leadtimeContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span>データを読み込んでください</span>
+                </div>
+            </div>
+        </div>
+
         <!-- 弱い時間帯の可視化 (B3) -->
         <div class="chart-card">
             <h3>⚠️ 空きが目立つ時間帯（広告・キャンペーン候補）<span class="help-icon" onclick="openHelpModal('weakSlots')">?<span class="tooltip">常に空いている時間帯を特定</span></span></h3>
@@ -3301,10 +3634,10 @@
             </div>
         </div>
 
-        <!-- デバッグ用: Cloud Storageから取得した生データ -->
+        <!-- デバッグ用: Cloud Storageから取得した生データ (折りたたみ) -->
         <div class="chart-card">
-            <h3>🔧 取得データ確認（デバッグ用）</h3>
-            <div id="rawDataDebugContainer" style="max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; background: #f5f5f5; padding: 10px; border-radius: 8px;">
+            <h3 style="cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'; this.querySelector('.toggle-icon').textContent = this.nextElementSibling.style.display === 'none' ? '▶' : '▼';">🔧 取得データ確認（デバッグ用）<span class="toggle-icon" style="font-size: 12px; margin-left: 8px;">▶</span></h3>
+            <div id="rawDataDebugContainer" style="display: none; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; background: #f5f5f5; padding: 10px; border-radius: 8px;">
                 <span style="color: #888;">データを読み込んでください</span>
             </div>
         </div>
@@ -3312,7 +3645,7 @@
         </div><!-- /tab-analytics -->
 
         <footer>
-            <p>ふじみ野ひかり眼科 予約傾向ダッシュボード v2.0</p>
+            <p>ふじみ野ひかり眼科 予約傾向ダッシュボード v3.0</p>
             <p>データは1分ごとに更新されます（Cloud Run稼働時）</p>
         </footer>
     </div>
@@ -7090,6 +7423,75 @@
                     <p>個別の日の状況を確認したい場合に使います。「先週の月曜はどうだったか？」などの振り返りに便利です。</p>
                 `
             },
+            ampmAnalysis: {
+                title: '🌅 午前/午後別 充足率分析',
+                content: `
+                    <h3>表示内容</h3>
+                    <p><strong>午前（10:00〜13:00）</strong>と<strong>午後（15:00〜18:00）</strong>の稼働率を比較分析します。</p>
+
+                    <h3>計算方法</h3>
+                    <ul>
+                        <li>午前枠 13枠 / 午後枠 13枠 に対する使用率を算出</li>
+                        <li>判定時刻時点でのslot履歴データから、午前・午後それぞれの空き枠を分離して計算</li>
+                    </ul>
+
+                    <h3>曜日別バーグラフ</h3>
+                    <p>各曜日の午前・午後の稼働率を棒グラフで表示。どの曜日の午前/午後が弱いかが一目でわかります。</p>
+
+                    <h3>活用方法</h3>
+                    <div class="tip">
+                        午前と午後の稼働率差が大きい場合、低い方の時間帯に患者さんを誘導する施策（午後の予約割引、SNS告知など）が効果的です。
+                    </div>
+                `
+            },
+            cancelAnalysis: {
+                title: '🔄 キャンセル分析',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>キャンセル（一度埋まった予約枠が再び空きになったケース）の傾向を分析します。</p>
+
+                    <h3>主な指標</h3>
+                    <ul>
+                        <li><strong>総キャンセル数</strong> - 期間中に検出されたキャンセル回数</li>
+                        <li><strong>再充足率</strong> - キャンセルされた枠が再び予約で埋まった割合。高いほど良い</li>
+                        <li><strong>平均再充足時間</strong> - キャンセル発生から再び埋まるまでの平均時間</li>
+                        <li><strong>空席ロス率</strong> - キャンセル後、最終的に埋まらなかった枠の割合</li>
+                    </ul>
+
+                    <h3>キャンセル発生時間帯</h3>
+                    <p>キャンセルがいつ起きているかの分布です。当日朝のキャンセルは再充足されにくい傾向があります。</p>
+
+                    <h3>活用方法</h3>
+                    <div class="tip">
+                        空席ロス率が高い場合、キャンセル待ちシステムの導入やキャンセルポリシーの見直しを検討。<br>
+                        キャンセルが多い時間枠がわかれば、その枠のオーバーブッキングも検討可能です。
+                    </div>
+                `
+            },
+            leadtime: {
+                title: '🕐 予約リードタイム分析',
+                content: `
+                    <h3>表示内容</h3>
+                    <p>予約枠が公開された後、<strong>どの時間帯に予約が入るか</strong>のパターンを分析します。</p>
+
+                    <h3>4つのフェーズ</h3>
+                    <ul>
+                        <li><strong>前日夕方（18:30-23:59）</strong> - 予約公開直後の需要</li>
+                        <li><strong>深夜（0:00-6:59）</strong> - 深夜のオンライン予約</li>
+                        <li><strong>当日朝（7:00-9:59）</strong> - 朝の駆け込み予約</li>
+                        <li><strong>診療中（10:00-18:00）</strong> - 当日の来院予約・電話予約</li>
+                    </ul>
+
+                    <h3>曜日別スタックドバー</h3>
+                    <p>各曜日で、どのフェーズでの予約が多いかを色分けして表示します。</p>
+
+                    <h3>活用方法</h3>
+                    <div class="tip">
+                        前日夕方〜深夜に予約が集中するなら、夜間にSNSで空き枠を告知する施策が効果的。<br>
+                        当日朝に集中するなら、朝のLINE通知やWebサイトバナーでの案内が有効です。
+                    </div>
+                `
+            },
             fullThreshold: {
                 title: '⚙️ 満枠判定の設定',
                 content: `
@@ -7972,6 +8374,574 @@
         }
 
         // ========================================
+        // B8: 午前/午後別充足率分析
+        // ========================================
+        function updateAmPmAnalysis(generalData, shiyaData) {
+            const container = document.getElementById('ampmAnalysisContainer');
+            if (!container) return;
+
+            const data = currentType === 'general' ? generalData : shiyaData;
+            if (!data || Object.keys(data).length === 0) {
+                container.innerHTML = '<div class="no-data">データがありません</div>';
+                return;
+            }
+
+            const AM_COUNT = AM_SLOTS.length; // 13
+            const PM_COUNT = PM_SLOTS.length; // 13
+
+            // スロットが午前に属するかチェック（12:55→13:00マッピング対応）
+            function isAmSlot(slot) {
+                if (slot === '12:55') return true;
+                const [h] = slot.split(':').map(Number);
+                return h >= 10 && h <= 13;
+            }
+
+            // 日ごとにAM/PM空き枠を集計
+            let amTotalUsed = 0, amTotalCap = 0;
+            let pmTotalUsed = 0, pmTotalCap = 0;
+            let dayCount = 0;
+
+            // 曜日別AM/PM
+            const dowAmPm = {};
+            [0,1,2,3,4,5,6].forEach(d => { dowAmPm[d] = { amUsed: 0, amCap: 0, pmUsed: 0, pmCap: 0, days: 0 }; });
+
+            Object.values(data).forEach(dayData => {
+                if (!dayData.slotHistory || dayData.slotHistory.length === 0) return;
+                // checkTime に最も近い履歴エントリを取得
+                const history = dayData.slotHistory;
+                const [ch, cm] = checkTime.split(':').map(Number);
+                const targetMin = ch * 60 + cm;
+                let closest = null;
+                let closestDiff = Infinity;
+                for (const e of history) {
+                    const [h, m] = e.time.split(':').map(Number);
+                    const diff = Math.abs(h * 60 + m - targetMin);
+                    if (diff <= 15 && diff < closestDiff) {
+                        closestDiff = diff;
+                        closest = e;
+                    }
+                }
+                if (!closest || !closest.slots) return;
+
+                const slots = closest.slots;
+                let amFree = 0, pmFree = 0;
+                slots.forEach(s => {
+                    if (isAmSlot(s)) amFree++;
+                    else pmFree++;
+                });
+
+                const amUsed = AM_COUNT - amFree;
+                const pmUsed = PM_COUNT - pmFree;
+
+                amTotalUsed += amUsed;
+                amTotalCap += AM_COUNT;
+                pmTotalUsed += pmUsed;
+                pmTotalCap += PM_COUNT;
+                dayCount++;
+
+                if (dayData.dayOfWeek !== undefined) {
+                    const d = dayData.dayOfWeek;
+                    dowAmPm[d].amUsed += amUsed;
+                    dowAmPm[d].amCap += AM_COUNT;
+                    dowAmPm[d].pmUsed += pmUsed;
+                    dowAmPm[d].pmCap += PM_COUNT;
+                    dowAmPm[d].days++;
+                }
+            });
+
+            if (dayCount === 0) {
+                container.innerHTML = '<div class="no-data">slot履歴データが不足しています</div>';
+                return;
+            }
+
+            const amUtil = Math.round((amTotalUsed / amTotalCap) * 100);
+            const pmUtil = Math.round((pmTotalUsed / pmTotalCap) * 100);
+            const amAvgFree = Math.round((amTotalCap - amTotalUsed) / dayCount * 10) / 10;
+            const pmAvgFree = Math.round((pmTotalCap - pmTotalUsed) / dayCount * 10) / 10;
+            const typeName = currentType === 'general' ? '一般予約' : '視野予約';
+
+            let html = `<div style="font-size:12px; color:#888; margin-bottom:12px;">${typeName} - ${checkTime.replace(':00', '時')}時点（${dayCount}日間の平均）</div>`;
+            html += '<div class="ampm-analysis-grid">';
+
+            // 午前カード
+            html += `<div class="ampm-analysis-card am">
+                <h4>🌅 午前（10:00〜13:00）</h4>
+                <div class="ampm-stat-row"><span class="ampm-stat-label">稼働率</span><span class="ampm-stat-value" style="color:${amUtil >= 80 ? '#2E7D32' : amUtil >= 60 ? '#FF9800' : '#c62828'}">${amUtil}%</span></div>
+                <div class="ampm-stat-row"><span class="ampm-stat-label">平均空き枠</span><span class="ampm-stat-value">${amAvgFree}枠 / ${AM_COUNT}枠</span></div>
+                <div class="ampm-bar-chart">`;
+
+            // 曜日別の午前稼働率バー
+            [1,2,4,5,6,0].forEach(d => {
+                const stat = dowAmPm[d];
+                if (stat.days === 0) return;
+                const rate = Math.round((stat.amUsed / stat.amCap) * 100);
+                const color = rate >= 80 ? '#43a047' : rate >= 60 ? '#FF9800' : '#e53935';
+                html += `<div class="ampm-bar-row">
+                    <span class="ampm-bar-label">${DAY_NAMES[d]}</span>
+                    <div class="ampm-bar-track"><div class="ampm-bar-fill" style="width:${rate}%; background:${color};"></div></div>
+                    <span class="ampm-bar-value">${rate}%</span>
+                </div>`;
+            });
+
+            html += '</div></div>';
+
+            // 午後カード
+            html += `<div class="ampm-analysis-card pm">
+                <h4>🌆 午後（15:00〜18:00）</h4>
+                <div class="ampm-stat-row"><span class="ampm-stat-label">稼働率</span><span class="ampm-stat-value" style="color:${pmUtil >= 80 ? '#2E7D32' : pmUtil >= 60 ? '#FF9800' : '#c62828'}">${pmUtil}%</span></div>
+                <div class="ampm-stat-row"><span class="ampm-stat-label">平均空き枠</span><span class="ampm-stat-value">${pmAvgFree}枠 / ${PM_COUNT}枠</span></div>
+                <div class="ampm-bar-chart">`;
+
+            [1,2,4,5,6,0].forEach(d => {
+                const stat = dowAmPm[d];
+                if (stat.days === 0) return;
+                const rate = Math.round((stat.pmUsed / stat.pmCap) * 100);
+                const color = rate >= 80 ? '#43a047' : rate >= 60 ? '#FF9800' : '#e53935';
+                html += `<div class="ampm-bar-row">
+                    <span class="ampm-bar-label">${DAY_NAMES[d]}</span>
+                    <div class="ampm-bar-track"><div class="ampm-bar-fill" style="width:${rate}%; background:${color};"></div></div>
+                    <span class="ampm-bar-value">${rate}%</span>
+                </div>`;
+            });
+
+            html += '</div></div></div>';
+
+            // AM/PMの差が大きい場合のインサイト
+            const diff = Math.abs(amUtil - pmUtil);
+            if (diff >= 10) {
+                const weakPeriod = amUtil < pmUtil ? '午前' : '午後';
+                const strongPeriod = amUtil < pmUtil ? '午後' : '午前';
+                html += `<div style="margin-top:12px; padding:12px; background:#fff3e0; border-radius:8px; border-left:4px solid #FF9800; font-size:13px;">
+                    <strong>💡 インサイト:</strong> ${weakPeriod}の稼働率が${strongPeriod}より <strong>${diff}%</strong> 低くなっています。${weakPeriod}の時間帯へ患者さんを誘導する施策が効果的です。
+                </div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ========================================
+        // B9: キャンセル分析
+        // ========================================
+        function updateCancellationAnalysis(generalData, shiyaData) {
+            const container = document.getElementById('cancelAnalysisContainer');
+            if (!container) return;
+
+            const data = currentType === 'general' ? generalData : shiyaData;
+            if (!data || Object.keys(data).length === 0) {
+                container.innerHTML = '<div class="no-data">データがありません</div>';
+                return;
+            }
+
+            const allSlots = [...AM_SLOTS, ...PM_SLOTS].filter(s => s !== '13:00' && s !== '18:00').concat(['12:55', '17:55']);
+
+            let totalCancels = 0;
+            let totalRefills = 0;
+            let refillTimes = []; // キャンセル後の再充足時間（分）
+            let cancelsByTimeZone = { evening: 0, night: 0, morning: 0, daytime: 0 };
+            let cancelsByDow = {};
+            [0,1,2,3,4,5,6].forEach(d => cancelsByDow[d] = 0);
+            let daysWithData = 0;
+            let cancelsBySlot = {};
+            allSlots.forEach(s => cancelsBySlot[s] = 0);
+
+            Object.values(data).forEach(dayData => {
+                if (!dayData.slotHistory || dayData.slotHistory.length < 2) return;
+                daysWithData++;
+                const history = dayData.slotHistory;
+                let prevSlots = null;
+
+                for (let i = 0; i < history.length; i++) {
+                    const entry = history[i];
+                    const currentSlots = entry.slots || [];
+                    const [h, m] = entry.time.split(':').map(Number);
+
+                    if (prevSlots !== null) {
+                        // キャンセル = 前回なかったスロットが出現
+                        allSlots.forEach(slot => {
+                            const wasAvail = prevSlots.includes(slot) || (slot === '12:55' && prevSlots.includes('13:00')) || (slot === '17:55' && prevSlots.includes('18:00'));
+                            const isAvail = currentSlots.includes(slot) || (slot === '12:55' && currentSlots.includes('13:00')) || (slot === '17:55' && currentSlots.includes('18:00'));
+
+                            if (!wasAvail && isAvail) {
+                                // キャンセル検知
+                                totalCancels++;
+                                cancelsBySlot[slot]++;
+                                if (dayData.dayOfWeek !== undefined) cancelsByDow[dayData.dayOfWeek]++;
+
+                                // 時間帯分類
+                                if (h >= 18 || h < 0) cancelsByTimeZone.evening++;
+                                else if (h < 7) cancelsByTimeZone.night++;
+                                else if (h < 10) cancelsByTimeZone.morning++;
+                                else cancelsByTimeZone.daytime++;
+
+                                // 再充足チェック: 以降のエントリでこのスロットが消えるか
+                                for (let j = i + 1; j < history.length; j++) {
+                                    const futureSlots = history[j].slots || [];
+                                    const stillAvail = futureSlots.includes(slot) || (slot === '12:55' && futureSlots.includes('13:00')) || (slot === '17:55' && futureSlots.includes('18:00'));
+                                    if (!stillAvail) {
+                                        totalRefills++;
+                                        const [fh, fm] = history[j].time.split(':').map(Number);
+                                        let cancelMin = h * 60 + m;
+                                        let refillMin = fh * 60 + fm;
+                                        if (refillMin < cancelMin) refillMin += 24 * 60;
+                                        refillTimes.push(refillMin - cancelMin);
+                                        break;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    prevSlots = currentSlots;
+                }
+            });
+
+            const typeName = currentType === 'general' ? '一般予約' : '視野予約';
+
+            if (daysWithData === 0) {
+                container.innerHTML = '<div class="no-data">slot履歴データが不足しています</div>';
+                return;
+            }
+
+            const avgCancelsPerDay = daysWithData > 0 ? Math.round(totalCancels / daysWithData * 10) / 10 : 0;
+            const refillRate = totalCancels > 0 ? Math.round((totalRefills / totalCancels) * 100) : 0;
+            const avgRefillTime = refillTimes.length > 0 ? Math.round(refillTimes.reduce((a, b) => a + b, 0) / refillTimes.length) : 0;
+            const unrefilledRate = totalCancels > 0 ? Math.round(((totalCancels - totalRefills) / totalCancels) * 100) : 0;
+
+            let html = `<div style="font-size:12px; color:#888; margin-bottom:12px;">${typeName} - ${daysWithData}日間のキャンセル傾向分析</div>`;
+
+            // サマリーカード
+            html += '<div class="cancel-summary-grid">';
+            html += `<div class="cancel-stat-card"><div class="stat-label">総キャンセル数</div><div class="stat-value">${totalCancels}<small>回</small></div><div class="stat-sub">${avgCancelsPerDay}回/日</div></div>`;
+            html += `<div class="cancel-stat-card"><div class="stat-label">再充足率</div><div class="stat-value" style="color:${refillRate >= 70 ? '#2E7D32' : '#c62828'}">${refillRate}<small>%</small></div><div class="stat-sub">${totalRefills}/${totalCancels}回</div></div>`;
+
+            const refillHours = Math.floor(avgRefillTime / 60);
+            const refillMins = avgRefillTime % 60;
+            const refillStr = refillHours > 0 ? `${refillHours}h${refillMins}m` : `${refillMins}分`;
+            html += `<div class="cancel-stat-card"><div class="stat-label">平均再充足時間</div><div class="stat-value" style="font-size:20px;">${refillStr}</div><div class="stat-sub">キャンセル→再予約</div></div>`;
+            html += `<div class="cancel-stat-card"><div class="stat-label">空席ロス率</div><div class="stat-value" style="color:${unrefilledRate <= 30 ? '#2E7D32' : '#c62828'}">${unrefilledRate}<small>%</small></div><div class="stat-sub">再充足されなかった割合</div></div>`;
+            html += '</div>';
+
+            // キャンセル発生時間帯
+            const tzTotal = cancelsByTimeZone.evening + cancelsByTimeZone.night + cancelsByTimeZone.morning + cancelsByTimeZone.daytime;
+            if (tzTotal > 0) {
+                html += '<h4 style="font-size:14px; color:#555; margin:16px 0 8px;">キャンセル発生時間帯</h4>';
+                const zones = [
+                    { label: '前日夕方 (18:30-23:59)', count: cancelsByTimeZone.evening, color: '#7E57C2' },
+                    { label: '深夜 (0:00-6:59)', count: cancelsByTimeZone.night, color: '#5C6BC0' },
+                    { label: '当日朝 (7:00-9:59)', count: cancelsByTimeZone.morning, color: '#FFA726' },
+                    { label: '診療中 (10:00-18:00)', count: cancelsByTimeZone.daytime, color: '#66BB6A' }
+                ];
+                const maxCount = Math.max(...zones.map(z => z.count), 1);
+                html += '<div class="cancel-time-dist">';
+                zones.forEach(z => {
+                    const pct = Math.round((z.count / maxCount) * 100);
+                    const ratePct = Math.round((z.count / tzTotal) * 100);
+                    html += `<div class="cancel-time-row">
+                        <span class="cancel-time-label">${z.label}</span>
+                        <div class="cancel-time-bar"><div class="cancel-time-fill" style="width:${pct}%; background:${z.color};"></div></div>
+                        <span class="cancel-time-value">${z.count}回 (${ratePct}%)</span>
+                    </div>`;
+                });
+                html += '</div>';
+            }
+
+            // キャンセルが多いスロットTOP5
+            const slotRanking = allSlots.map(s => ({ slot: s, count: cancelsBySlot[s] }))
+                .filter(s => s.count > 0)
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 5);
+            if (slotRanking.length > 0) {
+                html += '<h4 style="font-size:14px; color:#555; margin:16px 0 8px;">キャンセルが多い時間枠 TOP5</h4>';
+                html += '<div style="display:flex; gap:8px; flex-wrap:wrap;">';
+                slotRanking.forEach((s, i) => {
+                    html += `<div style="background:#ffebee; padding:8px 14px; border-radius:8px; text-align:center;">
+                        <div style="font-size:11px; color:#888;">#${i + 1}</div>
+                        <div style="font-size:18px; font-weight:700; color:#c62828;">${s.slot}</div>
+                        <div style="font-size:12px; color:#666;">${s.count}回</div>
+                    </div>`;
+                });
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ========================================
+        // B10: 予約リードタイム分析
+        // ========================================
+        function updateLeadTimeAnalysis(generalData, shiyaData) {
+            const container = document.getElementById('leadtimeContainer');
+            if (!container) return;
+
+            const data = currentType === 'general' ? generalData : shiyaData;
+            if (!data || Object.keys(data).length === 0) {
+                container.innerHTML = '<div class="no-data">データがありません</div>';
+                return;
+            }
+
+            const TOTAL_SLOTS = AM_SLOTS.length + PM_SLOTS.length;
+
+            // フェーズ定義（枠公開18:30を起点とした各時間帯）
+            // evening: 18:30-23:59, night: 0:00-6:59, morning: 7:00-9:59, daytime: 10:00-18:00
+            const phases = { evening: [], night: [], morning: [], daytime: [] };
+            const dowPhases = {};
+            [0,1,2,3,4,5,6].forEach(d => {
+                dowPhases[d] = { evening: [], night: [], morning: [], daytime: [], total: [] };
+            });
+
+            Object.values(data).forEach(dayData => {
+                if (!dayData.slotHistory || dayData.slotHistory.length < 2) return;
+                const history = dayData.slotHistory;
+
+                // 各フェーズの終了時点での消化枠数を集計
+                let firstCount = null;
+                let eveningEnd = null, nightEnd = null, morningEnd = null, daytimeEnd = null;
+
+                history.forEach(entry => {
+                    const [h, m] = entry.time.split(':').map(Number);
+                    if (firstCount === null) firstCount = entry.count;
+
+                    // フェーズごとの最後のエントリを記録
+                    if (h >= 18) eveningEnd = entry.count;
+                    else if (h < 7) nightEnd = entry.count;
+                    else if (h < 10) morningEnd = entry.count;
+                    else daytimeEnd = entry.count;
+                });
+
+                if (firstCount === null) return;
+
+                // 各フェーズでの消化数（前フェーズ末 - 当フェーズ末）
+                const startCount = firstCount;
+                const eEnd = eveningEnd !== null ? eveningEnd : startCount;
+                const nEnd = nightEnd !== null ? nightEnd : eEnd;
+                const mEnd = morningEnd !== null ? morningEnd : nEnd;
+                const dEnd = daytimeEnd !== null ? daytimeEnd : mEnd;
+
+                const eveningFilled = startCount - eEnd;
+                const nightFilled = eEnd - nEnd;
+                const morningFilled = nEnd - mEnd;
+                const daytimeFilled = mEnd - dEnd;
+
+                if (eveningFilled >= 0) phases.evening.push(eveningFilled);
+                if (nightFilled >= 0) phases.night.push(nightFilled);
+                if (morningFilled >= 0) phases.morning.push(morningFilled);
+                if (daytimeFilled >= 0) phases.daytime.push(daytimeFilled);
+
+                // 曜日別
+                if (dayData.dayOfWeek !== undefined) {
+                    const d = dayData.dayOfWeek;
+                    const totalFilled = TOTAL_SLOTS - (daytimeEnd !== null ? daytimeEnd : startCount);
+                    if (eveningFilled >= 0) dowPhases[d].evening.push(eveningFilled);
+                    if (nightFilled >= 0) dowPhases[d].night.push(nightFilled);
+                    if (morningFilled >= 0) dowPhases[d].morning.push(morningFilled);
+                    if (daytimeFilled >= 0) dowPhases[d].daytime.push(daytimeFilled);
+                    if (totalFilled >= 0) dowPhases[d].total.push(totalFilled);
+                }
+            });
+
+            const avg = arr => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+            const typeName = currentType === 'general' ? '一般予約' : '視野予約';
+
+            const eAvg = Math.round(avg(phases.evening) * 10) / 10;
+            const nAvg = Math.round(avg(phases.night) * 10) / 10;
+            const mAvg = Math.round(avg(phases.morning) * 10) / 10;
+            const dAvg = Math.round(avg(phases.daytime) * 10) / 10;
+            const totalAvg = eAvg + nAvg + mAvg + dAvg;
+            const daysAnalyzed = Math.max(phases.evening.length, phases.night.length, phases.morning.length, phases.daytime.length);
+
+            let html = `<div style="font-size:12px; color:#888; margin-bottom:12px;">${typeName} - ${daysAnalyzed}日間の平均。各フェーズで何枠消化されるか</div>`;
+
+            // フェーズカード
+            html += '<div class="leadtime-phases">';
+            const phaseData = [
+                { cls: 'evening', label: '前日夕方', time: '18:30-23:59', val: eAvg, pct: totalAvg > 0 ? Math.round(eAvg / totalAvg * 100) : 0 },
+                { cls: 'night', label: '深夜', time: '0:00-6:59', val: nAvg, pct: totalAvg > 0 ? Math.round(nAvg / totalAvg * 100) : 0 },
+                { cls: 'morning', label: '当日朝', time: '7:00-9:59', val: mAvg, pct: totalAvg > 0 ? Math.round(mAvg / totalAvg * 100) : 0 },
+                { cls: 'daytime', label: '診療中', time: '10:00-18:00', val: dAvg, pct: totalAvg > 0 ? Math.round(dAvg / totalAvg * 100) : 0 }
+            ];
+            phaseData.forEach(p => {
+                html += `<div class="leadtime-phase ${p.cls}">
+                    <div class="phase-label">${p.label}</div>
+                    <div class="phase-time">${p.time}</div>
+                    <div class="phase-value">${p.val}<small>枠</small></div>
+                    <div class="phase-sub">全体の${p.pct}%</div>
+                </div>`;
+            });
+            html += '</div>';
+
+            // インサイト
+            const maxPhase = phaseData.reduce((max, p) => p.val > max.val ? p : max, phaseData[0]);
+            if (totalAvg > 0) {
+                html += `<div style="margin:12px 0; padding:12px; background:#e8f5e9; border-radius:8px; border-left:4px solid #43a047; font-size:13px;">
+                    <strong>💡 インサイト:</strong> 予約の ${maxPhase.pct}% は <strong>「${maxPhase.label}（${maxPhase.time}）」</strong> に集中しています。
+                    ${maxPhase.cls === 'evening' || maxPhase.cls === 'night' ? '翌日の予約は前夜〜早朝のうちに大半が確定するパターンです。' : ''}
+                    ${maxPhase.cls === 'morning' ? '当日朝に駆け込み予約が多いパターンです。朝の告知が効果的です。' : ''}
+                    ${maxPhase.cls === 'daytime' ? '診療時間中の当日予約が多いパターンです。院内での案内が効果的です。' : ''}
+                </div>`;
+            }
+
+            // 曜日別スタックドバー
+            html += '<h4 style="font-size:14px; color:#555; margin:16px 0 8px;">曜日別 消化パターン</h4>';
+            html += '<div class="leadtime-dayofweek">';
+            const phaseColors = ['#7E57C2', '#5C6BC0', '#FFA726', '#66BB6A'];
+            [1,2,4,5,6,0].forEach(d => {
+                const dp = dowPhases[d];
+                if (dp.total.length === 0) return;
+                const eVal = avg(dp.evening);
+                const nVal = avg(dp.night);
+                const mVal = avg(dp.morning);
+                const dVal = avg(dp.daytime);
+                const total = eVal + nVal + mVal + dVal;
+                if (total === 0) return;
+
+                const segments = [eVal, nVal, mVal, dVal];
+                html += `<div class="leadtime-dow-row">
+                    <span class="leadtime-dow-label">${DAY_NAMES[d]}</span>
+                    <div class="leadtime-dow-bar">`;
+                segments.forEach((seg, i) => {
+                    const pct = (seg / total * 100).toFixed(1);
+                    html += `<div class="leadtime-dow-seg" style="width:${pct}%; background:${phaseColors[i]};" title="${phaseData[i].label}: ${Math.round(seg * 10) / 10}枠"></div>`;
+                });
+                html += `</div>
+                    <span class="leadtime-dow-value">${Math.round(total)}枠</span>
+                </div>`;
+            });
+            html += '</div>';
+
+            // 凡例
+            html += '<div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; font-size:11px; color:#666;">';
+            phaseData.forEach((p, i) => {
+                html += `<div style="display:flex; align-items:center; gap:4px;"><div style="width:12px; height:12px; border-radius:2px; background:${phaseColors[i]};"></div>${p.label}</div>`;
+            });
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
+        // ========================================
+        // KPIカード拡張: 午前/午後稼働率・キャンセル率
+        // ========================================
+        function updateExtendedKPICards(generalData, shiyaData) {
+            const data = currentType === 'general' ? generalData : shiyaData;
+            if (!data || Object.keys(data).length === 0) return;
+
+            const AM_COUNT = AM_SLOTS.length;
+            const PM_COUNT = PM_SLOTS.length;
+
+            function isAmSlot(slot) {
+                if (slot === '12:55') return true;
+                const [h] = slot.split(':').map(Number);
+                return h >= 10 && h <= 13;
+            }
+
+            let amTotalUsed = 0, amTotalCap = 0, pmTotalUsed = 0, pmTotalCap = 0;
+            let totalCancels = 0, totalFilledSlots = 0;
+            let dayCount = 0;
+
+            // 期間を前半・後半に分割
+            const sortedDates = Object.keys(data).sort();
+            const midIdx = Math.floor(sortedDates.length / 2);
+            let recentAmUsed = 0, recentAmCap = 0, recentPmUsed = 0, recentPmCap = 0;
+            let prevAmUsed = 0, prevAmCap = 0, prevPmUsed = 0, prevPmCap = 0;
+
+            const allSlots = [...AM_SLOTS, ...PM_SLOTS].filter(s => s !== '13:00' && s !== '18:00').concat(['12:55', '17:55']);
+
+            sortedDates.forEach((date, idx) => {
+                const dayData = data[date];
+                if (!dayData.slotHistory || dayData.slotHistory.length < 2) return;
+                const history = dayData.slotHistory;
+
+                // AM/PM稼働率
+                const [ch, cm] = checkTime.split(':').map(Number);
+                const targetMin = ch * 60 + cm;
+                let closest = null;
+                let closestDiff = Infinity;
+                for (const e of history) {
+                    const [h, m] = e.time.split(':').map(Number);
+                    const diff = Math.abs(h * 60 + m - targetMin);
+                    if (diff <= 15 && diff < closestDiff) { closestDiff = diff; closest = e; }
+                }
+                if (closest && closest.slots) {
+                    let amFree = 0, pmFree = 0;
+                    closest.slots.forEach(s => { if (isAmSlot(s)) amFree++; else pmFree++; });
+                    const amU = AM_COUNT - amFree;
+                    const pmU = PM_COUNT - pmFree;
+                    amTotalUsed += amU; amTotalCap += AM_COUNT;
+                    pmTotalUsed += pmU; pmTotalCap += PM_COUNT;
+                    dayCount++;
+
+                    if (idx >= midIdx) {
+                        recentAmUsed += amU; recentAmCap += AM_COUNT;
+                        recentPmUsed += pmU; recentPmCap += PM_COUNT;
+                    } else {
+                        prevAmUsed += amU; prevAmCap += AM_COUNT;
+                        prevPmUsed += pmU; prevPmCap += PM_COUNT;
+                    }
+                }
+
+                // キャンセル数
+                let prevSlotsArr = null;
+                history.forEach(entry => {
+                    const currentSlotsArr = entry.slots || [];
+                    if (prevSlotsArr !== null) {
+                        allSlots.forEach(slot => {
+                            const wasAvail = prevSlotsArr.includes(slot) || (slot === '12:55' && prevSlotsArr.includes('13:00')) || (slot === '17:55' && prevSlotsArr.includes('18:00'));
+                            const isAvail = currentSlotsArr.includes(slot) || (slot === '12:55' && currentSlotsArr.includes('13:00')) || (slot === '17:55' && currentSlotsArr.includes('18:00'));
+                            if (!wasAvail && isAvail) totalCancels++;
+                            if (wasAvail && !isAvail) totalFilledSlots++;
+                        });
+                    }
+                    prevSlotsArr = currentSlotsArr;
+                });
+            });
+
+            // 午前稼働率
+            const amUtil = amTotalCap > 0 ? Math.round((amTotalUsed / amTotalCap) * 100) : 0;
+            const recentAmUtil = recentAmCap > 0 ? Math.round((recentAmUsed / recentAmCap) * 100) : 0;
+            const prevAmUtil = prevAmCap > 0 ? Math.round((prevAmUsed / prevAmCap) * 100) : 0;
+            const amDiff = recentAmUtil - prevAmUtil;
+            document.getElementById('kpiAmUtil').innerHTML = `${amUtil}<small>%</small>`;
+            const amEl = document.getElementById('kpiAmUtilChange');
+            amEl.textContent = amDiff > 0 ? `+${amDiff}% ↑ 前期比` : amDiff < 0 ? `${amDiff}% ↓ 前期比` : '±0% 前期比';
+            amEl.className = `kpi-card-change ${amDiff > 0 ? 'positive' : amDiff < 0 ? 'negative' : 'neutral'}`;
+
+            // 午後稼働率
+            const pmUtil = pmTotalCap > 0 ? Math.round((pmTotalUsed / pmTotalCap) * 100) : 0;
+            const recentPmUtil = recentPmCap > 0 ? Math.round((recentPmUsed / recentPmCap) * 100) : 0;
+            const prevPmUtil = prevPmCap > 0 ? Math.round((prevPmUsed / prevPmCap) * 100) : 0;
+            const pmDiff = recentPmUtil - prevPmUtil;
+            document.getElementById('kpiPmUtil').innerHTML = `${pmUtil}<small>%</small>`;
+            const pmEl = document.getElementById('kpiPmUtilChange');
+            pmEl.textContent = pmDiff > 0 ? `+${pmDiff}% ↑ 前期比` : pmDiff < 0 ? `${pmDiff}% ↓ 前期比` : '±0% 前期比';
+            pmEl.className = `kpi-card-change ${pmDiff > 0 ? 'positive' : pmDiff < 0 ? 'negative' : 'neutral'}`;
+
+            // キャンセル率
+            const totalTransactions = totalCancels + totalFilledSlots;
+            const cancelRate = totalTransactions > 0 ? Math.round((totalCancels / totalTransactions) * 100) : 0;
+            document.getElementById('kpiCancelRate').innerHTML = `${cancelRate}<small>%</small>`;
+            const cancelEl = document.getElementById('kpiCancelRateChange');
+            cancelEl.textContent = dayCount > 0 ? `${Math.round(totalCancels / dayCount * 10) / 10}回/日` : '--';
+            cancelEl.className = 'kpi-card-change neutral';
+
+            // AM/PMバランス
+            const balanceDiff = amUtil - pmUtil;
+            let balanceText, balanceClass;
+            if (Math.abs(balanceDiff) <= 5) {
+                balanceText = '均衡';
+                balanceClass = 'neutral';
+            } else if (balanceDiff > 0) {
+                balanceText = `午前+${balanceDiff}%`;
+                balanceClass = 'neutral';
+            } else {
+                balanceText = `午後+${Math.abs(balanceDiff)}%`;
+                balanceClass = 'neutral';
+            }
+            document.getElementById('kpiAmPmBalance').textContent = balanceText;
+            const balEl = document.getElementById('kpiAmPmBalanceChange');
+            balEl.textContent = `午前${amUtil}% / 午後${pmUtil}%`;
+            balEl.className = `kpi-card-change ${balanceClass}`;
+        }
+
+        // ========================================
         // updateAllCharts を拡張（B機能を追加）
         // ========================================
         const _originalUpdateAllCharts = updateAllCharts;
@@ -7980,7 +8950,11 @@
             const gd = processedData['general'] || {};
             const sd = processedData['shiya'] || {};
             updateKPICards(gd, sd);
+            updateExtendedKPICards(gd, sd);
             updateUtilizationChart(gd, sd);
+            updateAmPmAnalysis(gd, sd);
+            updateCancellationAnalysis(gd, sd);
+            updateLeadTimeAnalysis(gd, sd);
             updateWeakSlots(gd, sd);
             updateBookingSpeed(gd, sd);
             updateSeasonalHeatmap(gd, sd);
