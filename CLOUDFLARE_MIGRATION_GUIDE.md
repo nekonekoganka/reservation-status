@@ -17,7 +17,7 @@ GitHub Pages → Cloudflare Pages に静的サイトホスティングを移行�
 | 観点 | 現状（パブリック） | プライベート化後 |
 |---|---|---|
 | スクレイピングロジック | Puppeteerコードが公開 | 非公開 |
-| GCPプロジェクトID | `forward-script-470815-c5` が公開 | 非公開 |
+| GCPプロジェクトID | `<YOUR_PROJECT_ID>` が公開 | 非公開 |
 | インフラ構成 | Cloud Scheduler頻度等が公開 | 非公開 |
 | CK Reserve予約URL | スクレイピング対象URLが公開 | 非公開 |
 

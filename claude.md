@@ -102,7 +102,7 @@ gcloud run deploy reservation-timeslot-checker-unified \
 
 ## Google Cloud リソース
 
-- プロジェクトID: `forward-script-470815-c5`
+- プロジェクトID: `<YOUR_PROJECT_ID>`
 - リージョン: `asia-northeast1`
 - バケット: `reservation-timeslots-fujiminohikari`
 

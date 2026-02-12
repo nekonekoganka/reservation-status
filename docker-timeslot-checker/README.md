@@ -138,7 +138,7 @@ cd docker-timeslot-checker
 
 ```bash
 # プロジェクトIDを設定
-gcloud config set project forward-script-470815-c5
+gcloud config set project <YOUR_PROJECT_ID>
 ```
 
 #### 2-3. Cloud Runにデプロイ

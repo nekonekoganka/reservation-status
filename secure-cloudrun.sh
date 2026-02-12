@@ -20,11 +20,19 @@
 
 set -e
 
-# --- 設定 ---
-PROJECT_ID="forward-script-470815-c5"
-REGION="asia-northeast1"
-SERVICE_NAME="reservation-timeslot-checker-unified"
-CLOUD_RUN_URL="https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app"
+# --- 設定（.env ファイルまたは環境変数から読み込み） ---
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$SCRIPT_DIR/.env" ]; then
+  echo "  .env ファイルから設定を読み込み中..."
+  # shellcheck disable=SC1091
+  source "$SCRIPT_DIR/.env"
+fi
+
+PROJECT_ID="${GCP_PROJECT_ID:?'.env に GCP_PROJECT_ID を設定してください'}"
+REGION="${GCP_REGION:-asia-northeast1}"
+SERVICE_NAME="${CLOUD_RUN_SERVICE_NAME:-reservation-timeslot-checker-unified}"
+# CLOUD_RUN_URL は動的に取得（プロジェクト番号のハードコードを回避）
+CLOUD_RUN_URL="${CLOUD_RUN_URL:-}"
 
 # Cloud Scheduler ジョブ名一覧（全11ジョブ）
 SCHEDULER_JOBS=(
@@ -58,14 +66,26 @@ gcloud config set project "$PROJECT_ID"
 echo -e "${GREEN}  → プロジェクト: ${PROJECT_ID}${NC}"
 echo ""
 
-# --- Step 1: サービスアカウントを取得 ---
-echo -e "${YELLOW}[Step 1] サービスアカウントを取得中...${NC}"
+# --- Step 1: サービスアカウントと Cloud Run URL を取得 ---
+echo -e "${YELLOW}[Step 1] サービスアカウントと Cloud Run URL を取得中...${NC}"
 
 # デフォルトの Compute Engine サービスアカウントを取得
 PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
 SERVICE_ACCOUNT="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
 
+# Cloud Run URL を動的に取得（環境変数で未設定の場合）
+if [ -z "$CLOUD_RUN_URL" ]; then
+  CLOUD_RUN_URL=$(gcloud run services describe "$SERVICE_NAME" \
+    --region="$REGION" \
+    --format='value(status.url)' 2>/dev/null || echo "")
+  if [ -z "$CLOUD_RUN_URL" ]; then
+    echo -e "${RED}  → Cloud Run サービス '${SERVICE_NAME}' の URL を取得できません${NC}"
+    exit 1
+  fi
+fi
+
 echo -e "${GREEN}  → サービスアカウント: ${SERVICE_ACCOUNT}${NC}"
+echo -e "${GREEN}  → Cloud Run URL: ${CLOUD_RUN_URL}${NC}"
 echo ""
 
 # --- Step 2: サービスアカウントに Cloud Run 起動権限を付与 ---

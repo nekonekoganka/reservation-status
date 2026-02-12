@@ -1,5 +1,7 @@
 # Cloud Run 認証追加 作業ガイド（Claude 引き継ぎ用）
 
+> **注意**: このドキュメント内の `<YOUR_PROJECT_ID>`, `<YOUR_PROJECT_NUMBER>`, `<YOUR_CLOUD_RUN_URL>` は `.env` ファイルの実際の値に置き換えてください。
+
 ## 作業ステータス: 完了済み (2026-02-12)
 
 全ステップを Cloud Shell にて実施済み。以下は記録と、今後の再設定・ロールバック用の手順書。
@@ -22,12 +24,12 @@ Cloud Run の URL がソースコード内にハードコードされており�
 
 | 項目 | 値 |
 |------|-----|
-| GCP プロジェクトID | `forward-script-470815-c5` |
-| プロジェクト番号 | `224924651996` |
+| GCP プロジェクトID | `<YOUR_PROJECT_ID>` |
+| プロジェクト番号 | `<YOUR_PROJECT_NUMBER>` |
 | リージョン | `asia-northeast1` |
 | Cloud Run サービス名 | `reservation-timeslot-checker-unified` |
-| Cloud Run URL | `https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app` |
-| サービスアカウント | `224924651996-compute@developer.gserviceaccount.com` |
+| Cloud Run URL | `<YOUR_CLOUD_RUN_URL>` |
+| サービスアカウント | `<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com` |
 
 ---
 
@@ -77,7 +79,7 @@ bash secure-cloudrun.sh
 ### Step 1: プロジェクト設定
 
 ```bash
-gcloud config set project forward-script-470815-c5
+gcloud config set project <YOUR_PROJECT_ID>
 ```
 
 ### Step 2: サービスアカウントに権限付与
@@ -85,7 +87,7 @@ gcloud config set project forward-script-470815-c5
 ```bash
 gcloud run services add-iam-policy-binding reservation-timeslot-checker-unified \
   --region=asia-northeast1 \
-  --member="serviceAccount:224924651996-compute@developer.gserviceaccount.com" \
+  --member="serviceAccount:<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com" \
   --role="roles/run.invoker" \
   --quiet
 ```
@@ -114,68 +116,68 @@ gcloud run services remove-iam-policy-binding reservation-timeslot-checker-unifi
 ```bash
 gcloud scheduler jobs update http timeslot-checker-unified-general-morning \
   --location=asia-northeast1 \
-  --oidc-service-account-email=224924651996-compute@developer.gserviceaccount.com \
-  --oidc-token-audience=https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app \
+  --oidc-service-account-email=<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com \
+  --oidc-token-audience=<YOUR_CLOUD_RUN_URL> \
   --quiet
 
 gcloud scheduler jobs update http timeslot-checker-unified-general-afternoon \
   --location=asia-northeast1 \
-  --oidc-service-account-email=224924651996-compute@developer.gserviceaccount.com \
-  --oidc-token-audience=https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app \
+  --oidc-service-account-email=<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com \
+  --oidc-token-audience=<YOUR_CLOUD_RUN_URL> \
   --quiet
 
 gcloud scheduler jobs update http timeslot-checker-unified-general-offpeak \
   --location=asia-northeast1 \
-  --oidc-service-account-email=224924651996-compute@developer.gserviceaccount.com \
-  --oidc-token-audience=https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app \
+  --oidc-service-account-email=<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com \
+  --oidc-token-audience=<YOUR_CLOUD_RUN_URL> \
   --quiet
 
 gcloud scheduler jobs update http timeslot-checker-unified-general-wed \
   --location=asia-northeast1 \
-  --oidc-service-account-email=224924651996-compute@developer.gserviceaccount.com \
-  --oidc-token-audience=https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app \
+  --oidc-service-account-email=<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com \
+  --oidc-token-audience=<YOUR_CLOUD_RUN_URL> \
   --quiet
 
 gcloud scheduler jobs update http timeslot-checker-unified-shiya-daytime \
   --location=asia-northeast1 \
-  --oidc-service-account-email=224924651996-compute@developer.gserviceaccount.com \
-  --oidc-token-audience=https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app \
+  --oidc-service-account-email=<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com \
+  --oidc-token-audience=<YOUR_CLOUD_RUN_URL> \
   --quiet
 
 gcloud scheduler jobs update http timeslot-checker-unified-shiya-offpeak \
   --location=asia-northeast1 \
-  --oidc-service-account-email=224924651996-compute@developer.gserviceaccount.com \
-  --oidc-token-audience=https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app \
+  --oidc-service-account-email=<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com \
+  --oidc-token-audience=<YOUR_CLOUD_RUN_URL> \
   --quiet
 
 gcloud scheduler jobs update http timeslot-checker-unified-shiya-wed \
   --location=asia-northeast1 \
-  --oidc-service-account-email=224924651996-compute@developer.gserviceaccount.com \
-  --oidc-token-audience=https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app \
+  --oidc-service-account-email=<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com \
+  --oidc-token-audience=<YOUR_CLOUD_RUN_URL> \
   --quiet
 
 gcloud scheduler jobs update http generate-daily-summary-general \
   --location=asia-northeast1 \
-  --oidc-service-account-email=224924651996-compute@developer.gserviceaccount.com \
-  --oidc-token-audience=https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app \
+  --oidc-service-account-email=<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com \
+  --oidc-token-audience=<YOUR_CLOUD_RUN_URL> \
   --quiet
 
 gcloud scheduler jobs update http generate-daily-summary-shiya \
   --location=asia-northeast1 \
-  --oidc-service-account-email=224924651996-compute@developer.gserviceaccount.com \
-  --oidc-token-audience=https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app \
+  --oidc-service-account-email=<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com \
+  --oidc-token-audience=<YOUR_CLOUD_RUN_URL> \
   --quiet
 
 gcloud scheduler jobs update http monthly-summary-unified \
   --location=asia-northeast1 \
-  --oidc-service-account-email=224924651996-compute@developer.gserviceaccount.com \
-  --oidc-token-audience=https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app \
+  --oidc-service-account-email=<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com \
+  --oidc-token-audience=<YOUR_CLOUD_RUN_URL> \
   --quiet
 
 gcloud scheduler jobs update http monthly-summary-unified-shiya \
   --location=asia-northeast1 \
-  --oidc-service-account-email=224924651996-compute@developer.gserviceaccount.com \
-  --oidc-token-audience=https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app \
+  --oidc-service-account-email=<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com \
+  --oidc-token-audience=<YOUR_CLOUD_RUN_URL> \
   --quiet
 ```
 
@@ -183,7 +185,7 @@ gcloud scheduler jobs update http monthly-summary-unified-shiya \
 
 ```bash
 # 認証なしアクセスが拒否されることを確認（403が返ればOK）
-curl -s -o /dev/null -w "%{http_code}" https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/
+curl -s -o /dev/null -w "%{http_code}" <YOUR_CLOUD_RUN_URL>/
 
 # Scheduler ジョブの一覧を確認
 gcloud scheduler jobs list --location=asia-northeast1
@@ -213,8 +215,8 @@ gcloud run services logs read reservation-timeslot-checker-unified --region=asia
 3. 「Auth ヘッダーを表示」または「認証ヘッダー」セクションを展開
 4. 以下を設定：
    - **認証ヘッダー**: `OIDC トークンを追加`
-   - **サービスアカウント**: `224924651996-compute@developer.gserviceaccount.com`
-   - **対象**: `https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app`
+   - **サービスアカウント**: `<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com`
+   - **対象**: `<YOUR_CLOUD_RUN_URL>`
 5. 「更新」をクリック
 6. **11ジョブ全てに同じ設定を繰り返す**
 
@@ -235,7 +237,7 @@ gcloud run services logs read reservation-timeslot-checker-unified --region=asia
 
 1. Cloud Run → `reservation-timeslot-checker-unified` → 「権限」タブ
 2. 「プリンシパルを追加」
-3. **新しいプリンシパル**: `224924651996-compute@developer.gserviceaccount.com`
+3. **新しいプリンシパル**: `<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com`
 4. **ロール**: `Cloud Run 起動元`（Cloud Run Invoker）
 5. 「保存」
 
@@ -243,7 +245,7 @@ gcloud run services logs read reservation-timeslot-checker-unified --region=asia
 
 ## 完了後の確認チェックリスト
 
-- [ ] ブラウザで `https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/` にアクセス → **403 Forbidden** が返る
+- [ ] ブラウザで `<YOUR_CLOUD_RUN_URL>/` にアクセス → **403 Forbidden** が返る
 - [ ] Cloud Scheduler のジョブを1つ手動実行 → 成功する
 - [ ] `https://storage.googleapis.com/reservation-timeslots-fujiminohikari/timeslots.json` がまだ更新されている
 - [ ] ダッシュボード `https://nekonekoganka.github.io/reservation-status/dashboard.html` が正常に動作
