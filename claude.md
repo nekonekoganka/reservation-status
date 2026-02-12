@@ -116,4 +116,38 @@ https://nekonekoganka.github.io/reservation-status/
 - `DEPLOY_GUIDE.md` - デプロイ手順
 - `DEPLOY_UNIFIED_SERVICE.md` - 統合版デプロイ詳細
 - `COST_OPTIMIZATION_GUIDE.md` - コスト最適化
+- `SECURE_CLOUDRUN_GUIDE.md` - Cloud Run セキュリティ設定ガイド
 - `docs/handover-to-claude-code.md` - 引き継ぎ資料
+
+## 作業履歴
+
+### 2026-02-12: Cloud Run セキュリティ対策（完了）
+
+**背景**: GitHub リポジトリを public に変更したことで、Cloud Run の URL が外部に露出。不正アクセスによるコスト増加リスクがあった。
+
+**実施内容**:
+1. `secure-cloudrun.sh` スクリプト作成・改修
+   - `.env` ファイルからの設定読み込み対応
+   - GCP プロジェクト番号のハードコードを排除
+   - `--no-allow-unauthenticated` → `remove-iam-policy-binding` 方式に修正（Cloud Shell 互換性）
+2. `.env.example` テンプレート追加（`.env` は `.gitignore` 済み）
+3. `SECURE_CLOUDRUN_GUIDE.md` 作業手順書を作成・更新
+4. 全ドキュメントからハードコードされた GCP 情報をプレースホルダーに置換
+
+**Cloud Shell での実行結果**:
+- Step 0-2: プロジェクト設定、サービスアカウント取得、Invoker 権限付与 → OK
+- Step 3: allUsers 権限削除（認証必須化） → OK（既に適用済み）
+- Step 4: Cloud Scheduler 全11ジョブに OIDC 認証追加 → **11/11 成功**
+- Step 5: 設定確認 → 全ジョブ ENABLED
+- Step 6: 動作テスト → HTTP 403（認証なし拒否）確認済み、Scheduler 経由の認証アクセスも正常動作確認
+
+**影響範囲**:
+- Cloud Run: 認証なしアクセス → 403 Forbidden（外部からの不正利用をブロック）
+- Cloud Scheduler: OIDC トークン認証で従来通り動作
+- HTML/Android/Chrome拡張: 影響なし（Cloud Storage 経由のため）
+
+**ロールバック手順**:
+```bash
+gcloud run services add-iam-policy-binding reservation-timeslot-checker-unified \
+  --region=asia-northeast1 --member=allUsers --role=roles/run.invoker
+```
