@@ -81,14 +81,19 @@ echo -e "${GREEN}  → 権限付与完了${NC}"
 echo ""
 
 # --- Step 3: Cloud Run を認証必須に変更 ---
-echo -e "${YELLOW}[Step 3] Cloud Run を認証必須に変更中...${NC}"
+# 注: --no-allow-unauthenticated は Cloud Shell の gcloud バージョンによっては
+#     非対応のため、allUsers の run.invoker 権限を削除する方式を使用する。
+echo -e "${YELLOW}[Step 3] Cloud Run を認証必須に変更中（allUsers 権限を削除）...${NC}"
 
-gcloud run services update "$SERVICE_NAME" \
+if gcloud run services remove-iam-policy-binding "$SERVICE_NAME" \
   --region="$REGION" \
-  --no-allow-unauthenticated \
-  --quiet
-
-echo -e "${GREEN}  → 認証必須に変更完了${NC}"
+  --member="allUsers" \
+  --role="roles/run.invoker" \
+  --quiet 2>/dev/null; then
+  echo -e "${GREEN}  → 認証必須に変更完了（allUsers を削除）${NC}"
+else
+  echo -e "${YELLOW}  → allUsers バインディングが既に存在しません（認証必須済み）${NC}"
+fi
 echo ""
 
 # --- Step 4: 全 Cloud Scheduler ジョブに OIDC 認証を追加 ---
@@ -173,6 +178,6 @@ echo "  - Chrome 拡張機能"
 echo "  - Cloud Storage の公開 URL"
 echo ""
 echo "ロールバックする場合:"
-echo "  gcloud run services update ${SERVICE_NAME} \\"
-echo "    --region=${REGION} --allow-unauthenticated"
+echo "  gcloud run services add-iam-policy-binding ${SERVICE_NAME} \\"
+echo "    --region=${REGION} --member=allUsers --role=roles/run.invoker"
 echo ""

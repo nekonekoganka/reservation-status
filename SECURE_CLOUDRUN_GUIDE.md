@@ -1,11 +1,20 @@
 # Cloud Run 認証追加 作業ガイド（Claude 引き継ぎ用）
 
+## 作業ステータス: 完了済み (2026-02-12)
+
+全ステップを Cloud Shell にて実施済み。以下は記録と、今後の再設定・ロールバック用の手順書。
+
 ## 背景
 
 リポジトリ `nekonekoganka/reservation-status` が公開設定になっている。
 Cloud Run の URL がソースコード内にハードコードされており、認証なしで誰でもアクセスできてしまう。
 
 **解決策**: Cloud Run を認証必須にし、Cloud Scheduler には OIDC トークン認証を追加する。
+
+## 実施時の注意点（実績に基づく）
+
+- `gcloud run services update --no-allow-unauthenticated` は Cloud Shell の gcloud バージョンによっては**非対応**
+- 代わりに `gcloud run services remove-iam-policy-binding` で `allUsers` を削除する方式で同等の効果を得られる
 
 ---
 
@@ -84,10 +93,18 @@ gcloud run services add-iam-policy-binding reservation-timeslot-checker-unified 
 ### Step 3: Cloud Run を認証必須に変更
 
 ```bash
-gcloud run services update reservation-timeslot-checker-unified \
+# 方法1: allUsers の権限を削除（Cloud Shell で確実に動く方式）
+gcloud run services remove-iam-policy-binding reservation-timeslot-checker-unified \
   --region=asia-northeast1 \
-  --no-allow-unauthenticated \
+  --member="allUsers" \
+  --role="roles/run.invoker" \
   --quiet
+
+# 方法2: gcloud バージョンが対応していれば（非対応の場合はエラーになる）
+# gcloud run services update reservation-timeslot-checker-unified \
+#   --region=asia-northeast1 \
+#   --no-allow-unauthenticated \
+#   --quiet
 ```
 
 ### Step 4: Cloud Scheduler 全11ジョブに OIDC 認証追加
@@ -236,9 +253,10 @@ gcloud run services logs read reservation-timeslot-checker-unified --region=asia
 ## 万が一問題が起きた場合のロールバック
 
 ```bash
-gcloud run services update reservation-timeslot-checker-unified \
+gcloud run services add-iam-policy-binding reservation-timeslot-checker-unified \
   --region=asia-northeast1 \
-  --allow-unauthenticated
+  --member="allUsers" \
+  --role="roles/run.invoker"
 ```
 
 この1コマンドで元の「認証なし」状態に即座に戻せる。

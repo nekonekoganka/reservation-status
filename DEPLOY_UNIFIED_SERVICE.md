@@ -172,7 +172,7 @@ Cloud Run は認証必須に設定されています。Cloud Scheduler からの
 
 ### 現在の設定
 
-- Cloud Run: `--no-allow-unauthenticated`（認証なしアクセスは 403 Forbidden）
+- Cloud Run: `allUsers` の `run.invoker` 権限を削除済み（認証なしアクセスは 403 Forbidden）
 - Cloud Scheduler: OIDC トークン認証を使用
 - サービスアカウント: `224924651996-compute@developer.gserviceaccount.com`（Cloud Run Invoker 権限付き）
 
@@ -189,9 +189,11 @@ HTML ページ・Android アプリ・Chrome 拡張は Cloud Storage から直接
 
 ### 再デプロイ時の注意
 
-Cloud Run を再デプロイする場合は `--no-allow-unauthenticated` を指定してください：
+Cloud Run を再デプロイする場合は `--no-allow-unauthenticated` を指定してください。
+Cloud Shell の gcloud バージョンによっては非対応の場合があるため、デプロイ後に `allUsers` 権限を手動で削除する方法でも対応可能です：
 
 ```bash
+# デプロイ（--no-allow-unauthenticated が使える場合）
 gcloud run deploy reservation-timeslot-checker-unified \
   --source . \
   --platform managed \
@@ -203,6 +205,13 @@ gcloud run deploy reservation-timeslot-checker-unified \
   --max-instances 3 \
   --min-instances 0 \
   --set-env-vars BUCKET_NAME=reservation-timeslots-fujiminohikari
+
+# 上記で --no-allow-unauthenticated がエラーになる場合は、
+# --allow-unauthenticated でデプロイ後に以下で権限を削除：
+gcloud run services remove-iam-policy-binding reservation-timeslot-checker-unified \
+  --region=asia-northeast1 \
+  --member="allUsers" \
+  --role="roles/run.invoker"
 ```
 
 ### 新しい Scheduler ジョブを追加する場合
