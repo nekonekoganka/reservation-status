@@ -113,8 +113,8 @@ Cloud Runで自動実行（タイムスロット抽出）
 - **メリット:** 完全自動、メンテナンス不要
 - **費用:** 月額 約1,050〜1,500円（統合版・2026年1月15日〜）
 - **Google Cloudプロジェクト:**
-  - プロジェクト番号: 224924651996
-  - プロジェクト ID: forward-script-470815-c5
+  - プロジェクト番号: <YOUR_PROJECT_NUMBER>
+  - プロジェクト ID: <YOUR_PROJECT_ID>
 - 詳細：[docker-timeslot-checker/README.md](docker-timeslot-checker/README.md)
 - **コスト最適化手順:** [COST_OPTIMIZATION_GUIDE.md](COST_OPTIMIZATION_GUIDE.md)
 
@@ -192,8 +192,8 @@ setInterval(checkAndHideBanner, 60000);
 - **Mobile:** Android (Kotlin 2.0, OkHttp, Coroutines)
 - **Automation:** Node.js, Puppeteer, Docker
 - **Cloud Platform:** Google Cloud Run, Cloud Scheduler, Cloud Storage
-  - プロジェクト番号: 224924651996
-  - プロジェクト ID: forward-script-470815-c5
+  - プロジェクト番号: <YOUR_PROJECT_NUMBER>
+  - プロジェクト ID: <YOUR_PROJECT_ID>
 
 ---
 
@@ -246,7 +246,7 @@ const FILE_NAME_SHIYA = 'timeslots-shiya.json';
 
 | 種類 | サービス名 | URL |
 |---|---|---|
-| **統合版** | `reservation-timeslot-checker-unified` | `https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app` |
+| **統合版** | `reservation-timeslot-checker-unified` | `<YOUR_CLOUD_RUN_URL>` |
 
 **エンドポイント:**
 - 一般予約: `/check?type=general`
@@ -629,8 +629,8 @@ Cloud Schedulerの実行頻度を時間帯・サービス別に最適化し、�
 | 視野予約 | 18:00〜6:59 | 1分間隔 | **10分間隔** |
 
 **Cloud Run URL（正しいURL）:**
-- 一般予約: `https://timeslot-checker-224924651996.asia-northeast1.run.app/check`
-- 視野予約: `https://timeslot-checker-shiya-224924651996.asia-northeast1.run.app/check`
+- 一般予約: `<YOUR_CLOUD_RUN_URL_GENERAL>/check`
+- 視野予約: `<YOUR_CLOUD_RUN_URL_SHIYA>/check`
 
 **作成したジョブ（4つ）:**
 - `reservation-timeslot-checker-job-peak`（一般予約・1分毎・7-17時）
@@ -960,12 +960,12 @@ Cloud Schedulerが古いサービス名を呼び出していたため、履歴�
 # 一般予約
 gcloud scheduler jobs update http reservation-timeslot-checker-job \
   --location=asia-northeast1 \
-  --uri="https://timeslot-checker-224924651996.asia-northeast1.run.app/check"
+  --uri="<YOUR_CLOUD_RUN_URL_GENERAL>/check"
 
 # 視野予約
 gcloud scheduler jobs update http reservation-timeslot-checker-shiya-job \
   --location=asia-northeast1 \
-  --uri="https://timeslot-checker-shiya-224924651996.asia-northeast1.run.app/check"
+  --uri="<YOUR_CLOUD_RUN_URL_SHIYA>/check"
 ```
 
 #### 📊 履歴保存機能の有効化

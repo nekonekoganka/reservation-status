@@ -1,5 +1,7 @@
 # Cloud Scheduler コスト最適化 設定手順書
 
+> **注意**: `<YOUR_PROJECT_ID>`, `<YOUR_CLOUD_RUN_URL>` は `.env` ファイルの実際の値に置き換えてください。
+
 ## 概要
 
 Cloud Runの実行頻度を時間帯・サービス別に最適化し、月額費用を削減します。
@@ -33,7 +35,7 @@ Cloud Runの実行頻度を時間帯・サービス別に最適化し、月額�
 3. プロジェクトを設定:
 
 ```bash
-gcloud config set project forward-script-470815-c5
+gcloud config set project <YOUR_PROJECT_ID>
 ```
 
 ---
@@ -61,7 +63,7 @@ gcloud scheduler jobs list --location=asia-northeast1
 
 > **注意:** 旧版（2サービス分離）の手順は統合版への移行完了に伴い削除しました。
 > 統合版の設定手順は [DEPLOY_UNIFIED_SERVICE.md](DEPLOY_UNIFIED_SERVICE.md) を参照してください。
-> Cloud Run URL: `https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app`
+> Cloud Run URL: `<YOUR_CLOUD_RUN_URL>`
 
 ---
 
@@ -139,7 +141,7 @@ gcloud run services describe reservation-timeslot-checker-unified \
 |-----|-----|
 | 2026/1/9 | 初版作成 |
 | 2026/1/10 | 初回設定実施（URLが間違っていた） |
-| 2026/1/11 | 正しいURL（timeslot-checker-224924651996）で再設定、手順書を修正 |
+| 2026/1/11 | 正しいURL（`<YOUR_CLOUD_RUN_URL>`）で再設定、手順書を修正 |
 | 2026/1/21 | 水曜日の日中を10分間隔に変更する手順を追加 |
 | 2026/1/22 | **Cloud Scheduler設定変更を実施完了**（水曜日対応） |
 | 2026/1/22 | 一般予約（午後2分/17時以降5分）・視野予約（日中5分）の最適化手順を追加 |
@@ -186,7 +188,7 @@ gcloud scheduler jobs update http timeslot-checker-unified-shiya-peak \
 # 一般予約・水曜日の日中（10分毎）
 gcloud scheduler jobs create http timeslot-checker-unified-general-wed \
   --schedule="*/10 7-17 * * 3" \
-  --uri="https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/check?type=general" \
+  --uri="<YOUR_CLOUD_RUN_URL>/check?type=general" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo" \
@@ -195,7 +197,7 @@ gcloud scheduler jobs create http timeslot-checker-unified-general-wed \
 # 視野予約・水曜日の日中（10分毎）
 gcloud scheduler jobs create http timeslot-checker-unified-shiya-wed \
   --schedule="*/10 7-17 * * 3" \
-  --uri="https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/check?type=shiya" \
+  --uri="<YOUR_CLOUD_RUN_URL>/check?type=shiya" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo" \
@@ -280,7 +282,7 @@ gcloud scheduler jobs delete timeslot-checker-unified-shiya-peak \
 # 一般予約・午前（7-12時、1分毎、水曜除く）
 gcloud scheduler jobs create http timeslot-checker-unified-general-morning \
   --schedule="*/1 7-12 * * 0-2,4-6" \
-  --uri="https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/check?type=general" \
+  --uri="<YOUR_CLOUD_RUN_URL>/check?type=general" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo" \
@@ -289,7 +291,7 @@ gcloud scheduler jobs create http timeslot-checker-unified-general-morning \
 # 一般予約・午後（13-16時、2分毎、水曜除く）
 gcloud scheduler jobs create http timeslot-checker-unified-general-afternoon \
   --schedule="*/2 13-16 * * 0-2,4-6" \
-  --uri="https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/check?type=general" \
+  --uri="<YOUR_CLOUD_RUN_URL>/check?type=general" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo" \
@@ -307,7 +309,7 @@ gcloud scheduler jobs update http timeslot-checker-unified-general-offpeak \
 # 視野予約・日中（7-17時、5分毎、水曜除く）
 gcloud scheduler jobs create http timeslot-checker-unified-shiya-daytime \
   --schedule="*/5 7-17 * * 0-2,4-6" \
-  --uri="https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/check?type=shiya" \
+  --uri="<YOUR_CLOUD_RUN_URL>/check?type=shiya" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo" \

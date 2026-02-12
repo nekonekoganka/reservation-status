@@ -1,5 +1,7 @@
 # Cloud Run統合版デプロイ作業ガイド
 
+> **注意**: `<YOUR_PROJECT_ID>`, `<YOUR_PROJECT_NUMBER>`, `<YOUR_CLOUD_RUN_URL>` は `.env` ファイルの実際の値に置き換えてください。
+
 ## 背景・目的
 
 現在、予約チェッカーが2つの別サービスとして稼働中。これを1つに統合してコスト削減する。
@@ -36,7 +38,7 @@
 ### Step 1: プロジェクト設定
 
 ```bash
-gcloud config set project forward-script-470815-c5
+gcloud config set project <YOUR_PROJECT_ID>
 ```
 
 ### Step 2: コード取得
@@ -74,10 +76,10 @@ gcloud run deploy reservation-timeslot-checker-unified \
 
 ```bash
 # 一般予約のテスト
-curl "https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/test?type=general"
+curl "<YOUR_CLOUD_RUN_URL>/test?type=general"
 
 # 視野予約のテスト
-curl "https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/test?type=shiya"
+curl "<YOUR_CLOUD_RUN_URL>/test?type=shiya"
 ```
 
 両方とも `"success": true` が返ればOK。
@@ -99,7 +101,7 @@ gcloud scheduler jobs delete monthly-summary-shiya --location=asia-northeast1 --
 # 一般予約（ピーク 7:00-17:59、1分間隔）
 gcloud scheduler jobs create http timeslot-checker-unified-general-peak \
   --schedule="*/1 7-17 * * *" \
-  --uri="https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/check?type=general" \
+  --uri="<YOUR_CLOUD_RUN_URL>/check?type=general" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo"
@@ -107,7 +109,7 @@ gcloud scheduler jobs create http timeslot-checker-unified-general-peak \
 # 一般予約（オフピーク 18:00-6:59、5分間隔）
 gcloud scheduler jobs create http timeslot-checker-unified-general-offpeak \
   --schedule="*/5 0-6,18-23 * * *" \
-  --uri="https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/check?type=general" \
+  --uri="<YOUR_CLOUD_RUN_URL>/check?type=general" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo"
@@ -115,7 +117,7 @@ gcloud scheduler jobs create http timeslot-checker-unified-general-offpeak \
 # 視野予約（ピーク 7:00-17:59、3分間隔）
 gcloud scheduler jobs create http timeslot-checker-unified-shiya-peak \
   --schedule="*/3 7-17 * * *" \
-  --uri="https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/check?type=shiya" \
+  --uri="<YOUR_CLOUD_RUN_URL>/check?type=shiya" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo"
@@ -123,7 +125,7 @@ gcloud scheduler jobs create http timeslot-checker-unified-shiya-peak \
 # 視野予約（オフピーク 18:00-6:59、10分間隔）
 gcloud scheduler jobs create http timeslot-checker-unified-shiya-offpeak \
   --schedule="*/10 0-6,18-23 * * *" \
-  --uri="https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/check?type=shiya" \
+  --uri="<YOUR_CLOUD_RUN_URL>/check?type=shiya" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo"
@@ -131,14 +133,14 @@ gcloud scheduler jobs create http timeslot-checker-unified-shiya-offpeak \
 # 月次集計（毎月1日 01:00）
 gcloud scheduler jobs create http monthly-summary-unified \
   --schedule="0 1 1 * *" \
-  --uri="https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/generate-monthly-summary?type=general" \
+  --uri="<YOUR_CLOUD_RUN_URL>/generate-monthly-summary?type=general" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo"
 
 gcloud scheduler jobs create http monthly-summary-unified-shiya \
   --schedule="5 1 1 * *" \
-  --uri="https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/generate-monthly-summary?type=shiya" \
+  --uri="<YOUR_CLOUD_RUN_URL>/generate-monthly-summary?type=shiya" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo"
@@ -174,7 +176,7 @@ Cloud Run は認証必須に設定されています。Cloud Scheduler からの
 
 - Cloud Run: `allUsers` の `run.invoker` 権限を削除済み（認証なしアクセスは 403 Forbidden）
 - Cloud Scheduler: OIDC トークン認証を使用
-- サービスアカウント: `224924651996-compute@developer.gserviceaccount.com`（Cloud Run Invoker 権限付き）
+- サービスアカウント: `<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com`（Cloud Run Invoker 権限付き）
 
 ### 認証の仕組み
 
@@ -221,12 +223,12 @@ OIDC 認証オプションを必ず付けてください：
 ```bash
 gcloud scheduler jobs create http <ジョブ名> \
   --schedule="<cron式>" \
-  --uri="https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app/<エンドポイント>" \
+  --uri="<YOUR_CLOUD_RUN_URL>/<エンドポイント>" \
   --http-method=GET \
   --location=asia-northeast1 \
   --time-zone="Asia/Tokyo" \
-  --oidc-service-account-email=224924651996-compute@developer.gserviceaccount.com \
-  --oidc-token-audience=https://reservation-timeslot-checker-unified-224924651996.asia-northeast1.run.app
+  --oidc-service-account-email=<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com \
+  --oidc-token-audience=<YOUR_CLOUD_RUN_URL>
 ```
 
 ### 認証を一括で再設定する場合
